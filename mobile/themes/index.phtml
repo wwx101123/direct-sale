@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>{$config.site_name}</title>
+    <script type="text/javascript" src="{$template_dir}js/jquery.min.js"></script>
+    <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, width=device-width">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="application-name" content="{$config.site_name}">
+    <link rel="apple-touch-icon-precomposed" href="{$template_dir}images/touch/touch-icon-iphone.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="{$template_dir}images/touch/touch-icon-ipad.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="{$template_dir}images/touch/touch-icon-iphone4.png">
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta name="author" content="www.kwanson.com">
+    <meta name="version" content="v.1.0.0">
+    <meta http-equiv="Cache-Control" content="no-cache">
+    <meta name="format-detection" content="telephone=no, address=no">
+    <link rel="stylesheet" href="{$template_dir}css/app.css">
+    <link rel="stylesheet" href="{$template_dir}css/fonts.css">
+</head>
+<body>
+{block name="loading"}
+<div class="mask" id="mask">
+    <div class="progress" id="progress">
+        <img src="{$template_dir}images/loading.gif"/>
+    </div>
+</div>
+{/block}
+{block name="header"}
+This is index.phtml header
+{/block}
+<section class="container">
+{block name="content"}
+This is index.phtml content
+{/block}
+</section>
+{block name="footer"}
+<div style="height:1rem; "></div>
+<!-- 底部菜单 -->
+<section class="menu">
+    <ul>
+        <li>
+            <a {if $active_script eq 'index.php'}class="active"{/if} href="index.php">
+                <em class="icon">&#xe601;</em><span>首页</span>
+            </a>
+        </li>
+        <li>
+            <a {if $active_script eq 'product_list.php'}class="active"{/if} href="product_list.php">
+                <em class="icon">&#xe603;</em><span>产品列表</span>
+            </a>
+        </li>
+        <li>
+            <a {if $active_script eq 'cart.php'}class="active"{/if} href="cart.php">
+                <em class="icon">&#xe602;</em><span>购物车</span>
+            </a>
+        </li>
+        <li>
+            <a {if $active_script eq 'user.php'}class="active"{/if}  href="user.php">
+                <em class="icon">&#xe604;</em><span>会员中心</span>
+            </a>
+        </li>
+    </ul>
+</section>
+{/block}
+{block name="bootstrap"}
+<script type="text/javascript">
+function bootstrap() {
+    $.post("../api/delay.php", { "opera":"collection", "product_sn":"1" }, get_data_handler, "json");
+}
+
+function get_data_handler(response) {
+    alert(response);
+    hide_mask();
+}
+</script>
+{/block}
+<script type="text/javascript">
+window.onload = function() {
+    bootstrap();
+}
+
+function hide_mask() {
+    $("#mask").hide();
+    $("#progress").hide();
+}
+
+function show_mask() {
+    $("#mask").show();
+    $("#progress").show();
+}
+</script>
+</body>
+</html>

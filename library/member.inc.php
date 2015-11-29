@@ -5,6 +5,16 @@
  * @version 1.0.0
  */
 
+
+/**
+ * 判断会员是否已登录
+ * @return boolean
+ */
+function check_member_login()
+{
+    return isset($_SESSION['account']) && !empty($_SESSION['account']);
+}
+
 /**
  * 获取会员卡号
  * @param string $prefix

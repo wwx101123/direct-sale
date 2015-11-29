@@ -11,3 +11,17 @@ $loader->includeScript($script_list);
 
 $class_list = array();
 $loader->includeClass($class_list);
+
+$token = getPOST('token');
+
+if($token)
+{
+    $token = $db->escape($token);
+    $get_account = 'select `account` from '.$db->table('member_login_logs').' where `token`=\''.$token.'\'';
+
+    $account = $db->fetchOne($get_account);
+    if($account)
+    {
+        $_SESSION['account'] = $account;
+    }
+}

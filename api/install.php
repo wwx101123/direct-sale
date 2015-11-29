@@ -61,6 +61,8 @@ $sql[] = 'create table if not exists '.$db->table('member').' (
     `wx_unionid` varchar(255),
     `wx_headimg` varchar(255),
     `level_id` int not null default \'0\',
+    `lchild` varchar(255),
+    `rchild` varchar(255),
     index(`mobile`),
     index(`email`),
     index(`wx_openid`),

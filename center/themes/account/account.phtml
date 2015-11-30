@@ -1,0 +1,161 @@
+{include file="library/header.lbi"}
+<body>
+{include file="library/navbar.lbi"}
+{include file="library/sidebar.lbi"}
+
+<!-- content -->
+<div id="content">
+    <div class="content-title">
+        <h5 class="pull-left">{$subTitle}</h5>
+        <div class="clear"></div>
+    </div>
+    <div class="adminGroup-main">
+        {if $act eq 'view'}
+        <div class="article-main-header">
+            <form action="" method="get" />
+            <fieldset>
+                <p>
+                <div class="pull-left">
+                    显示
+                    <select name="count" class="w75">
+                        <option value="10" {if $count eq 10}selected="selected"{/if}>10</option>
+                        <option value="25" {if $count eq 25}selected="selected"{/if}>25</option>
+                        <option value="50" {if $count eq 50}selected="selected"{/if}>50</option>
+                        <option value="100" {if $count eq 100}selected="selected"{/if}>100</option>
+                    </select>
+                    项结果
+                </div>
+                <div class="pull-right">
+                    <label>会员编号：</label>
+                    <input class="text-input w150" type="text" id="small-input" name="account" value="{$account}">&nbsp;
+                    <label>明细类型：</label>
+                    <select name="type">
+                        <option value="0">全部</option>
+                        <!--
+                        <option value="1" {if $type eq 1}selected="selected"{/if}>积分转出</option>
+                        <option value="2" {if $type eq 2}selected="selected"{/if}>积分转入</option>
+                        -->
+                        <option value="3" {if $type eq 3}selected="selected"{/if}>系统结算</option>
+                        <option value="4" {if $type eq 4}selected="selected"{/if}>用户充值</option>
+                        <option value="5" {if $type eq 5}selected="selected"{/if}>订单消费</option>
+                        <option value="6" {if $type eq 6}selected="selected"{/if}>奖励转换</option>
+                        <option value="7" {if $type eq 7}selected="selected"{/if}>用户提现</option>
+                    </select>&nbsp;<br/><br/>
+                    <label>起止时间：</label>
+                    <input class="text-input w150" type="text" id="begin_time" name="begin_time" value="{$begin_time}">&nbsp;
+                     至
+                    <input class="text-input w150" type="text" id="end_time" name="end_time" value="{$end_time}">&nbsp;
+                    <button type="submit" class="btn btn-default">搜索</button>
+                </div>
+                </p>
+            </fieldset>
+            </form>
+            <div class="clear"></div>
+        </div>
+        <table class="table">
+            <thead>
+            <tr>
+                <th>记录ID</th>
+                <th>会员账号</th>
+                <!--
+                <th>积分</th>
+                <th>待发积分</th>
+                -->
+                <th>推广奖励</th>
+                <th>待发奖励</th>
+                <th>账户余额</th>
+                <th>操作时间</th>
+                <th>交易类型</th>
+                <th>备注</th>
+            </tr>
+            </thead>
+            <tbody>
+            {foreach from=$account_list item=a}
+            <tr>
+                <td>{$a.id}</td>
+                <td>{$a.account}</td>
+                <!--
+                <td>{$a.integral}</td>
+                <td>{$a.integral_await}</td>
+                -->
+                <td>{$a.reward}</td>
+                <td>{$a.reward_await}</td>
+                <td>{$a.emoney}</td>
+                <td>{date('Y-m-d H:i:s', $a.add_time)}</td>
+                <td>{$LANG.account["type_{$a.type}"]}</td>
+                <td>{$a.remark}</td>
+            </tr>
+            {/foreach}
+            <tr>
+                <td colspan="10">
+                    <div class="pull-right">
+                        <div class="pages">
+                            <span>共有{$total}条，{$totalPage}页，每页显示：{$count}条</span>
+                            {if $go_first}
+                            <a href="?page=1&account={$account}&type={$type}&begin_time={$begin_time}&end_time={$end_time}&count={$count}">首页</a>
+                            {/if}
+                            {if $has_prev}
+                            <a href="?page={$page - 1}&account={$account}&type={$type}&begin_time={$begin_time}&end_time={$end_time}&count={$count}">上一页</a>
+                            {/if}
+                            {if $has_many_prev}
+                            ...
+                            {/if}
+                            {foreach from=$show_page item=pageNum}
+                            {if $pageNum eq $page}
+                            <b>{$page}</b>
+                            {else}
+                            <a href="?page={$pageNum}&account={$account}&type={$type}&begin_time={$begin_time}&end_time={$end_time}&count={$count}">{$pageNum}</a>
+                            {/if}
+                            {/foreach}
+                            {if $has_many_next}
+                            ...
+                            {/if}
+                            {if $go_last}
+                            <a href="?page={$totalPage}&account={$account}&type={$type}&begin_time={$begin_time}&end_time={$end_time}&count={$count}">末页</a>
+                            {/if}
+                            {if $has_next}
+                            <a href="?page={$page + 1}&account={$account}&type={$type}&begin_time={$begin_time}&end_time={$end_time}&count={$count}">下一页</a>
+                            {/if}
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <script type="text/javascript" src="laydate/laydate.js"></script>
+        <script type="text/javascript">
+            var start = {
+                elem: '#begin_time',
+                format: 'YYYY-MM-DD',
+                max: '9999-12-31 23:59:59', //最大日期
+                istime: false,
+                istoday: true,
+                choose: function(datas){
+                    end.min = datas; //开始日选好后，重置结束日的最小日期
+                    end.start = datas //将结束日的初始值设定为开始日
+                    end.click;
+                }
+            };
+
+            var end = {
+                elem: '#end_time',
+                format: 'YYYY-MM-DD',
+                max: '9999-12-31 23:59:59',
+                istime: false,
+                istoday: true,
+                choose: function(datas){
+                    start.max = datas; //结束日选好后，重置开始日的最大日期
+                }
+            };
+
+            laydate(start);
+            laydate(end);
+        </script>
+        {/if}
+    </div>
+</div>
+<!-- END content -->
+
+{include file="library/footer.lbi"}
+</body>
+</html>

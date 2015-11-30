@@ -1,0 +1,40 @@
+{include file="library/header.lbi"}
+<body>
+{include file="library/navbar.lbi"}
+{include file="library/sidebar.lbi"}
+<!-- content -->
+<div id="content">
+    <div class="content-title">
+        <h5 class="pull-left">修改密码</h5>
+        <div class="pull-right"><a class="btn btn-primary" href="?act=info">返回</a></div>
+        <div class="clear"></div>
+    </div>
+    <div class="basicInfo-main">
+        <form id="userSettingForm" method="post" action="">
+            <fieldset>
+                <p>
+                    <label class="l-title">原密码：</label>
+                    <input class="text-input w300" type="password" maxlength="64" id="old-password" name="old-password" value="" placeholder="">
+                </p>
+                <p>
+                    <label class="l-title">新密码：</label>
+                    <input class="text-input w300" type="password" id="new-password" name="new-password" value="">
+                </p>
+                <p class="clear">
+                    <label class="l-title">再输入一次新密码：</label>
+                    <input class="text-input w300" type="password" id="confirm-password" name="confirm-password" value="">
+                </p>
+                <p>
+                    <label class="l-title"></label>
+                    <button class="btn btn-primary" type="submit">保存</button>
+                    <input type="hidden" name="opera" value="passwd" />
+                </p>
+            </fieldset>
+        </form>
+    </div>
+</div>
+
+<!-- END content -->
+{include file="library/footer.lbi"}
+</body>
+</html>

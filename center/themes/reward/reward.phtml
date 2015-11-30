@@ -1,0 +1,274 @@
+{include file="library/header.lbi"}
+<body>
+{include file="library/navbar.lbi"}
+{include file="library/sidebar.lbi"}
+
+<!-- content -->
+<div id="content">
+    <div class="content-title">
+        <h5 class="pull-left">{$subTitle}</h5>
+        <div class="clear"></div>
+    </div>
+    <div class="adminGroup-main">
+        {if $act eq 'view'}
+        <div class="article-main-header">
+            <form action="" method="get" />
+            <fieldset>
+                <p>
+                <div class="pull-left">
+                    显示
+                    <select name="count" class="w75">
+                        <option value="10" {if $count eq 10}selected="selected"{/if}>10</option>
+                        <option value="25" {if $count eq 25}selected="selected"{/if}>25</option>
+                        <option value="50" {if $count eq 50}selected="selected"{/if}>50</option>
+                        <option value="100" {if $count eq 100}selected="selected"{/if}>100</option>
+                    </select>
+                    项结果
+                </div>
+                <div class="pull-right">
+                    <label>会员编号：</label>
+                    <input class="text-input w150" type="text" id="small-input" name="account" value="{$account}">&nbsp;
+                    <label>明细类型：</label>
+                    <select name="status">
+                        <option value="-1">全部</option>
+                        <option value="0" {if $status eq 0}selected="selected"{/if}>待发放</option>
+                        <option value="1" {if $status eq 1}selected="selected"{/if}>已发放</option>
+                    </select>
+                    <label>结算时间：</label>
+                    <input class="text-input w150" type="text" id="begin_time" name="begin_time" value="{$begin_time}">&nbsp;
+                    至
+                    <input class="text-input w150" type="text" id="end_time" name="end_time" value="{$end_time}">&nbsp;
+                    <button type="submit" class="btn btn-default">搜索</button>
+                </div>
+                </p>
+            </fieldset>
+            </form>
+            <div class="clear"></div>
+            <fieldset>
+                <div class="pull-left">
+                    <a class="btn btn-primary" href="javascript:order_export();">导出全部奖金</a>
+                    <a class="btn btn-primary" href="javascript:order_selected_export();">导出选中奖金</a>
+                    <a class="btn btn-primary" href="javascript:reward_export_stastics();">导出奖金汇总</a>
+                    <a class="btn btn-primary" href="javascript:settle();">奖金发放</a>
+                </div>
+                <div class="clear"></div>
+            </fieldset>
+        </div>
+        {/if}
+        {if $act eq 'view'}
+        <table class="table">
+            <thead>
+            <tr>
+                <th><a href="javascript:select_all();">全选</a>/<a href="javascript:deselect();">反选</a></th>
+                <th>会员账号</th>
+                <th>待发奖金</th>
+                <th>奖金状态</th>
+                <th>结算时间</th>
+                <th>发放时间</th>
+                <th>备注</th>
+            </tr>
+            </thead>
+            <tbody>
+            {foreach from=$reward_list item=reward}
+            <tr>
+                <td><input type="checkbox" name="id[]" value="{$reward.id}"/></td>
+                <td>{$reward.account}</td>
+                <td>{$reward.reward_await}</td>
+                <td>{if $reward.status eq 0}待发放{else}已发放{/if}</td>
+                <td>{date('Y-m-d H:i:s', $reward.add_time)}</td>
+                <td>{if $reward.reach_time}{date('Y-m-d H:i:s', $reward.reach_time)}{else}未发放{/if}</td>
+                <td>{$reward.remark}</td>
+            </tr>
+            {/foreach}
+            <tr>
+                <td colspan="7">
+                    <div class="pull-right">
+                        <div class="pages">
+                            <span>共有{$total}条，{$totalPage}页，每页显示：{$count}条</span>
+                            {if $go_first}
+                            <a href="?page=1&account={$account}&count={$count}&status={$status}">首页</a>
+                            {/if}
+                            {if $has_prev}
+                            <a href="?page={$page - 1}&account={$account}&count={$count}&status={$status}">上一页</a>
+                            {/if}
+                            {if $has_many_prev}
+                            ...
+                            {/if}
+                            {foreach from=$show_page item=pageNum}
+                            {if $pageNum eq $page}
+                            <b>{$page}</b>
+                            {else}
+                            <a href="?page={$pageNum}&account={$account}&count={$count}&status={$status}">{$pageNum}</a>
+                            {/if}
+                            {/foreach}
+                            {if $has_many_next}
+                            ...
+                            {/if}
+                            {if $go_last}
+                            <a href="?page={$totalPage}&account={$account}&count={$count}&status={$status}">末页</a>
+                            {/if}
+                            {if $has_next}
+                            <a href="?page={$page + 1}&account={$account}&count={$count}&status={$status}">下一页</a>
+                            {/if}
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <script type="text/javascript" src="laydate/laydate.js"></script>
+        <script type="text/javascript">
+            var start = {
+                elem: '#begin_time',
+                format: 'YYYY-MM-DD',
+                max: '9999-12-31 23:59:59', //最大日期
+                istime: false,
+                istoday: true,
+                choose: function(datas){
+                    end.min = datas; //开始日选好后，重置结束日的最小日期
+                    end.start = datas //将结束日的初始值设定为开始日
+                    end.click;
+                }
+            };
+
+            var end = {
+                elem: '#end_time',
+                format: 'YYYY-MM-DD',
+                max: '9999-12-31 23:59:59',
+                istime: false,
+                istoday: true,
+                choose: function(datas){
+                    start.max = datas; //结束日选好后，重置开始日的最大日期
+                }
+            };
+
+            laydate(start);
+            laydate(end);
+        </script>
+        <script type="text/javascript">
+            function reward_export_stastics() {
+                var form = $("<form>");
+                form.attr({
+                    "style": "display:none;",
+                    "method": "post",
+                    "action": window.location.href
+                });
+
+                var input = $("<input>");
+                input.attr({
+                    "type": "hidden",
+                    "name": "opera",
+                    "value": "stastics"
+                });
+
+                form.append(input);
+                $("html").append(form);
+                form.submit();
+            }
+
+            function settle() {
+                if(confirm("即将发放7天前结算的所有奖金，确认操作？")) {
+                    var form = $("<form>");
+                    form.attr({
+                        "style": "display:none;",
+                        "method": "post",
+                        "action": window.location.href
+                    });
+
+                    var input = $("<input>");
+                    input.attr({
+                        "type": "hidden",
+                        "name": "opera",
+                        "value": "settle"
+                    });
+
+                    form.append(input);
+                    $("html").append(form);
+                    form.submit();
+                }
+            }
+
+            function order_export() {
+                var form = $("<form>");
+                form.attr({
+                    "style":"display:none;",
+                    "method": "post",
+                    "action": window.location.href
+                });
+
+                var input = $("<input>");
+                input.attr({
+                    "type": "hidden",
+                    "name": "opera",
+                    "value": "export"
+                });
+
+                form.append(input);
+                $("html").append(form);
+                form.submit();
+            }
+
+            function order_selected_export() {
+                var order_id = "";
+
+                $("input[name='id[]']").each(function(i, e){
+                    if(e.checked) {
+                        order_id += e.value+",";
+                    }
+                });
+
+                if(order_id == "") return false;
+
+                var form = $("<form>");
+                form.attr({
+                    "style":"display:none;",
+                    "method": "post",
+                    "action": "reward.php"
+                });
+
+                var input = $("<input>");
+                input.attr({
+                    "type": "hidden",
+                    "name": "opera",
+                    "value": "export"
+                });
+
+                form.append(input);
+
+                var input = $("<input>");
+                input.attr({
+                    "type": "hidden",
+                    "name": "reward_id",
+                    "value": order_id
+                });
+
+                form.append(input);
+
+                $("html").append(form);
+                form.submit();
+            }
+
+            function select_all() {
+                $("input[name='id[]']").each(function(i, e){
+                    e.checked = true;
+                });
+            }
+
+            function deselect() {
+                $("input[name='id[]']").each(function(i, e){
+                    if(e.checked) {
+                        e.checked = false;
+                    } else {
+                        e.checked = true;
+                    }
+                });
+            }
+        </script>
+        {/if}
+    </div>
+</div>
+<!-- END content -->
+
+{include file="library/footer.lbi"}
+</body>
+</html>

@@ -1,95 +1,153 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
-    <meta charset="utf-8"/>
     <title>{$config.site_name}</title>
-    <script type="text/javascript" src="{$template_dir}js/jquery.min.js"></script>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, width=device-width">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="application-name" content="{$config.site_name}">
-    <link rel="apple-touch-icon-precomposed" href="{$template_dir}images/touch/touch-icon-iphone.png">
-    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="{$template_dir}images/touch/touch-icon-ipad.png">
-    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="{$template_dir}images/touch/touch-icon-iphone4.png">
     <meta name="description" content="">
     <meta name="keywords" content="">
     <meta name="author" content="www.kwanson.com">
     <meta name="version" content="v.1.0.0">
     <meta http-equiv="Cache-Control" content="no-cache">
     <meta name="format-detection" content="telephone=no, address=no">
+    <link rel="stylesheet" href="{$template_dir}css/common.css">
     <link rel="stylesheet" href="{$template_dir}css/app.css">
     <link rel="stylesheet" href="{$template_dir}css/fonts.css">
 </head>
-<body>
-{block name="loading"}
-<div class="mask" id="mask">
-    <div class="progress" id="progress">
-        <img src="{$template_dir}images/loading.gif"/>
+<body id="index">
+<!-- 首页头部 -->
+<header class="header">
+    <div class="logo">
+        <a href="#">嘟喷哒</a>
     </div>
-</div>
-{/block}
-{block name="header"}
-This is index.phtml header
-{/block}
-<section class="container">
-{block name="content"}
-This is index.phtml content
-{/block}
+    <div class="header_service">
+        <a href="#"><span class="icon">&#xe600;</span><em>客服</em></a>
+    </div>
+</header>
+<!-- 广告轮拨区 -->
+<section id="focus" class="focus">
+    <div class="hd">
+        <ul></ul>
+    </div>
+    <div class="bd">
+        <ul>
+            {foreach from=$cycle_ad item=ad}
+            <li><a href="{$ad.url}"><img _src="{$ad.img}" src="{$template_dir}images/blank.png" /></a></li>
+            {/foreach}
+        </ul>
+    </div>
 </section>
-{block name="footer"}
+<!-- 首页公告区 -->
+<section class="index-news clearfix">
+    <div class="index-news-l fl"></div>
+    <div id="myscroll" class="index-news-r fr">
+        <ul id="notice" class="news-title">
+            {foreach from=$notice item=n}
+            <li><a href="article_list.php?id=1">{$n.title}</a></li>
+            {/foreach}
+        </ul>
+    </div>
+</section>
+
+<!-- 专区 -->
+{foreach from=$perform_ad item=ad}
+<section class="index-floor">
+    <div class="floor-con">
+        <a href="{$ad.url}"><img src="{$ad.img}" alt="{$ad.alt}"></a>
+    </div>
+</section>
+{/foreach}
+
 <div style="height:1rem; "></div>
 <!-- 底部菜单 -->
 <section class="menu">
     <ul>
-        <li>
-            <a {if $active_script eq 'index.php'}class="active"{/if} href="index.php">
-                <em class="icon">&#xe601;</em><span>首页</span>
-            </a>
-        </li>
-        <li>
-            <a {if $active_script eq 'product_list.php'}class="active"{/if} href="product_list.php">
-                <em class="icon">&#xe603;</em><span>产品列表</span>
-            </a>
-        </li>
-        <li>
-            <a {if $active_script eq 'cart.php'}class="active"{/if} href="cart.php">
-                <em class="icon">&#xe602;</em><span>购物车</span>
-            </a>
-        </li>
-        <li>
-            <a {if $active_script eq 'user.php'}class="active"{/if}  href="user.php">
-                <em class="icon">&#xe604;</em><span>会员中心</span>
-            </a>
-        </li>
+        <li><a class="active" href="index.php"><em class="icon">&#xe601;</em><span>首页</span></a></li>
+        <li><a href="article_list.php"><em class="icon">&#xe603;</em><span>资讯列表</span></a></li>
+        <li><a href="cart.php"><em class="icon">&#xe602;</em><span>购物车</span></a></li>
+        <li><a href="user.php"><em class="icon">&#xe604;</em><span>我</span></a></li>
     </ul>
 </section>
-{/block}
-{block name="bootstrap"}
-<script type="text/javascript">
-function bootstrap() {
-    $.post("../api/delay.php", { "opera":"collection", "product_sn":"1" }, get_data_handler, "json");
-}
+<div class="cd-popup" role="alert">
+    <div class="cd-popup-container" id="message_dialog" style="display: none;">
+        <p id="dialog-message"></p>
+        <ul class="cd-buttons">
+            <li class="cd-signle-button"><a href="javascript:close_message_dialog();" id="dialog_close_btn">确认</a></li>
+        </ul>
+        <a href="javascript:close_message_dialog_cancel();" class="cd-popup-close img-replace" id="dialog_close">X</a>
+    </div>
 
-function get_data_handler(response) {
-    alert(response);
-    hide_mask();
-}
+    <div class="progressbar">
+        <img src="{$template_dir}images/loading.gif"/>
+    </div>
+</div>
+<script type="text/javascript" src="{$template_dir}js/jquery-1.11.0.min.js"></script>
+<script type="text/javascript" src="{$template_dir}js/jquery.lazyload.min.js"></script>
+<script type="text/javascript">
+    $(function() {
+        $("img.lazy").lazyload({
+            effect : "fadeIn"
+        });
+    });
 </script>
-{/block}
+<script type="text/javascript" src="{$template_dir}js/TouchSlide.1.1.js"></script>
 <script type="text/javascript">
-window.onload = function() {
-    bootstrap();
-}
+    TouchSlide({
+        slideCell:"#focus",
+        titCell:".hd ul", //开启自动分页 autoPage:true ，此时设置 titCell 为导航元素包裹层
+        mainCell:".bd ul",
+        effect:"left",
+        autoPlay:true,//自动拨放
+        autoPage:true, //自动分页
+        switchLoad:"_src" //切换加载，真实图片路径为"_src"
+    });
+</script>
+<script type="text/javascript" src="{$template_dir}js/scrolltext.js"></script>
+<script type="text/javascript">
+    var newsHeight = $(".index-news").height();
+    if(document.getElementById("notice")){
+        var scrollup = new ScrollText("notice");
+        scrollup.LineHeight =  (newsHeight ==120)?40:20;//单排文字滚动的高度
+        scrollup.Amount = 1;            //注意:子模块(LineHeight)一定要能整除Amount.
+        scrollup.Delay = 35;           //延时
+        scrollup.Start();             //文字自动滚动
+        scrollup.Direction = "down"; //文字向下滚动
+    }
+</script>
+<script type="text/javascript">
+    function change_fav() {
+        var url = "data_center.php";
+        var data = { "opera":"get_fav" };
+        $.post(url, data, change_fav_handler, "json");
+    }
 
-function hide_mask() {
-    $("#mask").hide();
-    $("#progress").hide();
-}
+    function change_fav_handler(response) {
+        if(response.error == 0) {
+            $("#fav_list").html(response.content);
+        }
+    }
+    function show_message_dialog(message) {
+        $(".cd-popup").addClass("is-visible");
+        $(".progressbar").hide();
+        $("#dialog-message").empty();
+        $("#dialog-message").append(message);
+        $("#message_dialog").show();
+    }
 
-function show_mask() {
-    $("#mask").show();
-    $("#progress").show();
-}
+    function close_message_dialog() {
+        $(".cd-popup").removeClass("is-visible");
+        $("#message_dialog").hide();
+        var phone = $('#message_dialog').find('a:eq(0)').text();
+        window.location.href="tel://"+phone;
+    }
+
+    function close_message_dialog_cancel() {
+        $(".cd-popup").removeClass("is-visible");
+        $("#message_dialog").hide();
+    }
 </script>
 </body>
 </html>

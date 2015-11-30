@@ -1,0 +1,271 @@
+{include file="library/header.lbi"}
+<body>
+{include file="library/navbar.lbi"}
+{include file="library/sidebar.lbi"}
+
+<!-- content -->
+<div id="content">
+    <div class="content-title">
+        <h5 class="pull-left">{$subTitle}</h5>
+        <div class="clear"></div>
+    </div>
+    <div class="adminGroup-main">
+        {if $act eq 'view'}
+        <div class="article-main-header">
+            <form action="" method="get" />
+            <fieldset>
+                <p>
+                <div class="pull-left">
+                    显示
+                    <select name="count" class="w75">
+                        <option value="10" {if $count eq 10}selected="selected"{/if}>10</option>
+                        <option value="25" {if $count eq 25}selected="selected"{/if}>25</option>
+                        <option value="50" {if $count eq 50}selected="selected"{/if}>50</option>
+                        <option value="100" {if $count eq 100}selected="selected"{/if}>100</option>
+                    </select>
+                    项结果
+                </div>
+                <div class="pull-right">
+                    <label>微信昵称：</label>
+                    <input class="text-input w150" type="text" id="small-input" name="nickname" value="{$nickname}">&nbsp;
+                    <label>会员编号：</label>
+                    <input class="text-input w150" type="text" id="small-input" name="account" value="{$account}">&nbsp;
+                    <button type="submit" class="btn btn-default">搜索</button>
+                </div>
+                </p>
+            </fieldset>
+            </form>
+            <div class="clear"></div>
+        </div>
+        <table class="table">
+            <thead>
+            <tr>
+                <th>会员账号</th>
+                <th>微信昵称</th>
+                <th>绑定账号</th>
+                <th>余额</th>
+                <th>推广奖励</th>
+                <th>待发奖励</th>
+<!--                <th>积分</th>-->
+                <th class="text-right">操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {foreach from=$member_list item=member}
+            <tr>
+                <td>{$member.account}</td>
+                <td>{$member.nickname}</td>
+                <td>{$member.bind_account}</td>
+                <td>{$member.emoney}</td>
+                <td>{$member.reward}</td>
+                <td>{$member.reward_await}</td>
+<!--                <td>{$member.integral}</td>-->
+                <td>
+                    {$member.operation}
+                </td>
+            </tr>
+            {/foreach}
+            <tr>
+                <td colspan="7">
+                    <div class="pull-right">
+                        <div class="pages">
+                            <span>共有{$total}条，{$totalPage}页，每页显示：{$count}条</span>
+                            {if $go_first}
+                            <a href="?page=1&count={$count}">首页</a>
+                            {/if}
+                            {if $has_prev}
+                            <a href="?page={$page - 1}&count={$count}">上一页</a>
+                            {/if}
+                            {if $has_many_prev}
+                            ...
+                            {/if}
+                            {foreach from=$show_page item=pageNum}
+                            {if $pageNum eq $page}
+                            <b>{$page}</b>
+                            {else}
+                            <a href="?page={$pageNum}&count={$count}">{$pageNum}</a>
+                            {/if}
+                            {/foreach}
+                            {if $has_many_next}
+                            ...
+                            {/if}
+                            {if $go_last}
+                            <a href="?page={$totalPage}&count={$count}">末页</a>
+                            {/if}
+                            {if $has_next}
+                            <a href="?page={$page + 1}&count={$count}">下一页</a>
+                            {/if}
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <script type="text/javascript">
+            function reset_password(account) {
+                if(account == '') {
+                    return false;
+                }
+
+                if(confirm("您确定要重置该会员的密码？")) {
+                    $.post('member.php', { "opera":"reset", "account":account }, reset_password_handler, "json");
+                    return true;
+                }
+                return false;
+            }
+
+            function reset_password_handler(response) {
+                alert(response.msg);
+            }
+        </script>
+        {/if}
+
+        {if $act eq 'network'}
+        <div id="ztree" class="ztree"></div>
+        <link type="text/css" rel="stylesheet" href="css/zTreeStyle.css"/>
+        <script type="text/javascript" src="js/jquery.ztree.core-3.5.min.js"></script>
+        <script type="text/javascript">
+            var setting = {
+                async: {
+                    enable: true,
+                    url: "member.php?act=get_node",
+                    autoParam: ["id"]
+                }
+            };
+
+
+            $(function(){
+                var t = $("#ztree");
+                t = $.fn.zTree.init(t, setting);
+            });
+        </script>
+        {/if}
+
+        <!-- 会员充值 -->
+        {if $act eq 'recharge'}
+        <form method="post">
+            <fieldset>
+                <p>
+                    <label class="l-title">会员账号：</label>
+                    {$member_info.account}
+                </p>
+                <p>
+                    <label class="l-title">微信昵称：</label>
+                    {$member_info.nickname}
+                </p>
+                <p>
+                    <label class="l-title">账户余额：</label>
+                    {$member_info.emoney}
+                </p>
+                <p>
+                    <label class="l-title">账户积分：</label>
+                    {$member_info.integral}
+                </p>
+                <p>
+                    <label class="l-title">充值金额：</label>
+                    <input class="text-input w300" type="text" id="emoney" name="emoney" placeholder="请输入充值金额" value="">
+                </p>
+                <p>
+                    <label class="l-title">充值积分：</label>
+                    <input class="text-input w300" type="text" id="integral" name="integral" placeholder="请输入充值积分" value="">
+                </p>
+                <p>
+                    <label class="l-title">备注：</label>
+                    <input class="text-input w300" type="text" id="remark" name="remark" placeholder="请输入备注" value="">
+                </p>
+                <p>
+                    <label class="l-title"></label>
+                    <input type="hidden" name="opera" value="recharge"/>
+                    <input type="hidden" name="eaccount" value="{$member_info.account}">
+                    <button class="btn btn-primary" type="submit">提交</button> &nbsp;<a href="member.php" class="btn btn-primary">返回</a>
+                </p>
+            </fieldset>
+        </form>
+        {/if}
+
+        <!-- 会员移网 -->
+        {if $act eq 'move'}
+        <form method="post" onsubmit="return flag;">
+            <fieldset>
+                <p>
+                    <label class="l-title">会员账号：</label>
+                    {$member_info.account}
+                </p>
+                <p>
+                    <label class="l-title">微信昵称：</label>
+                    {$member_info.nickname}
+                </p>
+                <p>
+                    <label class="l-title">账户余额：</label>
+                    {$member_info.emoney}
+                </p>
+                <p>
+                    <label class="l-title">账户积分：</label>
+                    {$member_info.integral}
+                </p>
+                <p>
+                    <label class="l-title">当前推荐人：</label>
+                    {$member_info.recommend.account}
+                </p>
+                <p>
+                    <label class="l-title">目标推荐人：</label>
+                    <input class="text-input w300" type="text" id="recommend" name="recommend" placeholder="目标推荐人" value="{$member_info.recommend.account}"/>
+                    <span class="red" id="recommend-error"></span>
+                    <span id="recommend-info"></span>
+                </p>
+                <p>
+                    <label class="l-title"></label>
+                    <input type="hidden" name="opera" value="move"/>
+                    <input type="hidden" name="eaccount" value="{$member_info.account}">
+                    <button class="btn btn-primary" type="submit">移网</button> &nbsp;<a href="member.php" class="btn btn-primary">返回</a>
+                </p>
+                <p>
+                    当前推荐网络:
+                    {foreach from=$path item=node name=path}
+                    {$node.nickname}[{$node.account}]
+                    {if !$smarty.foreach.path.last}
+                     -
+                    {/if}
+                    {/foreach}
+                </p>
+            </fieldset>
+        </form>
+        <script type="text/javascript">
+            var flag = true;
+            $(function(){
+                $("#recommend").blur(function() {
+                    check_account();
+                });
+            });
+            function check_account() {
+                var recommend = $("#recommend").val();
+
+                if(recommend == "") {
+                    $("#recommend-error").text("请填写目标推荐人编号");
+                    flag = false;
+                    return false;
+                }
+
+                flag = false;
+                $.post("member.php", { "opera":"check_node", "account": recommend }, check_account_handler, "json");
+            }
+
+            function check_account_handler(response) {
+                if(response.error == 0) {
+                    $("#recommend-error").text("");
+                    $("#recommend-info").text(response.msg.nickname+"["+response.msg.account+"]");
+                    flag = true;
+                } else {
+                    alert(response.msg);
+                    flag = false;
+                }
+            }
+        </script>
+        {/if}
+    </div>
+</div>
+<!-- END content -->
+
+{include file="library/footer.lbi"}
+</body>
+</html>

@@ -81,7 +81,7 @@ if('detail' == $opera)
 {
     if(check_member_login())
     {
-        $account = getPOST('account');
+        $account = $_SESSION['account'];
         $with_path = intval(getPOST('with_path'));
         $extends = intval(getPOST('extends'));
 
@@ -410,7 +410,7 @@ if('register' == $opera)
 //会员信息修改
 if('modify' == $opera)
 {
-    $account = getPOST('account');
+    $account = $_SESSION['account'];
     $name = getPOST('name');
     $mobile = getPOST('mobile');
     $email = getPOST('email');

@@ -6,7 +6,7 @@
  */
 include '../library/bootstrap.inc.php';
 
-$script_list = array('member');
+$script_list = array();
 $loader->includeScript($script_list);
 
 $class_list = array();

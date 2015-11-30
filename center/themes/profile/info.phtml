@@ -1,0 +1,42 @@
+{include file="library/header.lbi"}
+<body>
+{include file="library/navbar.lbi"}
+{include file="library/sidebar.lbi"}
+<!-- content -->
+<div id="content">
+    <div class="content-title">
+        <h5 class="pull-left">个人信息</h5>
+        <div class="pull-right"><a class="btn btn-primary" href="?act=passwd">修改密码</a></div>
+        <div class="clear"></div>
+    </div>
+    <div class="basicInfo-main">
+        <!--        <img class="avatar" src="http://tp2.sinaimg.cn/1687832373/180/5716713094/1">-->
+        <form id="userSettingForm" method="post" action="">
+            <fieldset>
+                <p>
+                    <label class="l-title">昵称：</label>
+                    <input class="text-input w300" type="text" maxlength="64" id="screenName" name="screenName" value="{$admin.name}" placeholder="请输入昵称">
+                </p>
+                <p>
+                    <label class="l-title">Email：</label>
+                    <input class="text-input w300" type="text" id="email" name="email" value="{$admin.email}">
+                </p>
+                <p class="clear">
+                    <label class="l-title">性别：</label>
+                    <input type="radio" name="sex" value="M" {if $admin.sex eq 'M'}checked="checked"{/if}/> <em>男</em> &nbsp;
+                    <input type="radio" name="sex" value="F" {if $admin.sex eq 'F'}checked="checked"{/if}/> <em>女</em>
+                </p>
+                <p>
+                    <label class="l-title"></label>
+                    <button class="btn btn-primary" type="submit">保存</button>
+                    <input type="hidden" name="opera" value="info" />
+                </p>
+            </fieldset>
+        </form>
+    </div>
+</div>
+
+<!-- END content -->
+{include file="library/footer.lbi"}
+</body>
+</html>

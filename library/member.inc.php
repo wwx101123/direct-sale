@@ -5,6 +5,142 @@
  * @version 1.0.0
  */
 
+/**
+ * 注册会员信息
+ * @param string $mobile
+ * @param string $name
+ * @param string $password
+ * @param int $parent_id
+ * @return string 会员账号
+ */
+function register_mobile($mobile, $name, $password, $parent_id = 0)
+{
+    global $db;
+    global $log;
+
+    $db->begin();
+    $member_data = array(
+        'account' => get_account(),
+        'mobile' => $mobile,
+        'password' => $password,
+        'add_time' => time(),
+        'parent_id' => $parent_id,
+        'name' => $name
+    );
+
+    if($db->autoInsert('member', array($member_data)))
+    {
+        $path = '';
+        $id = $db->get_last_id();
+        if($parent_id)
+        {
+            $get_parent_path = 'select `path` from '.$db->table('member').' where `id`='.$parent_id;
+            $path = $db->fetchOne($get_parent_path);
+        }
+
+        $path .= $id.',';
+
+        $update_data = array(
+            'path' => $path
+        );
+
+        if($db->autoUpdate('member', $update_data, '`id`='.$id))
+        {
+            $log->record_array($member_data);
+            $db->commit();
+            return $member_data['account'];
+        }
+    }
+
+    $db->rollback();
+    return false;
+}
+
+/**
+ * 注册会员
+ * @param string $openid
+ * @param string $nickname
+ * @return string 会员账号
+ */
+function register_openid($openid, $nickname, $parent_id = 0)
+{
+    global $db;
+    global $log;
+
+    $db->begin();
+    $member_data = array(
+        'account' => get_account(),
+        'wx_openid' => $openid,
+        'wx_nickname' => $nickname,
+        'name' => $nickname,
+        'add_time' => time(),
+        'parent_id' => $parent_id
+    );
+
+    if($db->autoInsert('member', array($member_data)))
+    {
+        $path = '';
+        $id = $db->get_last_id();
+
+        if($parent_id)
+        {
+            $get_parent_path = 'select `path` from '.$db->table('member').' where `id`='.$parent_id;
+            $path = $db->fetchOne($get_parent_path);
+        }
+
+        $path .= $id.',';
+
+        $update_data = array(
+            'path' => $path
+        );
+
+        if($db->autoUpdate('member', $update_data, '`id`='.$id))
+        {
+            $log->record_array($member_data);
+            $db->commit();
+            return $member_data['account'];
+        }
+    }
+
+    $db->rollback();
+    return false;
+}
+
+/**
+ * 验证密码
+ * @param $account
+ * @param $password
+ * @return bool
+ */
+function verify_password($account, $password)
+{
+    global $db;
+
+    $get_user_password = 'select `password` from '.$db->table('member').' where `account`=\''.$account.'\'';
+    $user_password = $db->fetchOne($get_user_password);
+
+    $password = md5($password.PASSWORD_END);
+
+    return $password == $user_password;
+}
+
+/**
+ * 验证超级密码
+ * @param $account
+ * @param $password
+ * @return bool
+ */
+function verify_super_password($account, $password)
+{
+    global $db;
+
+    $get_user_password = 'select `super_password` from '.$db->table('member').' where `account`=\''.$account.'\'';
+    $user_password = $db->fetchOne($get_user_password);
+
+    $password = md5($password.PASSWORD_END);
+
+    return $password == $user_password;
+}
 
 /**
  * 判断会员是否已登录

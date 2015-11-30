@@ -25,7 +25,7 @@ $loader->setConfigs($configs);
 
 $class_list = array('Logs', 'MySQL');
 $loader->includeClass($class_list);
-$script_list = array('configs','functions','lang');
+$script_list = array('configs','functions','lang', 'member', 'account');
 $loader->includeScript($script_list);
 
 $debug_mode = true;//开启此项将关闭Smarty缓存模式，并开启日志跟踪

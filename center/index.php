@@ -28,6 +28,12 @@ $error = array();
 if( 'login' == $opera ) {
     $account = trim(getPOST('account'));
     $password = trim(getPOST('password'));
+    $code = getPOST('code');
+
+    if($code != $_SESSION['code'])
+    {
+        $error['code'] = '验证码错误';
+    }
 
     if('' == $account)
     {
@@ -43,31 +49,21 @@ if( 'login' == $opera ) {
         $password = md5($password.PASSWORD_END);
     }
 
-    $checkAccount = 'select `password`,`role_id`,`name` from `'.DB_PREFIX.'admin` where `account`=\''.$account.'\' limit 1';
+    $checkAccount = 'select `password`,`role_id`,`name` from '.$db->table('admin').' where `account`=\''.$account.'\' limit 1';
     $admin = $db->fetchRow($checkAccount);
 
-    if($admin)
+    if($admin && count($error) == 0)
     {
         if($password == $admin['password'])
         {
-            $getRole = 'select `purview` from `'.DB_PREFIX.'role` where `id`='.$admin['role_id'].' limit 1';
+            $getRole = 'select `purview` from '.$db->table('role').' where `id`='.$admin['role_id'].' limit 1';
             if($role = $db->fetchRow($getRole))
             {
                 $_SESSION['purview'] = $role['purview'];
                 $_SESSION['name'] = $admin['name'];
-                $_SESSION['account'] = $account;
+                $_SESSION['admin_account'] = $account;
                 $_SESSION['card_no'] = $account;
                 $_SESSION['token'] = $account;
-                /**
-                 * 是否有微信管理权限
-                 */
-                if( check_purview('pur_wechat_manager', $role['purview']) ) {
-                    $getPublicAccount = 'select `account` from `oshop`.`wx_publicAccount` where adminUserAccount = \''.$account.'\' limit 1;';
-                    $publicAccount = $db->fetchOne($getPublicAccount);
-                    if( $publicAccount ) {
-                        $_SESSION['public_account'] = $publicAccount;
-                    }
-                }
 
                 show_system_message('登录成功', array(array('alt'=>'进入管理后台', 'link'=>'main.php')));
                 exit;
@@ -106,7 +102,7 @@ if( 'forget' == $act ) {
 if( 'logout' == $act ) {
     unset($_SESSION['purview']);
     unset($_SESSION['name']);
-    unset($_SESSION['account']);
+    unset($_SESSION['admin_account']);
 
     redirect('index.php');
 }

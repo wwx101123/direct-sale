@@ -31,15 +31,9 @@
                     <label>明细类型：</label>
                     <select name="type">
                         <option value="0">全部</option>
-                        <!--
-                        <option value="1" {if $type eq 1}selected="selected"{/if}>积分转出</option>
-                        <option value="2" {if $type eq 2}selected="selected"{/if}>积分转入</option>
-                        -->
-                        <option value="3" {if $type eq 3}selected="selected"{/if}>系统结算</option>
-                        <option value="4" {if $type eq 4}selected="selected"{/if}>用户充值</option>
-                        <option value="5" {if $type eq 5}selected="selected"{/if}>订单消费</option>
-                        <option value="6" {if $type eq 6}selected="selected"{/if}>奖励转换</option>
-                        <option value="7" {if $type eq 7}selected="selected"{/if}>用户提现</option>
+                        {foreach from=$account_type key=id item=type_item}
+                        <option value="{$id}" {if $type eq $id}selected="selected"{/if}>{$type_item}</option>
+                        {/foreach}
                     </select>&nbsp;<br/><br/>
                     <label>起止时间：</label>
                     <input class="text-input w150" type="text" id="begin_time" name="begin_time" value="{$begin_time}">&nbsp;
@@ -57,13 +51,9 @@
             <tr>
                 <th>记录ID</th>
                 <th>会员账号</th>
-                <!--
-                <th>积分</th>
-                <th>待发积分</th>
-                -->
-                <th>推广奖励</th>
-                <th>待发奖励</th>
-                <th>账户余额</th>
+                <th>奖金余额</th>
+                <th>待发奖金</th>
+                <th>电子币</th>
                 <th>操作时间</th>
                 <th>交易类型</th>
                 <th>备注</th>
@@ -74,20 +64,16 @@
             <tr>
                 <td>{$a.id}</td>
                 <td>{$a.account}</td>
-                <!--
-                <td>{$a.integral}</td>
-                <td>{$a.integral_await}</td>
-                -->
                 <td>{$a.reward}</td>
                 <td>{$a.reward_await}</td>
-                <td>{$a.emoney}</td>
+                <td>{$a.balance}</td>
                 <td>{date('Y-m-d H:i:s', $a.add_time)}</td>
-                <td>{$LANG.account["type_{$a.type}"]}</td>
+                <td>{$lang.account_type["{$a.type}"]}</td>
                 <td>{$a.remark}</td>
             </tr>
             {/foreach}
             <tr>
-                <td colspan="10">
+                <td colspan="8">
                     <div class="pull-right">
                         <div class="pages">
                             <span>共有{$total}条，{$totalPage}页，每页显示：{$count}条</span>

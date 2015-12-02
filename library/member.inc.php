@@ -22,27 +22,32 @@ function register_mobile($mobile, $name, $password, $parent_id = 0)
     $member_data = array(
         'account' => get_account(),
         'mobile' => $mobile,
-        'password' => $password,
+        'password' => md5($password.PASSWORD_END),
+        'super_password' => md5($password.PASSWORD_END),
         'add_time' => time(),
-        'parent_id' => $parent_id,
-        'name' => $name
+        'recommend_id' => $parent_id,
+        'name' => $name,
+        'level_id' => 1
     );
 
     if($db->autoInsert('member', array($member_data)))
     {
+        $update_data = array();
+
         $path = '';
         $id = $db->get_last_id();
+
         if($parent_id)
         {
-            $get_parent_path = 'select `path` from '.$db->table('member').' where `id`='.$parent_id;
-            $path = $db->fetchOne($get_parent_path);
+            $get_parent = 'select `recommend_path`,`account` from '.$db->table('member').' where `id`='.$parent_id;
+            $parent = $db->fetchRow($get_parent);
+            $path = $parent['recommend_path'];
+            $update_data['recommend'] = $parent['account'];
         }
 
         $path .= $id.',';
 
-        $update_data = array(
-            'path' => $path
-        );
+        $update_data['recommend_path'] = $path;
 
         if($db->autoUpdate('member', $update_data, '`id`='.$id))
         {
@@ -74,25 +79,28 @@ function register_openid($openid, $nickname, $parent_id = 0)
         'wx_nickname' => $nickname,
         'name' => $nickname,
         'add_time' => time(),
-        'parent_id' => $parent_id
+        'recommend_id' => $parent_id,
+        'level_id' => 1
     );
 
     if($db->autoInsert('member', array($member_data)))
     {
+        $update_data = array();
+
         $path = '';
         $id = $db->get_last_id();
 
         if($parent_id)
         {
-            $get_parent_path = 'select `path` from '.$db->table('member').' where `id`='.$parent_id;
-            $path = $db->fetchOne($get_parent_path);
+            $get_parent = 'select `recommend_path`,`account` from '.$db->table('member').' where `id`='.$parent_id;
+            $parent = $db->fetchRow($get_parent);
+            $path = $parent['recommend_path'];
+            $update_data['recommend'] = $parent['account'];
         }
 
         $path .= $id.',';
 
-        $update_data = array(
-            'path' => $path
-        );
+        $update_data['recommend_path'] = $path;
 
         if($db->autoUpdate('member', $update_data, '`id`='.$id))
         {
@@ -214,10 +222,10 @@ function get_account($prefix = 'DS', $begin = 1, $max = 999999, $step = 500)
         shuffle($range_data);
 
         $card_fill_data = array();
-        foreach($range_data as $account)
+        foreach($range_data as $_account)
         {
-            $account = account_fill_zero($account, strlen($max));
-            $card_fill_data[] = array('account'=>$prefix.$account);
+            $_account = account_fill_zero($_account, strlen($max));
+            $card_fill_data[] = array('account'=>$prefix.$_account);
         }
 
         $db->autoInsert('card_pool', $card_fill_data);

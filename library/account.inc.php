@@ -127,6 +127,74 @@ function member_account_change($account, $balance, $reward, $reward_await, $inte
 }
 
 /**
+ * 更新提现状态
+ * @param $withdraw_sn
+ * @param $status
+ * @param $operator
+ * @param $remark
+ */
+function update_withdraw($withdraw_sn, $status, $operator, $remark)
+{
+    global $db;
+
+    $get_recharge = 'select * from '.$db->table('withdraw').' where `withdraw_sn`=\''.$withdraw_sn.'\'';
+    $recharge = $db->fetchRow($get_recharge);
+
+    $recharge_status = array('status'=>$status);
+
+    if($status == 2)
+    {
+        if(!member_account_change($recharge['account'], 0, -1*$recharge['amount'], 0, 0, 0, 0, $operator, 7, $remark))
+        {
+            return false;
+        }
+    }
+
+    if($db->autoUpdate('withdraw', $recharge_status, '`withdraw_sn`=\''.$withdraw_sn.'\''))
+    {
+        add_withdraw_log($withdraw_sn, $operator, $recharge['status'], $status, $remark);
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * 更新充值状态
+ * @param $recharge_sn
+ * @param $status
+ * @param $operator
+ * @param $remark
+ */
+function update_recharge($recharge_sn, $status, $operator, $remark)
+{
+    global $db;
+
+    $get_recharge = 'select * from '.$db->table('recharge').' where `recharge_sn`=\''.$recharge_sn.'\'';
+    $recharge = $db->fetchRow($get_recharge);
+
+    $recharge_status = array('status'=>$status);
+
+    if($status == 3)
+    {
+        if(!member_account_change($recharge['account'], $recharge['amount'], 0, 0, 0, 0, 0, $operator, 1, $remark))
+        {
+            return false;
+        }
+
+        $recharge_status['pay_time'] = time();
+    }
+
+    if($db->autoUpdate('recharge', $recharge_status, '`recharge_sn`=\''.$recharge_sn.'\''))
+    {
+        add_recharge_log($recharge_sn, $operator, $recharge['status'], $status, $remark);
+        return true;
+    }
+
+    return false;
+}
+
+/**
  * 新增充值申请
  * @param $account
  * @param $amount

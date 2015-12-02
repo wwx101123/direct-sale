@@ -1,0 +1,44 @@
+{extends file="main.phtml"}
+{block name="left-area"}
+<div class="portlet">
+    <div class="portletFrame">
+        <div class="portletHeader clearFix">
+            <div class="portletHeaderFrame clearFix">
+                <div class="title">
+                    <a name="anchorf642"></a>
+                    <span>最新资讯</span>&nbsp;
+                </div>
+            </div>
+        </div>
+        <div class="portletContent">
+            <ul class="article-list">
+                {foreach from=$contents item=c}
+                <li class="article-list-item clearfix">
+                    <a href="article.php?id={$c.id}">
+                        {$c.title|escape}
+                        <span class="date fr">{date("Y-m-d", $c.add_time)}</span>
+                    </a>
+                </li>
+                {/foreach}
+            </ul>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="right-area"}
+<div class="portlet">
+    <div class="portletFrame">
+        <div class="portletHeader clearFix">
+            <div class="portletHeaderFrame clearFix">
+                <div class="title">
+                    <a name="anchorf642"></a>
+                    <span>{$content.title|escape}</span>&nbsp;
+                </div>
+            </div>
+        </div>
+        <div class="portletContent">
+            {$content.content}
+        </div>
+    </div>
+</div>
+{/block}

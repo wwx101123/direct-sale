@@ -39,7 +39,7 @@ if($opera == 'edit')
         $remark = $db->escape($remark);
     }
 
-    if(update_recharge($recharge_sn, 1, $_SESSION['account'], $remark))
+    if(update_recharge($recharge_sn, 3, $_SESSION['account'], $remark))
     {
         show_system_message('充值记录已处理', array(array('link'=>'recharge.php', 'alt'=>'充值列表')));
     } else {
@@ -146,7 +146,7 @@ if('view' == $act)
     {
         foreach ($recharge_list as $k => $r)
         {
-            if (check_purview('pur_recharge_edit', $_SESSION['purview']) && $r['status'] == 0)
+            if (check_purview('pur_recharge_edit', $_SESSION['purview']) && $r['status'] == 1)
             {
                 $recharge_list[$k]['operation'] = '<a href="recharge.php?act=edit&sn=' . $r['recharge_sn'] . '">处理</a>';
             } else {

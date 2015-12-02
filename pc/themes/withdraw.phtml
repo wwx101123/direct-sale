@@ -1,0 +1,291 @@
+{extends file="main.phtml"}
+{block name="left-area"}
+<div class="portlet">
+    <div class="portletFrame">
+        <div class="portletHeader clearFix">
+            <div class="portletHeaderFrame clearFix">
+                <div class="title">
+                    <a name="anchorf642"></a>
+                    <span>财务管理</span>&nbsp;
+                </div>
+            </div>
+        </div>
+        <div class="portletContent">
+            <ul class="article-list">
+                <li class="article-list-item clearfix">
+                    <a href="account.php">账户明细</a>
+                </li>
+                <li class="article-list-item clearfix">
+                    <a href="reward.php">奖金查看</a>
+                </li>
+                <li class="article-list-item clearfix">
+                    <a href="withdraw.php?act=add">提现申请</a>
+                </li>
+                <li class="article-list-item clearfix">
+                    <a href="withdraw.php">提现记录</a>
+                </li>
+                <li class="article-list-item clearfix">
+                    <a href="withdraw.php?act=add">账户充值</a>
+                </li>
+                <li class="article-list-item clearfix">
+                    <a href="withdraw.php">充值记录</a>
+                </li>
+                <li class="article-list-item clearfix">
+                    <a href="balance_transfer.php">余额转出</a>
+                </li>
+                <li class="article-list-item clearfix">
+                    <a href="reward_transfer.php">奖金转出</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="right-area"}
+<div class="portlet">
+    <div class="portletFrame">
+        <div class="portletHeader clearFix">
+            <div class="portletHeaderFrame clearFix">
+                <div class="title">
+                    <a name="anchorf642"></a>
+                    <span>{$sub_title}</span>&nbsp;
+                </div>
+            </div>
+        </div>
+        <div class="portletContent">
+            {if $act eq 'view'}
+            <div class="search-bar">
+                <form method="get">
+                    提现编号：<input type="text" name="withdraw_sn" value="{$withdraw_sn}" class="input-search"/>
+                    状态：<select name="status">
+                        <option value="-1">全部</option>
+                        <option value="1" {if $status eq 1}selected{/if}>待处理</option>
+                        <option value="3" {if $status eq 3}selected{/if}>已处理</option>
+                    </select>
+                    申请时间：<input type="input" class="input-search" name="begin_time" id="begin_time" value="{$begin_time}"/> 至
+                    <input type="input" class="input-search" name="end_time" id="end_time" value="{$end_time}"/>
+                    <input type="submit" name="submit" value="搜索" class="search-btn"/>
+                </form>
+            </div>
+            <table class="table">
+                <tr>
+                    <th>提现编号</th>
+                    <th>提现金额</th>
+                    <th>手续费</th>
+                    <th>申请时间</th>
+<!--                    <th>处理时间</th>-->
+                    <th>状态</th>
+                    <th>收款账号</th>
+                    <th>备注</th>
+                </tr>
+                {if $withdraw_list}
+                {foreach from=$withdraw_list item=withdraw}
+                <tr>
+                    <td>{$withdraw.withdraw_sn}</td>
+                    <td>{price_format($withdraw.amount)}</td>
+                    <td>{price_format($withdraw.fee)}</td>
+                    <td>{date('Y-m-d H:i:s', $withdraw.add_time)}</td>
+<!--                    <td>{if $withdraw.pay_time gt 0}{date('Y-m-d H:i:s', $withdraw.pay_time)}{/if}</td>-->
+                    <td>{if $withdraw.status eq 1}待处理{else}已处理{/if}</td>
+                    <td>
+                        开户行:{$withdraw.bank_name}<br/>
+                        开户人:{$withdraw.bank_account}<br/>
+                        银行卡号:{$withdraw.bank_card}
+                    </td>
+                    <td>{$withdraw.remark}</td>
+                </tr>
+                {/foreach}
+                {else}
+                <tr>
+                    <td colspan="7">
+                        暂无记录
+                    </td>
+                </tr>
+                {/if}
+            </table>
+            {include file="page.phtml"}
+            <script type="text/javascript" src="{$template_dir}js/laydate/laydate.js"></script>
+            <script type="text/javascript">
+                var start = {
+                    elem: '#begin_time',
+                    format: 'YYYY-MM-DD',
+                    max: '9999-12-31 23:59:59', //最大日期
+                    istime: false,
+                    istoday: true,
+                    choose: function(datas){
+                        end.min = datas; //开始日选好后，重置结束日的最小日期
+                        end.start = datas //将结束日的初始值设定为开始日
+                        end.click;
+                    }
+                };
+
+                var end = {
+                    elem: '#end_time',
+                    format: 'YYYY-MM-DD',
+                    max: '9999-12-31 23:59:59',
+                    istime: false,
+                    istoday: true,
+                    choose: function(datas){
+                        start.max = datas; //结束日选好后，重置开始日的最大日期
+                    }
+                };
+
+                laydate(start);
+                laydate(end);
+            </script>
+            {/if}
+            {if $act eq 'add'}
+            <p class="input-wrapper">
+                <label class="input-label fl" for="">可提现余额：</label>
+                <input type="text" class="input-text fl" value="{price_format($amount)}" readonly/>
+            </p>
+            <p class="input-wrapper">
+                <label class="input-label fl" for="reward">提现金额：</label>
+                <input type="text" class="input-text fl" name="reward" id="reward" onblur="check_fee();"/>
+            </p>
+            <p class="input-wrapper">
+                <label class="input-label fl" for="fee">手续费：</label>
+                <input type="text" class="input-text fl" name="fee" id="fee" value="0.00" readonly/>
+            </p>
+            <p class="input-wrapper">
+                <label class="input-label fl" for="bank">开户行：</label>
+                <input type="text" class="input-text fl" name="bank_name" id="bank_name" value=""/>
+            </p>
+            <p class="input-wrapper">
+                <label class="input-label fl" for="bank">开户人：</label>
+                <input type="text" class="input-text fl" name="bank_account" id="bank_account" value=""/>
+            </p>
+            <p class="input-wrapper">
+                <label class="input-label fl" for="bank">银行卡号：</label>
+                <input type="text" class="input-text fl" name="bank_card" id="bank_card" value=""/>
+            </p>
+            <p class="input-wrapper">
+                <label class="input-label fl" for="bank">二级密码：</label>
+                <input type="password" class="input-text fl" name="password" id="password" value=""/>
+            </p>
+            <p class="input-wrapper">
+                <label class="input-label fl" for="remark">备注：</label>
+                <input type="text" class="input-text fl" name="remark" id="remark"/>
+            </p>
+            <p class="input-wrapper">
+                <label class="input-label fl">&nbsp;</label>
+                <a class="input-btn" href="javascript:void(0);" id="submit-btn">
+                    提交申请<img src="{$template_dir}images/btn_loading.gif" class="btn-loading-img"/>
+                </a>
+                <input type="hidden" name="opera" value="safe_login" />
+            </p>
+            <script type="text/javascript">
+                var amount = {$amount};
+                var fee_rate = {$config.fee_rate};
+                var flag = true;
+
+                $(function() {
+                    $("#submit-btn").click(function () {
+                        do_submit();
+                    });
+                });
+
+                function check_fee() {
+                    var reward = $("#reward").val().trim();
+
+                    reward = parseFloat(reward);
+
+                    if(isNaN(reward) || reward <= 0) {
+
+                    } else {
+                        if(reward > amount) {
+
+                        } else {
+                            $("#fee").val((reward*fee_rate).toFixed(2));
+                        }
+                    }
+                }
+                /**
+                 * 这个解决方案可以作为Ajax提交表单的模板
+                 * 1、form的提交操作托管给do_submit处理;
+                 * 2、Ajax操作分为两部分，第一部分do_submit作为提交前的参数验证，第二部分do_resposne作为返回代码的处理;
+                 * 3、仅支持post方式提交表单;
+                 * 4、需要在提交按钮加入提交中的加载图片，以及遮罩层代码;
+                 **/
+                function do_submit() {
+                    //参数校验
+                    var msg = "";
+                    var password = $("#password").val().trim();
+                    var reward = $("#reward").val().trim();
+                    var remark = $("#remark").val().trim();
+                    var bank_name = $("#bank_name").val().trim();
+                    var bank_account = $("#bank_account").val().trim();
+                    var bank_card = $("#bank_card").val().trim();
+
+                    reward = parseFloat(reward);
+
+                    if(isNaN(reward) || reward <= 0) {
+                        msg += "-请输入正确的提现金额\n";
+                    } else {
+                        if(reward > amount) {
+                            msg += "-可提现金额不足\n";
+                        } else {
+                            $("#fee").val((reward*fee_rate).toFixed(2));
+                        }
+                    }
+
+                    if(bank_name == "") {
+                        msg += "-请填写开户银行\n";
+                    }
+
+                    if(bank_account == "") {
+                        msg += "-请填写开户人\n";
+                    }
+
+                    if(bank_card == "") {
+                        msg += "-请填写银行卡号\n";
+                    }
+
+                    if(password == "") {
+                        msg += "-请填写二级密码\n";
+                    }
+
+                    if(msg == "" && flag) {
+                        //启用过渡效果
+                        flag = false;
+                        show_mask("submit-btn");
+
+                        var params = { "opera":"add", "password":password, "remark":remark, "amount":reward, "bank_name":bank_name, "bank_account":bank_account, "bank_card":bank_card };
+                        var url = "{$smarty.const.API_URI}withdraw.php";
+                        $.post(url, params, do_response, "json");
+                        return true;
+                    }
+
+                    alert(msg);
+                    return false;
+                }
+
+                function do_response(result) {
+                    //关闭过渡效果
+                    flag = true;
+                    hide_mask("submit-btn");
+                    //处理返回结果
+                    if(result.errno == 0) {
+                        alert(result.errmsg);
+                        //重置当前页面
+                        window.location.reload();
+                    } else {
+                        if(result.errmsg != "") {
+                            alert(result.errmsg);
+                        }
+                        /*
+                         if(result.errmsg.length) {
+                         for(var id in result.errmsg) {
+                         $("#"+id+"-error").text(result.errmsg[id]);
+                         }
+                         }
+                         */
+                    }
+                }
+                /*----------------  Ajax end ---------------------*/
+            </script>
+            {/if}
+        </div>
+    </div>
+</div>
+{/block}

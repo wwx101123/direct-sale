@@ -27,14 +27,14 @@
                 </div>
                 <div class="pull-right">
                     <label>提现编号：</label>
-                    <input class="text-input w150" type="text" id="small-input" name="apply_sn" value="{$apply_sn}">&nbsp;
+                    <input class="text-input w150" type="text" id="small-input" name="withdraw_sn" value="{$apply_sn}">&nbsp;
                     <label>会员编号：</label>
                     <input class="text-input w150" type="text" id="small-input" name="account" value="{$account}">&nbsp;
                     <label>提现状态：</label>
                     <select name="status">
                         <option value="-1">全部</option>
-                        <option value="0" {if $status eq 0}selected="selected"{/if}>待处理</option>
-                        <option value="1" {if $status eq 1}selected="selected"{/if}>已处理</option>
+                        <option value="1" {if $status eq 1}selected="selected"{/if}>待处理</option>
+                        <option value="2" {if $status eq 2}selected="selected"{/if}>已处理</option>
                     </select><br/><br/>
                     <label>起止时间：</label>
                     <input class="text-input w150" type="text" id="begin_time" name="begin_time" value="{$begin_time}">&nbsp;
@@ -63,13 +63,13 @@
             <tbody>
             {foreach from=$withdraw_list item=withdraw}
             <tr>
-                <td>{$withdraw.apply_sn}</td>
+                <td>{$withdraw.withdraw_sn}</td>
                 <td>{$withdraw.account}</td>
                 <td>{$withdraw.amount}</td>
                 <td>{$withdraw.fee}</td>
-                <td>{date('Y-m-d H:i:s', $withdraw.apply_time)}</td>
+                <td>{date('Y-m-d H:i:s', $withdraw.add_time)}</td>
                 <td>{$withdraw.remark}</td>
-                <td>{$LANG.withdraw["status_{$withdraw.status}"]}</td>
+                <td>{if $withdraw.status eq 1}待处理{else}已处理{/if}</td>
                 <td>
                     {$withdraw.operation}
                 </td>
@@ -160,7 +160,7 @@
                 </p>
                 <p>
                     <label class="l-title">申请时间：</label>
-                    {date('Y-m-d H:i:s', $withdraw.apply_time)}
+                    {date('Y-m-d H:i:s', $withdraw.add_time)}
                 </p>
                 <p>
                     <label class="l-title">备注：</label>
@@ -179,7 +179,7 @@
                 <p>
                     <label class="l-title"></label>
                     <input type="hidden" name="opera" value="edit"/>
-                    <input type="hidden" name="ewithdraw_sn" value="{$withdraw.apply_sn}">
+                    <input type="hidden" name="ewithdraw_sn" value="{$withdraw.withdraw_sn}">
                     <button class="btn btn-primary" type="submit">设为已处理</button> &nbsp;<a href="withdraw.php" class="btn btn-primary">返回</a>
                 </p>
             </fieldset>

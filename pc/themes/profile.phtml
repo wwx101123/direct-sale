@@ -1,0 +1,364 @@
+{extends file="main.phtml"}
+{block name="left-area"}
+<div class="portlet">
+    <div class="portletFrame">
+        <div class="portletHeader clearFix">
+            <div class="portletHeaderFrame clearFix">
+                <div class="title">
+                    <a name="anchorf642"></a>
+                    <span>个人信息管理</span>&nbsp;
+                </div>
+            </div>
+        </div>
+        <div class="portletContent">
+            <ul class="article-list">
+                <li class="article-list-item clearfix">
+                    <a href="profile.php">信息修改</a>
+                </li>
+                <li class="article-list-item clearfix">
+                    <a href="profile.php?act=password">密码修改</a>
+                </li>
+                <li class="article-list-item clearfix">
+                    <a href="profile.php?act=super_password">超级密码修改</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="right-area"}
+<div class="portlet">
+    <div class="portletFrame">
+        <div class="portletHeader clearFix">
+            <div class="portletHeaderFrame clearFix">
+                <div class="title">
+                    <a name="anchorf642"></a>
+                    <span>{$sub_title}</span>&nbsp;
+                </div>
+            </div>
+        </div>
+        <div class="portletContent">
+            {if $act eq 'info'}
+            <p class="input-wrapper">
+                <label class="input-label fl" for="name">真实姓名：</label>
+                <input type="text" class="input-text fl" name="name" id="name" value="{$member_info.name}"/>
+                <span class="input-error" id="name-error"></span>
+            </p>
+            <p class="input-wrapper">
+                <label class="input-label fl" for="mobile">手机号码：</label>
+                <input type="text" class="input-text fl" name="mobile" id="mobile" value="{$member_info.mobile}"/>
+                <span class="input-error" id="mobile-error"></span>
+            </p>
+            <p class="input-wrapper">
+                <label class="input-label fl" for="email">电子邮箱：</label>
+                <input type="text" class="input-text fl" name="email" id="email" value="{$member_info.email}"/>
+                <span class="input-error" id="email-error"></span>
+            </p>
+            <p class="input-wrapper">
+                <label class="input-label fl" for="sex">性别：</label>
+                <select name="sex" id="sex">
+                    {foreach from=$lang.sex item=name key=id}
+                    <option value="{$id}" {if $id eq $member_info.sex}selected="selected"{/if}>{$name}</option>
+                    {/foreach}
+                </select>
+                <span class="input-error" id="sex-error"></span>
+            </p>
+            <p class="input-wrapper">
+                <label class="input-label fl">&nbsp;</label>
+                <input type="hidden" name="account" id="account" value="{$member_info.account}"/>
+                <a class="input-btn" href="javascript:void(0);" id="submit-btn">
+                    修改信息<img src="{$template_dir}images/btn_loading.gif" class="btn-loading-img"/>
+                </a>
+            </p>
+            <div id="mask"></div>
+            <script type="text/javascript">
+                $(function() {
+                    $("#submit-btn").click(function () {
+                        do_submit();
+                    });
+                });
+                /**
+                 * 这个解决方案可以作为Ajax提交表单的模板
+                 * 1、form的提交操作托管给do_submit处理;
+                 * 2、Ajax操作分为两部分，第一部分do_submit作为提交前的参数验证，第二部分do_resposne作为返回代码的处理;
+                 * 3、仅支持post方式提交表单;
+                 * 4、需要在提交按钮加入提交中的加载图片，以及遮罩层代码;
+                 **/
+                function do_submit() {
+                    //参数校验
+                    var flag = true;
+                    var name = $("#name").val().trim();
+                    var email = $("#email").val().trim();
+                    var mobile = $("#mobile").val().trim();
+                    var sex = $("#sex").val().trim();
+                    var account = $("#account").val().trim();
+
+                    if(name == "") {
+                        show_error_message("name", "请输入真实姓名");
+                        flag = false;
+                    } else {
+                        hide_error_message("name");
+                    }
+
+                    if(email == "") {
+                        show_error_message("email", "请填写电子邮箱");
+                        flag = false;
+                    } else {
+                        hide_error_message("email");
+                    }
+
+                    if(mobile == "") {
+                        show_error_message("mobile", "请输入手机号码");
+                        flag = false;
+                    } else {
+                        hide_error_message("mobile");
+                    }
+
+                    if(flag) {
+                        //启用过渡效果
+                        show_mask("submit-btn");
+
+                        var params = { "opera":"modify", "name":name, "mobile":mobile, "email": email, "sex":sex };
+                        var url = "{$smarty.const.API_URI}member.php";
+                        $.post(url, params, do_response, "json");
+                    }
+                }
+
+                function do_response(result) {
+                    //关闭过渡效果
+                    hide_mask("submit-btn");
+                    //处理返回结果
+                    if(result.errno == 0) {
+                        alert(result.errmsg);
+                        window.location.reload();
+                    } else {
+                        if(result.errmsg != "") {
+                            alert(result.errmsg);
+                        }
+
+                        if(result.errcontent) {
+                            for(var id in result.errcontent) {
+                                $("#"+id+"-error").text(result.errcontent[id]);
+                            }
+                        }
+                    }
+                }
+                /*----------------  Ajax end ---------------------*/
+            </script>
+            {/if}
+
+            {if $act eq 'password'}
+            <p class="input-wrapper">
+                <label class="input-label fl" for="old_password">原密码：</label>
+                <input type="password" class="input-text fl" name="old_password" id="old_password"/>
+                <span class="input-error" id="old_password-error"></span>
+            </p>
+            <p class="input-wrapper">
+                <label class="input-label fl" for="new_password">新密码：</label>
+                <input type="password" class="input-text fl" name="new_password" id="new_password"/>
+                <span class="input-error" id="new_password-error"></span>
+            </p>
+            <p class="input-wrapper">
+                <label class="input-label fl" for="con_password">确认新密码：</label>
+                <input type="password" class="input-text fl" name="con_password" id="con_password"/>
+                <span class="input-error" id="con_password-error"></span>
+            </p>
+            <p class="input-wrapper">
+                <label class="input-label fl">&nbsp;</label>
+                <input type="hidden" name="account" id="account" value="{$member_info.account}"/>
+                <a class="input-btn" href="javascript:void(0);" id="submit-btn">
+                    修改密码<img src="{$template_dir}images/btn_loading.gif" class="btn-loading-img"/>
+                </a>
+            </p>
+            <div id="mask"></div>
+            <script type="text/javascript">
+                $(function() {
+                    $("#submit-btn").click(function () {
+                        do_submit();
+                    });
+                });
+                /**
+                 * 这个解决方案可以作为Ajax提交表单的模板
+                 * 1、form的提交操作托管给do_submit处理;
+                 * 2、Ajax操作分为两部分，第一部分do_submit作为提交前的参数验证，第二部分do_resposne作为返回代码的处理;
+                 * 3、仅支持post方式提交表单;
+                 * 4、需要在提交按钮加入提交中的加载图片，以及遮罩层代码;
+                 **/
+                function do_submit() {
+                    //参数校验
+                    var flag = true;
+                    var password = $("#old_password").val().trim();
+                    var new_password = $("#new_password").val().trim();
+                    var confirm_password = $("#con_password").val().trim();
+                    var account = $("#account").val().trim();
+
+                    if(password == "") {
+                        show_error_message("old_password", "请输入原密码");
+                        flag = false;
+                    } else {
+                        hide_error_message("old_password");
+                    }
+
+                    if(confirm_password == "") {
+                        show_error_message("con_password", "请确认新密码");
+                        flag = false;
+                    } else {
+                        hide_error_message("con_password");
+                    }
+
+                    if(new_password == "") {
+                        show_error_message("new_password", "请输入新密码");
+                        flag = false;
+                    } else {
+                        hide_error_message("new_password");
+                    }
+
+                    if(new_password != '' && confirm_password != '' && new_password != confirm_password) {
+                        show_error_message("con_password", "两次输入的密码不一致");
+                        flag = false;
+                    } else {
+                        hide_error_message("con_password");
+                    }
+
+                    if(flag) {
+                        //启用过渡效果
+                        show_mask("submit-btn");
+
+                        var params = { "opera":"modify", "old_password":password, "account":account, "password": new_password };
+                        var url = "{$smarty.const.API_URI}member.php";
+                        $.post(url, params, do_response, "json");
+                    }
+                }
+
+                function do_response(result) {
+                    //关闭过渡效果
+                    hide_mask("submit-btn");
+                    //处理返回结果
+                    if(result.errno == 0) {
+                        alert(result.errmsg);
+                        window.location.reload();
+                    } else {
+                        if(result.errmsg != "") {
+                            alert(result.errmsg);
+                        }
+
+                        if(result.errcontent) {
+                            for(var id in result.errcontent) {
+                                $("#"+id+"-error").text(result.errcontent[id]);
+                            }
+                        }
+                    }
+                }
+                /*----------------  Ajax end ---------------------*/
+            </script>
+            {/if}
+
+            {if $act eq 'super_password'}
+            <p class="input-wrapper">
+                <label class="input-label fl" for="old_password">原超级密码：</label>
+                <input type="password" class="input-text fl" name="old_password" id="old_password"/>
+                <span class="input-error" id="old_password-error"></span>
+            </p>
+            <p class="input-wrapper">
+                <label class="input-label fl" for="new_password">新超级密码：</label>
+                <input type="password" class="input-text fl" name="new_password" id="new_password"/>
+                <span class="input-error" id="new_password-error"></span>
+            </p>
+            <p class="input-wrapper">
+                <label class="input-label fl" for="con_password">确认新密码：</label>
+                <input type="password" class="input-text fl" name="con_password" id="con_password"/>
+                <span class="input-error" id="con_password-error"></span>
+            </p>
+            <p class="input-wrapper">
+                <label class="input-label fl">&nbsp;</label>
+                <input type="hidden" name="account" id="account" value="{$member_info.account}"/>
+                <a class="input-btn" href="javascript:void(0);" id="submit-btn">
+                    修改超级密码<img src="{$template_dir}images/btn_loading.gif" class="btn-loading-img"/>
+                </a>
+            </p>
+            <div id="mask"></div>
+            <script type="text/javascript">
+                $(function() {
+                    $("#submit-btn").click(function () {
+                        do_submit();
+                    });
+                });
+                /**
+                 * 这个解决方案可以作为Ajax提交表单的模板
+                 * 1、form的提交操作托管给do_submit处理;
+                 * 2、Ajax操作分为两部分，第一部分do_submit作为提交前的参数验证，第二部分do_resposne作为返回代码的处理;
+                 * 3、仅支持post方式提交表单;
+                 * 4、需要在提交按钮加入提交中的加载图片，以及遮罩层代码;
+                 **/
+                function do_submit() {
+                    //参数校验
+                    var flag = true;
+                    var password = $("#old_password").val().trim();
+                    var new_password = $("#new_password").val().trim();
+                    var confirm_password = $("#con_password").val().trim();
+                    var account = $("#account").val().trim();
+
+                    if(password == "") {
+                        show_error_message("old_password", "请输入原超级密码");
+                        flag = false;
+                    } else {
+                        hide_error_message("old_password");
+                    }
+
+                    if(confirm_password == "") {
+                        show_error_message("con_password", "请确认新超级密码");
+                        flag = false;
+                    } else {
+                        hide_error_message("con_password");
+                    }
+
+                    if(new_password == "") {
+                        show_error_message("new_password", "请输入新超级密码");
+                        flag = false;
+                    } else {
+                        hide_error_message("new_password");
+                    }
+
+                    if(new_password != '' && confirm_password != '' && new_password != confirm_password) {
+                        show_error_message("con_password", "两次输入的密码不一致");
+                        flag = false;
+                    } else {
+                        hide_error_message("con_password");
+                    }
+
+                    if(flag) {
+                        //启用过渡效果
+                        show_mask("submit-btn");
+
+                        var params = { "opera":"modify", "old_password":password, "account":account, "super_password": new_password };
+                        var url = "{$smarty.const.API_URI}member.php";
+                        $.post(url, params, do_response, "json");
+                    }
+                }
+
+                function do_response(result) {
+                    //关闭过渡效果
+                    hide_mask("submit-btn");
+                    //处理返回结果
+                    if(result.errno == 0) {
+                        alert(result.errmsg);
+                        window.location.reload();
+                    } else {
+                        if(result.errmsg != "") {
+                            alert(result.errmsg);
+                        }
+
+                        if(result.errcontent) {
+                            for(var id in result.errcontent) {
+                                $("#"+id+"-error").text(result.errcontent[id]);
+                            }
+                        }
+                    }
+                }
+                /*----------------  Ajax end ---------------------*/
+            </script>
+            {/if}
+        </div>
+    </div>
+</div>
+{/block}

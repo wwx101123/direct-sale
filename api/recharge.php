@@ -11,6 +11,52 @@ $opera = check_action($operation, getPOST('opera'));
 
 $response = array('errno'=>1, 'errmsg'=>'', 'errcontent'=>array());
 
+//充值申请
+if('add' == $opera)
+{
+    $amount = floatval(getPOST('amount'));
+    $remark = trim(getPOST('remark'));
+    $bank_id = intval(getPOST('bank_id'));
+    $bank_info = null;
+
+    if($amount <= 0 || $amount%100)
+    {
+        $response['errmsg'] .= "-充值金额必须为100的整数倍\n";
+    }
+
+    if($bank_id <= 0)
+    {
+        $response['errmsg'] .= "-请选择汇款账号\n";
+    } else {
+        $get_bank_info = 'select * from ' . $db->table('bank_info') . ' where `id`='. $bank_id;
+
+        $bank_info = $db->fetchRow($get_bank_info);
+
+        if(!$bank_info)
+        {
+            $response['errmsg'] .= "-参数错误\n";
+        }
+    }
+
+    if($response['errmsg'] == '')
+    {
+        $bank_name = $bank_info['bank_name'];
+        $bank_account = $bank_info['bank_account'];
+        $bank_card = $bank_info['bank_card'];
+        $remark = $db->escape($remark);
+
+        $flag = add_recharge($_SESSION['account'], $amount, 1, '开户行:'.$bank_name.'<br/>开户人:'.$bank_account.'<br/>银行卡号:'.$bank_card, 'Bank');
+
+        if($flag)
+        {
+            $response['errmsg'] = '您的充值申请已成功提交，申请编号为'.$flag.'，请尽快安排转账汇款';
+            $response['errno'] = 0;
+        } else {
+            $response['errmsg'] = '系统繁忙，请稍后再试';
+        }
+    }
+}
+
 //微信支付方式提交充值申请
 if('wechat' == $opera)
 {

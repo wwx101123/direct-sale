@@ -12,33 +12,88 @@ back_base_init();
 $template = 'product/';
 assign('subTitle', '产品管理');
 
-$action = 'edit|add|view|delete|detail';
-$operation = 'edit|add';
+$action = 'edit|add|view|delete|detail|price';
+$operation = 'edit|add|delete|price';
 
 $act = check_action($action, getGET('act'));
 $act = ( $act == '' ) ? 'view' : $act;
 
 $opera = check_action($operation, getPOST('opera'));
 
-$get_category_list = 'select `id`,`name` from '.$db->table('category');
-$category_list = $db->fetchAll($get_category_list);
-assign('category_list', $category_list);
-
-$cat_json = array();
-foreach($category_list as $c)
+//===========================================================================
+if($opera == 'price')
 {
-    $cat_json[$c['id']] = $c['name'];
+    $response = array('error' => 1, 'msg' => '', 'errmsg' => array());
+
+    $product_sn = trim(getPOST('sn'));
+    $eid = intval(getPOST('id'));
+    $number = intval(getPOST('number'));
+    $level_id = intval(getPOST('level_id'));
+    $price = floatval(getPOST('price'));
+
+    if(empty($product_sn))
+    {
+        $response['msg'] = '参数错误';
+    } else {
+        $product_sn = $db->escape($product_sn);
+    }
+
+    if($level_id <= 0)
+    {
+        $response['msg'] = '参数错误';
+    }
+
+    if($price <= 0)
+    {
+        $response['errmsg']['price-'.$level_id] = '-价格不能小于0';
+    }
+
+    if($response['msg'] == '' && count($response['errmsg']) == 0)
+    {
+        if($eid)
+        {
+            $price_list_data = array(
+                'price' => $price,
+                'min_number' => $number
+            );
+
+            if($db->autoUpdate('price_list', $price_list_data, '`id`='.$eid))
+            {
+                $response['error'] = 0;
+                $response['msg'] = '修改价格表成功';
+            } else {
+                $response['msg'] = '系统繁忙，请稍后再试';
+            }
+        } else {
+            $get_product_id = 'select `id` from '.$db->table('product').' where `product_sn`=\''.$product_sn.'\'';
+            $price_list_data = array(
+                'product_sn' => $product_sn,
+                'product_id' => $db->fetchOne($get_product_id),
+                'price' => $price,
+                'min_number' => $number,
+                'level_id' => $level_id
+            );
+
+            if($db->autoInsert('price_list', array($price_list_data)))
+            {
+                $response['error'] = 0;
+                $response['msg'] = '新增价格成功';
+            } else {
+                $response['msg'] = '系统繁忙，请稍后再试';
+            }
+        }
+    }
+
+    echo json_encode($response);
+    exit;
 }
 
-assign('cat_json', $cat_json);
-//===========================================================================
 if($opera == 'add')
 {
     $name = getPOST('name');
     $price = floatval(getPOST('price'));
-    $integral = floatval(getPOST('integral'));
+    $pv = floatval(getPOST('pv'));
     $img = getPOST('img');
-    $integral_given = floatval(getPOST('integral_given'));
     $category_id = intval(getPOST('category_id'));
     $desc = getPOST('desc');
     $status = intval(getPOST('status'));
@@ -63,14 +118,9 @@ if($opera == 'add')
         show_system_message('产品价格不能为负数');
     }
 
-    if($integral < 0)
+    if($pv < 0)
     {
-        show_system_message('产品积分不能为负数');
-    }
-
-    if($integral_given < 0)
-    {
-        show_system_message('赠送积分不能为负数');
+        show_system_message('产品pv不能为负数');
     }
 
     $desc = $db->escape($desc);
@@ -78,8 +128,7 @@ if($opera == 'add')
     $data = array(
         'name' => $name,
         'price' => $price,
-        'integral' => $integral,
-        'integral_given' => $integral_given,
+        'pv' => $pv,
         'status' => $status,
         'desc' => $desc,
         'category_id' => $category_id,
@@ -90,7 +139,7 @@ if($opera == 'add')
     $product_sn = '';
     do
     {
-        $product_sn = 'FC'.rand(10000, 99999);
+        $product_sn = 'DS'.rand(10000, 99999);
         $check_product = 'select `product_sn` from '.$db->table('product').' where `product_sn`=\''.$product_sn.'\'';
     } while($db->fetchOne($check_product));
 
@@ -109,9 +158,9 @@ if($opera == 'edit')
     $product_sn = getPOST('eproduct_sn');
     $name = getPOST('name');
     $price = floatval(getPOST('price'));
-    $integral = floatval(getPOST('integral'));
+    $pv = floatval(getPOST('pv'));
     $img = getPOST('img');
-    $integral_given = floatval(getPOST('integral_given'));
+    $pv_given = floatval(getPOST('pv_given'));
     $category_id = intval(getPOST('category_id'));
     $desc = getPOST('desc');
     $status = intval(getPOST('status'));
@@ -136,12 +185,12 @@ if($opera == 'edit')
         show_system_message('产品价格不能为负数');
     }
 
-    if($integral < 0)
+    if($pv < 0)
     {
         show_system_message('产品积分不能为负数');
     }
 
-    if($integral_given < 0)
+    if($pv_given < 0)
     {
         show_system_message('赠送积分不能为负数');
     }
@@ -151,8 +200,7 @@ if($opera == 'edit')
     $data = array(
         'name' => $name,
         'price' => $price,
-        'integral' => $integral,
-        'integral_given' => $integral_given,
+        'pv' => $pv,
         'status' => $status,
         'desc' => $desc,
         'category_id' => $category_id,
@@ -187,6 +235,53 @@ if('edit' == $act || 'detail' == $act)
     $product = $db->fetchRow($get_product);
 
     assign('product', $product);
+}
+
+if('delete' == $act)
+{
+    $product_sn = getGET('sn');
+
+    if($product_sn == '')
+    {
+        show_system_message('参数错误');
+    } else {
+        $product_sn = $db->escape($product_sn);
+    }
+
+    if($db->autoDelete('product', '`product_sn`=\''.$product_sn.'\''))
+    {
+        show_system_message('产品删除成功');
+    } else {
+        show_system_message('系统繁忙，请稍后再试');
+    }
+}
+
+if('price' == $act)
+{
+    $product_sn = getGET('sn');
+
+    if($product_sn == '')
+    {
+        show_system_message('参数错误');
+    } else {
+        $product_sn = $db->escape($product_sn);
+    }
+
+    $get_price_list = 'select * from '.$db->table('price_list').' where `product_sn`=\''.$product_sn.'\' order by `level_id`';
+    $price_list = $db->fetchAll($get_price_list);
+
+    $price_list_json = array();
+    if($price_list)
+    {
+        foreach($price_list as $index=>$price)
+        {
+            $price_list_json[$price['level_id']] = $price;
+        }
+    }
+
+    assign('price_list', $price_list_json);
+    assign('price_list_json', json_encode($price_list_json));
+    assign('product_sn', $product_sn);
 }
 
 if('view' == $act)
@@ -244,6 +339,8 @@ if('view' == $act)
             if (check_purview('pur_product_edit', $_SESSION['purview']))
             {
                 $product_list[$k]['operation'] = '<a href="product.php?act=edit&sn=' . $r['product_sn'] . '">编辑</a>';
+                $product_list[$k]['operation'] .= ' | <a href="product.php?act=price&sn=' . $r['product_sn'] . '">价格表</a>';
+                $product_list[$k]['operation'] .= ' | <a href="product.php?act=delete&sn=' . $r['product_sn'] . '" onclick="return confirm(\'您确定要删除该产品？\');">删除</a>';
             } else {
                 $product_list[$k]['operation'] = '';
             }

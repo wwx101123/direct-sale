@@ -1,0 +1,150 @@
+{include file="library/header.lbi"}
+<body>
+{include file="library/navbar.lbi"}
+{include file="library/sidebar.lbi"}
+
+<!-- content -->
+<div id="content">
+    <div class="content-title">
+        <h5 class="pull-left">{$subTitle}</h5>
+        <div class="clear"></div>
+    </div>
+    <div class="adminGroup-main">
+        {if $act eq 'view'}
+        <div class="article-main-header">
+            <form action="" method="get" />
+            <fieldset>
+                <p>
+                <div class="pull-left">
+                    显示
+                    <select name="count" class="w75">
+                        <option value="10" {if $count eq 10}selected="selected"{/if}>10</option>
+                        <option value="25" {if $count eq 25}selected="selected"{/if}>25</option>
+                        <option value="50" {if $count eq 50}selected="selected"{/if}>50</option>
+                        <option value="100" {if $count eq 100}selected="selected"{/if}>100</option>
+                    </select>
+                    项结果
+                </div>
+                <div class="pull-right">
+                    <label>会员编号：</label>
+                    <input class="text-input w150" type="text" id="small-input" name="account" value="{$account}">&nbsp;
+                    <button type="submit" class="btn btn-default">搜索</button>
+                </div>
+                </p>
+            </fieldset>
+            </form>
+            <div class="clear"></div>
+        </div>
+        {/if}
+        {if $act eq 'view'}
+        <table class="table">
+            <thead>
+            <tr>
+                <th>发件人</th>
+                <th>收件人</th>
+                <th>留言内容</th>
+                <th>状态</th>
+                <th>留言时间</th>
+                <th class="text-right">操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {foreach from=$message_list item=message}
+            <tr>
+                <td>{$message.from}</td>
+                <td>{$message.to}</td>
+                <td>{$message.content|escape}</td>
+                <td>{if $message.status eq 0}未读{else}已读{/if}</td>
+                <td>{date('Y-m-d H:i:s', $message.add_time)}</td>
+                <td>
+                    {$message.operation}
+                </td>
+            </tr>
+            {/foreach}
+            <tr>
+                <td colspan="6">
+                    <div class="pull-right">
+                        <div class="pages">
+                            <span>共有{$total}条，{$totalPage}页，每页显示：{$count}条</span>
+                            {if $go_first}
+                            <a href="?page=1&account={$account}&count={$count}">首页</a>
+                            {/if}
+                            {if $has_prev}
+                            <a href="?page={$page - 1}&account={$account}&count={$count}">上一页</a>
+                            {/if}
+                            {if $has_many_prev}
+                            ...
+                            {/if}
+                            {foreach from=$show_page item=pageNum}
+                            {if $pageNum eq $page}
+                            <b>{$page}</b>
+                            {else}
+                            <a href="?page={$pageNum}&account={$account}&count={$count}">{$pageNum}</a>
+                            {/if}
+                            {/foreach}
+                            {if $has_many_next}
+                            ...
+                            {/if}
+                            {if $go_last}
+                            <a href="?page={$totalPage}&account={$account}&count={$count}">末页</a>
+                            {/if}
+                            {if $has_next}
+                            <a href="?page={$page + 1}&account={$account}&count={$count}">下一页</a>
+                            {/if}
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        {/if}
+
+        {if $act eq 'reply' or $act eq 'detail'}
+        <form method="post">
+            <fieldset>
+                <p>
+                    <label class="l-title">发件人：</label>
+                    {$message.from}
+                </p>
+                <p>
+                    <label class="l-title">留言内容：</label>
+                    {$message.content|escape}
+                </p>
+                <p>
+                    <label class="l-title">留言时间：</label>
+                    {date('Y-m-d H:i:s', $message.add_time)}
+                </p>
+
+                {if $act eq 'detail'}
+                <p>
+                    <label class="l-title">回复内容：</label>
+                    {$reply.content|escape}
+                </p>
+                <p>
+                    <label class="l-title">回复时间：</label>
+                    {date('Y-m-d H:i:s', $reply.add_time)}
+                </p>
+                {/if}
+
+                {if $act eq 'reply'}
+                <p>
+                    <label class="l-title">回复内容：</label>
+                    <textarea id="rcontent" name="rcontent" placeholder="回复内容" rows="5" cols="40"></textarea>
+                </p>
+                <p>
+                    <label class="l-title"></label>
+                    <input type="hidden" name="opera" value="reply"/>
+                    <input type="hidden" name="id" value="{$message.id}">
+                    <button class="btn btn-primary" type="submit">回复</button> &nbsp;<a href="message.php" class="btn btn-primary">返回</a>
+                </p>
+                {/if}
+            </fieldset>
+        </form>
+        {/if}
+    </div>
+</div>
+<!-- END content -->
+
+{include file="library/footer.lbi"}
+</body>
+</html>

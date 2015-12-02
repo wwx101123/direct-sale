@@ -39,7 +39,7 @@ if($opera == 'edit')
         $remark = $db->escape($remark);
     }
 
-    if(update_withdraw($withdraw_sn, 1, $_SESSION['account'], $remark))
+    if(update_withdraw($withdraw_sn, 2, $_SESSION['account'], $remark))
     {
         show_system_message('提现申请已处理', array(array('link'=>'withdraw.php', 'alt'=>'提现列表')));
     } else {
@@ -58,7 +58,7 @@ if('edit' == $act)
         $withdraw_sn = $db->escape($withdraw_sn);
     }
 
-    $get_withdraw = 'select * from '.$db->table('withdraw').' where `apply_sn`=\''.$withdraw_sn.'\'';
+    $get_withdraw = 'select * from '.$db->table('withdraw').' where `withdraw_sn`=\''.$withdraw_sn.'\'';
     $withdraw = $db->fetchRow($get_withdraw);
 
     assign('withdraw', $withdraw);
@@ -72,7 +72,7 @@ if('view' == $act)
     $begin_time = getGET('begin_time');
     $end_time = getGET('end_time');
     $status = getGET('status');
-    $apply_sn = getGET('apply_sn');
+    $apply_sn = getGET('withdraw_sn');
 
     $where = ' where 1 ';
 
@@ -94,7 +94,7 @@ if('view' == $act)
         $begin_time = strtotime($begin_time.' 00:00:00');
         if($begin_time)
         {
-            $where .= ' and `apply_time`>='.intval($begin_time);
+            $where .= ' and `add_time`>='.intval($begin_time);
         }
     }
 
@@ -103,14 +103,14 @@ if('view' == $act)
         $end_time = strtotime($end_time.' 23:59:59');
         if($end_time)
         {
-            $where .= ' and `apply_time`<='.intval($end_time);
+            $where .= ' and `add_time`<='.intval($end_time);
         }
     }
 
     if($apply_sn != '')
     {
         $apply_sn = $db->escape($apply_sn);
-        $where .= ' and `apply_sn`=\''.$apply_sn.'\'';
+        $where .= ' and `withdraw_sn`=\''.$apply_sn.'\'';
     }
 
     $get_total = 'select count(*) from '.$db->table('withdraw').$where;
@@ -139,7 +139,7 @@ if('view' == $act)
     assign('apply_sn', $apply_sn);
     assign('status', $status);
 
-    $get_withdraw_list = 'select * from '.$db->table('withdraw').$where.' order by `apply_time` DESC limit '.$offset.','.$count;
+    $get_withdraw_list = 'select * from '.$db->table('withdraw').$where.' order by `add_time` DESC limit '.$offset.','.$count;
 
     $withdraw_list = $db->fetchAll($get_withdraw_list);
 
@@ -147,9 +147,9 @@ if('view' == $act)
     {
         foreach ($withdraw_list as $k => $r)
         {
-            if (check_purview('pur_withdraw_edit', $_SESSION['purview']) && $r['status'] == 0)
+            if (check_purview('pur_withdraw_edit', $_SESSION['purview']) && $r['status'] == 1)
             {
-                $withdraw_list[$k]['operation'] = '<a href="withdraw.php?act=edit&sn=' . $r['apply_sn'] . '">处理</a>';
+                $withdraw_list[$k]['operation'] = '<a href="withdraw.php?act=edit&sn=' . $r['withdraw_sn'] . '">处理</a>';
             } else {
                 $withdraw_list[$k]['operation'] = '';
             }

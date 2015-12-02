@@ -1,0 +1,415 @@
+{extends file="main.phtml"}
+{block name="left-area"}
+<div class="portlet">
+    <div class="portletFrame">
+        <div class="portletHeader clearFix">
+            <div class="portletHeaderFrame clearFix">
+                <div class="title">
+                    <a name="anchorf642"></a>
+                    <span>业务管理</span>&nbsp;
+                </div>
+            </div>
+        </div>
+        <div class="portletContent">
+            <ul class="article-list">
+                <li class="article-list-item clearfix">
+                    <a href="recommend.php">注册会员</a>
+                </li>
+                <li class="article-list-item clearfix">
+                    <a href="checkout.php">产品购买</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="portletFrame">
+        <div class="portletHeader clearFix">
+            <div class="portletHeaderFrame clearFix">
+                <div class="title">
+                    <a name="anchorf642"></a>
+                    <span>账户信息</span>&nbsp;
+                </div>
+            </div>
+        </div>
+        <div class="portletContent">
+            <p class="clearfix">会员级别: {$lang.level[{$member_info.level_id}]}</p>
+            <p class="clearfix">账户余额: {price_format($member_info.balance)}</p>
+            <p class="clearfix">奖金余额: {price_format($member_info.reward)}</p>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="right-area"}
+<div class="portlet">
+    <div class="portletFrame">
+        <div class="portletHeader clearFix">
+            <div class="portletHeaderFrame clearFix">
+                <div class="title">
+                    <a name="anchorf642"></a>
+                    <span>产品选购</span>&nbsp;
+                </div>
+            </div>
+        </div>
+        <div class="portletContent">
+            <div class="container clearfix">
+                {foreach from=$product_list item=product}
+                <div class="product-item fl">
+                    <img src="{$product.img}" class="product-img clearfix"/>
+                    <p class="product-name">产品名称: {$product.name}</p>
+                    <p class="product-price">产品价格: <span class="price"> ￥{price_format($product.price)} 元</span></p>
+                    <p class="clearfix product-number">
+                        购买数量:<input type="number" name="number[{$product.id}]" id="number_{$product.id}" onblur="add_to_cart({$product.id}, this.value);"/>
+                    </p>
+                    {if $product.price_list}
+                    <p class="clearfix product-number">
+                        快捷选择:
+                        <select onchange="toogle_cart({$product.id}, this.value)">
+                            {foreach from=$product.price_list item=pc key=level_id}
+                            <option value="{$level_id}">
+                                {if $level_id eq $member_info.level_id}
+                                按当前价格购买
+                                {else}
+                                升级至{$lang.level[{$pc.level_id}]}
+                                {/if}
+                            </option>
+                            {/foreach}
+                        </select>
+                    </p>
+                    {/if}
+                </div>
+                {/foreach}
+            </div>
+        </div>
+        <div class="portletContent">
+            <div class="container clearfix">
+                您选购的产品合计：<span id="amount" class="price">￥0.00元</span>
+                &nbsp;&nbsp;<span class="input-error" id="notice"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="portletFrame">
+        <div class="portletHeader clearFix">
+            <div class="portletHeaderFrame clearFix">
+                <div class="title">
+                    <a name="anchorf642"></a>
+                    <span>收货信息</span>&nbsp;
+                </div>
+            </div>
+        </div>
+        <div class="portletContent">
+            <p class="input-wrapper">
+                <label class="input-label fl" for="consignee">收货人：</label>
+                <input type="text" class="input-text fl" name="consignee" id="consignee"/>
+                <span id="consignee-error" class="input-error fl"></span>
+            </p>
+            <p class="input-wrapper">
+                <label class="input-label fl" for="zipcode">邮政编码：</label>
+                <input type="text" class="input-text fl" name="zipcode" id="zipcode"/>
+                <span id="zipcode-error" class="input-error fl"></span>
+            </p>
+            <p class="input-wrapper">
+                <label class="input-label fl" for="address">收货地址：</label>
+                <input type="text" class="input-text fl" name="address" id="address"/>
+                <span id="address-error" class="input-error fl"></span>
+            </p>
+            <p class="input-wrapper">
+                <label class="input-label fl" for="cmobile">联系电话：</label>
+                <input type="text" class="input-text fl" name="cmobile" id="cmobile"/>
+                <span id="cmobile-error" class="input-error fl"></span>
+            </p>
+            <p class="input-wrapper">
+                <label class="input-label fl" for="password">二级密码：</label>
+                <input type="password" class="input-text fl" name="password" id="password"/>
+                <span id="password-error" class="input-error fl"></span>
+            </p>
+            <p class="input-wrapper">
+                <label class="input-label fl">&nbsp;</label>
+                <a class="input-btn" href="javascript:void(0);" id="submit-btn">
+                    提交订单<img src="{$template_dir}images/btn_loading.gif" class="btn-loading-img"/>
+                </a>
+                <input type="hidden" name="opera" value="safe_login" />
+            </p>
+        </div>
+    </div>
+</div>
+<div class="mask" id="mask">
+    <div class="message-dialog">
+        <div class="portletFrame">
+            <div class="portletHeader clearFix">
+                <div class="portletHeaderFrame clearFix">
+                    <div class="title">
+                        <a name="anchorf642"></a>
+                        <span>系统消息</span>&nbsp;
+                    </div>
+                </div>
+            </div>
+            <div class="portletContent">
+                <p id="message-content"></p>
+                <p class="input-wrapper" style="text-align: center; margin-top: 10px;">
+                    <a class="input-btn" href="javascript:hide_system_message();" id="message-close-btn">
+                        确定
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    var product_list = {$product_list_json};
+    var select_pv = 0;
+    var total_amount = 0;
+    var emoney = {$member_info.balance};
+    var flag = true;
+
+    $(function(){
+        $("#submit-btn").click(function(){
+            do_submit();
+        });
+
+        //校验收货人
+        $("#consignee").blur(function() {
+            verify_consignee();
+        });
+        //校验收货地址
+        $("#address").blur(function() {
+            verify_address();
+        })
+        //校验联系电话
+        $("#cmobile").blur(function() {
+            verify_cmobile();
+        });
+        //校验二级密码
+        $("#password").blur(function() {
+            verify_password();
+        });
+    });
+
+    function verify_password() {
+        var password = $("#password").val().trim();
+
+        if(password == "") {
+            show_error_message("password", "请填写您的二级密码");
+            return false;
+        }
+
+        hide_error_message("password");
+        return true;
+    }
+
+    function verify_cmobile() {
+        var cmobile = $("#cmobile").val().trim();
+
+        if(cmobile == "") {
+            show_error_message("cmobile", "请填写联系电话");
+            return false;
+        }
+
+        hide_error_message("cmobile");
+        return true;
+    }
+
+    function verify_address() {
+        var address = $("#address").val().trim();
+
+        if(address == "") {
+            show_error_message("address", "请填写收货地址");
+            return false;
+        }
+
+        hide_error_message("address");
+        return true;
+    }
+
+    function verify_consignee() {
+        var consignee = $("#consignee").val().trim();
+
+        if(consignee == "") {
+            show_error_message("consignee", "请填写收货人");
+            return false;
+        }
+
+        hide_error_message("consignee");
+        return true;
+    }
+
+    function toogle_cart(pid, level_id) {
+        var number = 0;
+        var pc = product_list[pid].price_list;
+
+        for(var i=1;i <= level_id; i++) {
+            if(pc[i] != undefined) {
+                number += parseInt(pc[i].min_number);
+            }
+        }
+
+        $("#number_"+pid).val(number);
+        add_to_cart(pid, number);
+    }
+
+    function add_to_cart(pid, number) {
+        number = parseInt(number);
+
+        if(isNaN(number) || number < 0) {
+            $("#number_"+pid).val("");
+            number = 0;
+        }
+
+        if(product_list[pid] != undefined) {
+            product_list[pid]["number"] = number;
+            caculate_amount();
+
+            return true;
+        }
+
+        return false;
+    }
+
+    function caculate_amount() {
+        total_amount = 0;
+
+        for(var i in product_list) {
+            if(product_list[i]["number"] >= 0 && product_list[i]["price"] > 0) {
+                total_amount += caculate_sum(i, product_list[i]["number"]);
+            } else {
+                product_list[i]["number"] = 0;
+            }
+        }
+
+        if(total_amount >= 0) {
+            $("#amount").text("￥"+total_amount.toFixed(2)+"元");
+        } else {
+            total_amount = 0;
+            select_pv = 0;
+        }
+
+        if(total_amount > emoney) {
+            alert("您的余额不足，请先充值");
+        }
+    }
+
+    function caculate_sum(pid, number) {
+        //计算梯级价格
+        var pc = product_list[pid].price_list;
+        var price = 0;
+
+        for(var i in pc) {
+            console.info('level_id='+i+',number='+number+',min_number='+pc[i].min_number+',price='+pc[i].price);
+
+            if(number > pc[i].min_number) {
+                var greater_index = ""+(parseInt(i)+1);
+                if(pc[greater_index] != undefined && number >= pc[greater_index].min_number) {
+                    console.info('greater than level up');
+                    price += pc[greater_index].price * pc[greater_index].min_number;
+                    number -= pc[greater_index].min_number;
+                } else {
+                    console.info('less than level up');
+                    price += pc[i].price * number;
+                    number  = 0;
+                }
+            } else {
+                price += pc[i].price * number;
+                number = 0;
+            }
+
+            if(number == 0) {
+                break;
+            }
+        }
+
+        return price;
+    }
+
+    function verify_name() {
+        var name = $("#name").val().trim();
+
+        if(name == "") {
+            show_error_message("name", "请填写收货人");
+            return false;
+        }
+
+        $("#consignee").val(name);
+        hide_error_message("name");
+        return true;
+    }
+
+    function verify_mobile() {
+        var mobile = $("#mobile").val().trim();
+
+        if(mobile == "") {
+            show_error_message("mobile", "请填写联系电话");
+            return false;
+        }
+
+        $("#cmobile").val(mobile);
+        hide_error_message("mobile");
+        return true;
+    }
+
+    /**
+     * 这个解决方案可以作为Ajax提交表单的模板
+     * 1、form的提交操作托管给do_submit处理;
+     * 2、Ajax操作分为两部分，第一部分do_submit作为提交前的参数验证，第二部分do_resposne作为返回代码的处理;
+     * 3、仅支持post方式提交表单;
+     * 4、需要在提交按钮加入提交中的加载图片，以及遮罩层代码;
+     **/
+    function do_submit() {
+        //参数校验
+        var param_flag = true;
+        param_flag = verify_address() && param_flag;
+        param_flag = verify_cmobile() && param_flag;
+        param_flag = verify_consignee() && param_flag;
+        param_flag = verify_password() && param_flag;
+
+        caculate_amount();
+
+        if(total_amount <= 0) {
+            param_flag = false;
+            alert("请选购产品");
+        }
+
+        if(param_flag) {
+            //启用过渡效果
+            show_mask("submit-btn");
+            flag = false;
+
+            var consignee = $("#consignee").val().trim();
+            var zipcode = $("#zipcode").val().trim();
+            var cmobile = $("#cmobile").val().trim();
+            var address = $("#address").val().trim();
+            var password = $("#password").val().trim();
+
+            var params = { "opera":"consume", "password":password, "product_list":product_list,
+                "consignee": consignee, "zipcode": zipcode,
+                "cmobile": cmobile, "address": address };
+            var url = "checkout.php";
+            $.post(url, params, do_response, "json");
+            return true;
+        }
+
+        return param_flag;
+    }
+
+    function do_response(result) {
+        //关闭过渡效果
+        hide_mask("submit-btn");
+        flag = true;
+        //处理返回结果
+        if(result.error == 0) {
+            alert(result.msg);
+            //重置当前页面
+            show_system_message(result.content);
+        } else {
+            if(result.msg != "") {
+                alert(result.msg);
+            }
+
+            if(result.errmsg.length) {
+                for(var id in result.errmsg) {
+                    $("#"+id+"-error").text(result.errmsg[id]);
+                }
+            }
+        }
+    }
+    /*----------------  Ajax end ---------------------*/
+</script>
+{/block}

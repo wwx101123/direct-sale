@@ -6,6 +6,10 @@
  * @date 2015-07-28
  */
 
+function price_format($price)
+{
+    return sprintf("%.2f", $price);
+}
 /**
  * 程序执行完处理函数
  */
@@ -330,6 +334,7 @@ function redirect($url) {
  * @return void
  */
 function back_base_init() {
+    global $config;
     //是否已登陆
     if( !check_admin_login() ) {
         show_system_message('请先登陆', array(array('link' => 'index.php', 'alt' => '登陆')));
@@ -353,49 +358,12 @@ function back_base_init() {
         }
     }
 
-    assign('menuMark', $menuMark);
+    assign('menu_mark', $menuMark);
 
     assign('is_main', $is_main);
-    assign('activeNav', $activeNav);
-    assign('pageTitle', '三级分销系统-管理后台');
+    assign('active_nav', $activeNav);
+    assign('pageTitle', $config['site_name'].'-管理后台');
     assign('currentAdmin', $_SESSION['name']);
-
-    //待处理商户数量
-    global $db;
-    $get_business_exam_count = 'select count(*) from '.$db->table('business').' where status = 1';
-    $business_exam_count = $db->fetchOne($get_business_exam_count);
-
-    $get_business_auth_count = 'select count(*) from '.$db->table('auth').' where status = 0';
-    $business_auth_count = $db->fetchOne($get_business_auth_count);
-
-    $business_deal_count = $business_auth_count + $business_exam_count;
-    assign('business_deal_count', $business_deal_count);
-
-    //待处理产品数量
-    $get_product_exam_count = 'select count(*) from '.$db->table('product').' where status = 2';
-    $product_exam_count = $db->fetchOne($get_product_exam_count);
-    assign('product_exam_count', $product_exam_count);
-
-    //待处理提现
-    $get_member_withdraw_deal_count = 'select count(*) from'.$db->table('withdraw').' where status = 0';
-    $member_withdraw_deal_count = $db->fetchOne($get_member_withdraw_deal_count);
-
-    $get_business_withdraw_deal_count = 'select count(*) from'.$db->table('business_withdraw').' where status = 0';
-    $business_withdraw_deal_count = $db->fetchOne($get_business_withdraw_deal_count);
-
-    $withdraw_deal_count = $member_withdraw_deal_count + $business_withdraw_deal_count;
-
-    //待处理充值
-    $get_recharge_deal_count = 'select count(*) from '.$db->table('recharge').' where status = 2 and `type` = 1';
-    $recharge_deal_count = $db->fetchOne($get_recharge_deal_count);
-
-    $finance_count = $withdraw_deal_count + $recharge_deal_count;
-
-    assign('member_withdraw_count', $member_withdraw_deal_count);
-    assign('business_withdraw_count', $business_withdraw_deal_count);
-    assign('withdraw_deal_count', $withdraw_deal_count);
-    assign('recharge_deal_count', $recharge_deal_count);
-    assign('finance_count', $finance_count);
 }
 
 

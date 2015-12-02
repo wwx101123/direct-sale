@@ -13,6 +13,8 @@ session_start();
 date_default_timezone_set('Asia/Shanghai');
 define('ROOT_PATH', str_replace('library/bootstrap.inc.php', '',str_replace('\\', '/', __FILE__)));
 define('BASE_DIR', str_replace($_SERVER['DOCUMENT_ROOT'], '', ROOT_PATH));
+define('API_URI', 'http://localhost/direct-sale/api/');
+define('IMG_URI', 'http://localhost/direct-sale/');
 
 if(!class_exists('AutoLoader'))
 {

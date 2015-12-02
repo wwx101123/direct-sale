@@ -63,6 +63,7 @@ $sql[] = 'create table if not exists '.$db->table('member').' (
     `scene_id` int not null default \'0\',
     `expired` int not null default \'0\',
     `ticket` varchar(255),
+    `view_network` tinyint(1) not null default \'1\',
     index(`mobile`),
     index(`email`),
     index(`wx_openid`),
@@ -116,7 +117,7 @@ $sql[] = 'create table if not exists '.$db->table('product').' (
     `product_sn` varchar(255) not null primary key,
     `name` varchar(255) not null,
     `price` decimal(18,2) not null,
-    `integral` decimal(18,2) not null,
+    `integral` decimal(18,2) not null default \'0\',
     `integral_given` decimal(18,2) not null default \'0\',
     `product_desc` text,
     `category_id` int not null,
@@ -375,6 +376,108 @@ $sql[] = 'create table if not exists '.$db->table('reward').' (
     `status` int not null default \'1\',
     `add_time` int not null,
     `solve_time` int
+) default charset=utf8;';
+
+$table[] = '栏目';
+$sql[] = 'create table if not exists '.$db->table('section').' (
+    `id` int not null auto_increment primary key,
+    `section_name` varchar(255) not null,
+    `parent_id` int not null default \'0\',
+    `path` varchar(255),
+    `keywords` varchar(255),
+    `description` varchar(255),
+    `order_view` int not null default \'50\',
+    `thumb` varchar(255),
+    `original` varchar(255)
+) default charset=utf8;';
+
+$table[] = '内容';
+$sql[] = 'create table if not exists '.$db->table('content').' (
+    `id` int not null auto_increment primary key,
+    `title` varchar(255) not null,
+    `author` varchar(255) not null,
+    `add_time` int not null,
+    `content` text,
+    `wap_content` text,
+    `last_modify` timestamp,
+    `keywords` varchar(255),
+    `description` varchar(255),
+    `thumb` varchar(255),
+    `original` varchar(255),
+    `order_view` int not null default \'50\',
+    `original_url` varchar(255),
+    `section_id` int not null,
+    `status` int not null default \'1\'
+) default charset=utf8;';
+
+$table[] = '留言';
+$sql[] = 'create table if not exists '.$db->table('message').' (
+    `id` bigint not null auto_increment primary key,
+    `from` varchar(255) not null comment \'发信人\',
+    `to` varchar(255) not null comment \'收信人\',
+    `parent_id` int not null default \'0\' comment \'留言回复\',
+    `path` text comment \'留言路径\',
+    `content` text not null comment \'留言内容\',
+    `add_time` int not null comment \'留言时间\',
+    `status` int not null default \'0\' comment \'留言状态\'
+) default charset=utf8;';
+
+$table[] = '汇款账号';
+$sql[] = 'create table if not exists '.$db->table('bank_info').' (
+    `id` bigint not null auto_increment primary key,
+    `bank_name` varchar(255) not null,
+    `bank_account` varchar(255) not null,
+    `bank_card` varchar(255) not null
+) default charset=utf8;';
+
+//微信模块
+$table[] = '微信菜单';
+$sql[] = 'create table if not exists '.$db->table('wx_menu').' (
+    `id` bigint(20) NOT NULL AUTO_INCREMENT,
+    `name` varchar(255) NOT NULL,
+    `key` varchar(255) NOT NULL,
+    `type` varchar(255) NOT NULL,
+    `parent_id` int(11) NOT NULL DEFAULT \'0\',
+    `path` varchar(255) NOT NULL,
+    PRIMARY KEY (`id`)
+) default charset=utf8;';
+
+$table[] = '微信客服';
+$sql[] = 'create table if not exists '.$db->table('wx_kf').' (
+    `id` bigint not null auto_increment unique,
+    `kf_account` varchar(255) not null,
+    `nickname` varchar(255) not null,
+    `password` varchar(255) not null,
+    `headimg` varchar(255)
+) default charset=utf8;';
+
+$table[] = '回复规则';
+$sql[] = 'create table if not exists '.$db->table('wx_rule').' (
+    `id` bigint(20) NOT NULL AUTO_INCREMENT,
+    `enabled` tinyint(1) NOT NULL DEFAULT \'1\',
+    `rule` varchar(255) NOT NULL,
+    `match_mode` int(11) NOT NULL DEFAULT \'0\',
+    `response_id` int(11) NOT NULL,
+    `order_view` int(11) NOT NULL DEFAULT \'50\',
+    `is_default` tinyint(1) NOT NULL DEFAULT \'0\',
+    `name` varchar(255) NOT NULL,
+    PRIMARY KEY (`id`)
+) default charset=utf8;';
+
+$table[] = '回复内容';
+$sql[] = 'create table if not exists '.$db->table('wx_response').' (
+    `id` bigint(20) NOT NULL AUTO_INCREMENT,
+    `msgType` varchar(255) NOT NULL,
+    `content` text,
+    `title` text,
+    `description` text,
+    `musicUrl` varchar(255) DEFAULT NULL,
+    `HQMusicUrl` varchar(255) DEFAULT NULL,
+    `url` text,
+    `picUrl` text,
+    `mediaId` int(11) DEFAULT NULL,
+    `thumbMediaId` int(11) DEFAULT NULL,
+    PRIMARY KEY (`id`)
 ) default charset=utf8;';
 
 foreach($table as $index=>$tb_name)

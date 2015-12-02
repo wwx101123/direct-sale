@@ -12,104 +12,14 @@ back_base_init();
 $template = 'member/';
 assign('subTitle', '会员管理');
 
-$action = 'edit|add|view|delete|recharge|network|get_node|move';
-$operation = 'edit|add|recharge|reset|move|check_node';
+$action = 'edit|add|view|delete|recharge|network|get_node';
+$operation = 'edit|add|reset|lock|unlock|frozen|release|open_network|close_network';
 
 $act = check_action($action, getGET('act'));
 $act = ( $act == '' ) ? 'view' : $act;
 
 $opera = check_action($operation, getPOST('opera'));
 //===========================================================================
-//会员移网
-if('move' == $opera)
-{
-    $account = getPOST('eaccount');
-    $recommend = trim(getPOST('recommend'));
-
-    $msg = '';
-
-    if($account == '')
-    {
-        show_system_message('参数错误');
-        exit;
-    } else {
-        $account = $db->escape($account);
-    }
-
-    if($recommend == '')
-    {
-        $msg .= '-请填写目标推荐人<br/>';
-    } else {
-        $recommend = $db->escape($recommend);
-    }
-
-    if($msg == '')
-    {
-        $get_member = 'select `id`,`parent_id`,`path` from '.$db->table('user').' where `account`=\''.$account.'\'';
-        $member = $db->fetchRow($get_member);
-
-        $get_parent_info = 'select `id`,`path` from '.$db->table('user').' where `account`=\''.$recommend.'\'';
-        $parent_info = $db->fetchRow($get_parent_info);
-
-        if(!$parent_info)
-        {
-            show_system_message('推荐人不存在');
-        } else {
-            if($parent_info['id'] == $member['parent_id'])
-            {
-                show_system_message('移网成功');
-            } else {
-                $member_data = array(
-                    'parent_id' => $parent_info['id']
-                );
-
-                if($db->autoUpdate('user', $member_data, '`account`=\''.$account.'\''))
-                {
-                    $new_path = $parent_info['path'] . $member['id'] . ',';
-                    $sql = 'update ' . $db->table('user') . ' set `path`=replace(`path`,\'' . $member['path'] . '\', \'' . $new_path . '\') where `path` like \'' . $member['path'] . '%\'';
-                    $db->update($sql);
-                    show_system_message('移网成功');
-                } else {
-                    show_system_message('系统繁忙，请稍后再试');
-                }
-            }
-        }
-    } else {
-        show_system_message($msg);
-    }
-}
-//检查结点
-if('check_node' == $opera)
-{
-    $response = array('error' => 1, 'msg' => '');
-
-    $account = trim(getPOST('account'));
-
-    if($account == '')
-    {
-        $response['msg'] = '参数错误';
-    } else {
-        $account = $db->escape($account);
-    }
-
-    if($response['msg'] == '')
-    {
-        $check_account = 'select `account`,`nickname` from '.$db->table('user').' where `account`=\''.$account.'\'';
-
-        $member = $db->fetchRow($check_account);
-
-        if($db->fetchRow($check_account))
-        {
-            $response['error'] = 0;
-            $response['msg'] = $member;
-        } else {
-            $response['msg'] = '推荐人不存在';
-        }
-    }
-
-    echo json_encode($response);
-    exit;
-}
 //重置密码
 if('reset' == $opera)
 {
@@ -127,13 +37,14 @@ if('reset' == $opera)
     if($response['msg'] == '')
     {
         $data = array(
-            'password' => md5('123456'.PASSWORD_END)
+            'password' => md5('123456'.PASSWORD_END),
+            'super_password' => md5('123456'.PASSWORD_END)
         );
 
-        if($db->autoUpdate('user', $data, '`account`=\''.$account.'\''))
+        if($db->autoUpdate('member', $data, '`account`=\''.$account.'\''))
         {
             $response['error'] = 0;
-            $response['msg'] = '重置密码成功';
+            $response['msg'] = '密码已重置为123456';
         } else {
             $response['msg'] = '系统繁忙，请稍后再试';
         }
@@ -142,115 +53,323 @@ if('reset' == $opera)
     echo json_encode($response);
     exit;
 }
-//会员充值
-if('recharge' == $opera)
+
+//修改会员信息
+if('edit' == $opera)
 {
-    $account = getPOST('eaccount');
-    $integral = floatval(getPOST('integral'));
-    $emoney = floatval(getPOST('emoney'));
-    $remark = getPOST('remark');
+    $account = trim(getPOST('eaccount'));
+    $name = trim(getPOST('name'));
+    $mobile = trim(getPOST('mobile'));
+    $level_id = intval(getPOST('level_id'));
 
     $msg = '';
 
     if($account == '')
     {
-        show_system_message('参数错误');
-        exit;
+        $msg .= '-参数错误<br/>';
     } else {
         $account = $db->escape($account);
     }
 
-    if($integral <= 0 || $emoney <= 0)
+    if($mobile == '')
     {
-        $msg .= '-请填写充值金额/充值积分<br/>';
+        $msg .= '-请填写会员手机<br/>';
+    } else {
+        $mobile = $db->escape($mobile);
     }
 
-    if($remark == '')
+    if($name == '')
     {
-        $msg .= '-请填写备注信息<br/>';
+        $msg .= '-请填写会员姓名<br/>';
+    } else {
+        $name = $db->escape($name);
+    }
+
+    if($level_id <= 0)
+    {
+        $msg .= '-请选择会员等级<br/>';
+    } else {
+        $get_member_info = 'select `level_id` from '.$db->table('member').' where `account`=\''.$account.'\'';
+        $m_level_id = $db->fetchOne($get_member_info);
+
+        if($m_level_id > $level_id)
+        {
+            $msg .= '-会员不能降级<br/>';
+        }
     }
 
     if($msg == '')
     {
-        if (add_member_account($account, $_SESSION['account'], 4, $integral, 0, 0, 0, $emoney, $remark))
+        $member_data = array(
+            'name' => $name,
+            'level_id' => $level_id,
+            'mobile' => $mobile
+        );
+
+        if($db->autoUpdate('member', $member_data, '`account`=\''.$account.'\''))
         {
-            show_system_message('充值成功');
-        } else {
-            show_system_message('系统繁忙');
+            $log->record('会员'.$account.'修改级别:'.$m_level_id.'=>'.$level_id);
+            show_system_message('修改会员信息成功');
         }
     } else {
         show_system_message($msg);
     }
 }
 
-//修改会员信息
-if('edit' == $opera)
+//开启查看网络
+if('open_network' == $opera)
 {
+    $response = array('error' => 1, 'msg' => '');
+
+    $account = getPOST('account');
+
+    if($account == '')
+    {
+        $response['msg'] = '参数错误';
+    } else {
+        $account = $db->escape($account);
+    }
+
+    if($response['msg'] == '')
+    {
+        $data = array(
+            'view_network' => 1
+        );
+
+        if($db->autoUpdate('member', $data, '`account`=\''.$account.'\''))
+        {
+            $response['error'] = 0;
+            $response['msg'] = '开启网络图成功';
+        } else {
+            $response['msg'] = '系统繁忙，请稍后再试';
+        }
+    }
+
+    echo json_encode($response);
+    exit;
+}
+
+//关闭查看网络
+if('close_network' == $opera)
+{
+    $response = array('error' => 1, 'msg' => '');
+
+    $account = getPOST('account');
+
+    if($account == '')
+    {
+        $response['msg'] = '参数错误';
+    } else {
+        $account = $db->escape($account);
+    }
+
+    if($response['msg'] == '')
+    {
+        $data = array(
+            'view_network' => 0
+        );
+
+        if($db->autoUpdate('member', $data, '`account`=\''.$account.'\''))
+        {
+            $response['error'] = 0;
+            $response['msg'] = '禁止网络图成功';
+        } else {
+            $response['msg'] = '系统繁忙，请稍后再试';
+        }
+    }
+
+    echo json_encode($response);
+    exit;
+}
+
+//冻结账户
+if('frozen' == $opera)
+{
+    $response = array('error' => 1, 'msg' => '');
+
+    $account = getPOST('account');
+
+    if($account == '')
+    {
+        $response['msg'] = '参数错误';
+    } else {
+        $account = $db->escape($account);
+    }
+
+    if($response['msg'] == '')
+    {
+        $data = array(
+            'status' => 4
+        );
+
+        if($db->autoUpdate('member', $data, '`account`=\''.$account.'\''))
+        {
+            $response['error'] = 0;
+            $response['msg'] = '冻结账户成功';
+        } else {
+            $response['msg'] = '系统繁忙，请稍后再试';
+        }
+    }
+
+    echo json_encode($response);
+    exit;
+}
+
+//解冻账户
+if('release' == $opera)
+{
+    $response = array('error' => 1, 'msg' => '');
+
+    $account = getPOST('account');
+
+    if($account == '')
+    {
+        $response['msg'] = '参数错误';
+    } else {
+        $account = $db->escape($account);
+    }
+
+    if($response['msg'] == '')
+    {
+        $data = array(
+            'status' => 2
+        );
+
+        if($db->autoUpdate('member', $data, '`account`=\''.$account.'\''))
+        {
+            $response['error'] = 0;
+            $response['msg'] = '解冻账户成功';
+        } else {
+            $response['msg'] = '系统繁忙，请稍后再试';
+        }
+    }
+
+    echo json_encode($response);
+    exit;
 }
 
 //锁定账户
 if('lock' == $opera)
 {
+    $response = array('error' => 1, 'msg' => '');
+
+    $account = getPOST('account');
+
+    if($account == '')
+    {
+        $response['msg'] = '参数错误';
+    } else {
+        $account = $db->escape($account);
+    }
+
+    if($response['msg'] == '')
+    {
+        $data = array(
+            'status' => 1
+        );
+
+        if($db->autoUpdate('member', $data, '`account`=\''.$account.'\''))
+        {
+            $response['error'] = 0;
+            $response['msg'] = '锁定账户成功';
+        } else {
+            $response['msg'] = '系统繁忙，请稍后再试';
+        }
+    }
+
+    echo json_encode($response);
+    exit;
 }
 
 //解锁账户
 if('unlock' == $opera)
 {
+    $response = array('error' => 1, 'msg' => '');
+
+    $account = getPOST('account');
+
+    if($account == '')
+    {
+        $response['msg'] = '参数错误';
+    } else {
+        $account = $db->escape($account);
+    }
+
+    if($response['msg'] == '')
+    {
+        $data = array(
+            'status' => 2
+        );
+
+        if($db->autoUpdate('member', $data, '`account`=\''.$account.'\''))
+        {
+            $response['error'] = 0;
+            $response['msg'] = '解锁账户成功';
+        } else {
+            $response['msg'] = '系统繁忙，请稍后再试';
+        }
+    }
+
+    echo json_encode($response);
+    exit;
 }
 
 //删除会员
-if('delete' == $act)
+if('delete' == $opera)
 {
-    $account = getGET('account');
-
-    $get_member_info = 'select * from '.$db->table('user').' where `account`=\''.$account.'\'';
-
-    $member_info = $db->fetchRow($get_member_info);
-
-    if(check_purview('pur_member_edit', $_SESSION['purview']))
-    {
-        //检查有没有订单
-        $check_order = 'select count(*) from '.$db->table('order').' where `account`=\''.$account.'\' and `status`>0';
-        $has_order = $db->fetchOne($check_order);
-
-        //检查有没有下线
-        $check_member = 'select count(*) from '.$db->table('user').' where `path` like \''.$member_info['path'].'%\' and `account`<>\''.$account.'\'';
-        $has_member = $db->fetchOne($check_member);
-
-        if($has_member || $has_order)
-        {
-            show_system_message('该会员有已支付的订单或有推荐下线，不能删除');
-        } else {
-            $db->autoDelete('user', '`account`=\''.$account.'\'');
-            $sql = 'delete from `oshop`.`os_user` where `openid`=\''.$member_info['openid'].'\'';
-            $db->delete($sql);
-
-            show_system_message('删除会员成功');
-        }
-    } else {
-        show_system_message('权限不足');
-    }
 }
 
 if('get_node' == $act)
 {
+    if(getPOST('id') == '')
+    {
+        $_POST['id'] = -1;
+    }
     $id = intval(getPOST('id'));
 
-    $get_nodes = 'select `id`,`parent_id` as `pid`,`nickname` as `name`,`account` from '.$db->table('user').' where `parent_id`='.$id;
-
-    $nodes = $db->fetchAll($get_nodes);
     $tree_nodes = array();
-    foreach($nodes as $node)
-    {
-        $check_children = 'select count(*) from '.$db->table('user').' where `parent_id`='.$node['id'];
+    if($id > -1) {
+        $get_nodes = 'select `id`,`parent_id` as `pid`,`name`,`account`,`level_id`,`add_time`,`emoney`,`reward`,`reward_await` from ' . $db->table('member') . ' where `parent_id`=' . $id;
 
-        $node['name'] .= '['.$node['account'].']';
-        $node['isParent'] = $db->fetchOne($check_children) ? true : false;
-        $tree_nodes[] = $node;
+        $nodes = $db->fetchAll($get_nodes);
+        if($nodes)
+        {
+            foreach ($nodes as $node) {
+                $check_children = 'select count(*) from ' . $db->table('member') . ' where `parent_id`=' . $node['id'];
+
+                $node['isParent'] = $db->fetchOne($check_children) ? true : false;
+
+                $node['name'] .= '[会员卡号:' . $node['account'] . ', 会员等级:' . $member_level[$node['level_id']] . ', 报单时间:' . date('Y-m-d H:i:s', $node['add_time']) . ']';
+                $tree_nodes[] = $node;
+            }
+        }
+    } else {
+        $tree_nodes[] = array(
+            'id' => 0,
+            'name' => '公司',
+            'isParent' => true
+        );
     }
 
     echo json_encode($tree_nodes);
     exit;
+}
+
+if('edit' == $act)
+{
+    $account = trim(getGET('account'));
+
+    if($account == '')
+    {
+        show_system_message('参数错误');
+    }
+
+    $account = $db->escape($account);
+
+    $get_user_info = 'select * from '.$db->table('member').' where `account`=\''.$account.'\'';
+    $user_info = $db->fetchRow($get_user_info);
+
+    assign('member_info', $user_info);
 }
 
 if('view' == $act)
@@ -258,7 +377,6 @@ if('view' == $act)
     $page = getGET('page');
     $count = getGET('count');
     $account = getGET('account');
-    $nickname = getGET('nickname');
 
     $where = ' where 1 ';
 
@@ -266,12 +384,6 @@ if('view' == $act)
     {
         $account = $db->escape($account);
         $where .= ' and `account`=\''.$account.'\' ';
-    }
-
-    if ($nickname != '')
-    {
-        $nickname = $db->escape($nickname);
-        $where .= ' and `nickname`=\''.$nickname.'\' ';
     }
 
     $get_total = 'select count(*) from '.$db->table('user').$where;
@@ -294,58 +406,40 @@ if('view' == $act)
     create_pager($page, $total_page, $total);
     assign('count', $count);
     assign('account', $account);
-    assign('nickname', $nickname);
 
-    $get_member = 'select * from '.$db->table('user').$where.' order by `add_time` DESC limit '.$offset.','.$count;
+    $get_member = 'select * from '.$db->table('member').$where.' order by `add_time` DESC limit '.$offset.','.$count;
 
     $member_list = $db->fetchAll($get_member);
 
-    foreach($member_list as $k=>$member)
-    {
-        $tmp = '';
+    if($member_list) {
+        foreach ($member_list as $k => $member) {
+            $tmp = '';
 
-        if(check_purview('pur_member_edit', $_SESSION['purview']))
-        {
-            $member_list[$k]['operation'] = '<a href="member.php?act=recharge&account='.$member['account'].'">充值</a>';
-            if($member['id'] > 1)
-            {
-                $member_list[$k]['operation'] .= ' | <a href="member.php?act=move&account=' . $member['account'] . '">移网</a>';
+            if (check_purview('pur_member_edit', $_SESSION['purview'])) {
+                $member_list[$k]['operation'] = '<a href="member.php?act=edit&account=' . $member['account'] . '">编辑</a>';
+
+                $member_list[$k]['operation'] .= ' | <a href="javascript:reset_password(\'' . $member['account'] . '\');">重置密码</a>';
+                if ($member['status'] == 2) {
+                    $member_list[$k]['operation'] .= ' | <a href="javascript:lock(\'' . $member['account'] . '\');">锁定用户</a>';
+                } else {
+                    $member_list[$k]['operation'] .= ' | <a href="javascript:unlock(\'' . $member['account'] . '\');">解锁用户</a>';
+                }
+
+                if ($member['status'] == 4) {
+                    $member_list[$k]['operation'] .= ' | <a href="javascript:release(\'' . $member['account'] . '\');">解冻用户</a>';
+                } else {
+                    $member_list[$k]['operation'] .= ' | <a href="javascript:frozen(\'' . $member['account'] . '\');">冻结用户</a>';
+                }
+
+                if ($member['view_network'] == 0) {
+                    $member_list[$k]['operation'] .= ' | <a href="javascript:open_network(\'' . $member['account'] . '\');">开启网络</a>';
+                } else {
+                    $member_list[$k]['operation'] .= ' | <a href="javascript:close_network(\'' . $member['account'] . '\');">关闭网络</a>';
+                }
             }
-            $member_list[$k]['operation'] .= ' | <a href="member.php?act=delete&account='.$member['account'].'" onclick="return confirm(\'您确定要删除该会员？\');">删除</a>';
-            $member_list[$k]['operation'] .= ' | <a href="javascript:reset_password(\''.$member['account'].'\');">重置密码</a>';
         }
     }
-
     assign('member_list', $member_list);
-}
-
-if('recharge' == $act)
-{
-    $account = getGET('account');
-
-    $get_member_info = 'select * from '.$db->table('user').' where `account`=\''.$account.'\'';
-
-    $member_info = $db->fetchRow($get_member_info);
-
-    assign('member_info', $member_info);
-}
-
-if('move' == $act)
-{
-    $account = getGET('account');
-
-    $get_member_info = 'select * from '.$db->table('user').' where `account`=\''.$account.'\'';
-
-    $member_info = $db->fetchRow($get_member_info);
-
-    $get_recommend = 'select * from '.$db->table('user').' where `id`='.$member_info['parent_id'];
-    $recommend = $db->fetchRow($get_recommend);
-    $member_info['recommend'] = $recommend;
-
-    assign('member_info', $member_info);
-
-    $get_path = 'select `nickname`,`account` from '.$db->table('user').' where `id` in ('.$member_info['path'].'0) order by find_in_set(`id`,\''.$member_info['path'].'0\')';
-    assign('path', $db->fetchAll($get_path));
 }
 
 assign('subTitle', '会员管理');

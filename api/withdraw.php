@@ -59,20 +59,23 @@ if('add' == $opera)
         $bank_id = intval(getPOST('bank_id'));
         $amount = floatval(getPOST('amount'));
         $password = getPOST('password');
+        $bank_name = getPOST('bank_name');
+        $bank_account = getPOST('bank_account');
+        $bank_card = getPOST('bank_card');
 
-        if($bank_id <= 0)
-        {
-            $response['errmsg'] .= '-请选择银行卡<br/>';
-        } else {
-            $check_bank_info = 'select `account` from '.$db->table('bank_card').' where `id`='.$bank_id;
-
-            $card_account = $db->fetchOne($check_bank_info);
-
-            if($card_account != $_SESSION['account'])
-            {
-                $response['errmsg'] .= '-参数错误<br/>';
-            }
-        }
+//        if($bank_id <= 0)
+//        {
+//            $response['errmsg'] .= '-请选择银行卡<br/>';
+//        } else {
+//            $check_bank_info = 'select `account` from '.$db->table('bank_card').' where `id`='.$bank_id;
+//
+//            $card_account = $db->fetchOne($check_bank_info);
+//
+//            if($card_account != $_SESSION['account'])
+//            {
+//                $response['errmsg'] .= '-参数错误<br/>';
+//            }
+//        }
 
         if($amount <= 0)
         {
@@ -88,16 +91,47 @@ if('add' == $opera)
 
         if($password == '')
         {
-            $response['errmsg'] .= '-请填写账户密码<br/>';
+            $response['errmsg'] .= '-请填写超级密码<br/>';
         } else {
-            if(!verify_password($_SESSION['account'], $password))
+            if(!verify_super_password($_SESSION['account'], $password))
             {
-                $response['errmsg'] .= '-账户密码错误<br/>';
+                $response['errmsg'] .= '-超级密码错误<br/>';
             }
+        }
+
+        if($bank_card == '')
+        {
+            $response['errmsg'] .= "-请输入银行卡号\n";
+        } else {
+            $bank_card = $db->escape($bank_card);
+        }
+
+        if($bank_account == '')
+        {
+            $response['errmsg'] .= "-请输入开户人\n";
+        } else {
+            $bank_account = $db->escape($bank_account);
+        }
+
+        if($bank_name == '')
+        {
+            $response['errmsg'] .= "-请输入开户银行\n";
+        } else {
+            $bank_name = $db->escape($bank_name);
         }
 
         if($response['errmsg'] == '')
         {
+            $bank_data = array(
+                'account' => $_SESSION['account'],
+                'bank_name' => $bank_name,
+                'bank_card' => $bank_card,
+                'bank_account' => $bank_account
+            );
+
+            $db->autoInsert('bank', array($bank_data));
+            $bank_id = $db->get_last_id();
+
             if($withdraw_sn = add_withdraw($_SESSION['account'], $amount, $bank_id))
             {
                 $response['errno'] = 0;

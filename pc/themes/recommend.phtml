@@ -1,0 +1,160 @@
+{extends file="main.phtml"}
+{block name="left-area"}
+<div class="portlet">
+    <div class="portletFrame">
+        <div class="portletHeader clearFix">
+            <div class="portletHeaderFrame clearFix">
+                <div class="title">
+                    <a name="anchorf642"></a>
+                    <span>业务管理</span>&nbsp;
+                </div>
+            </div>
+        </div>
+        <div class="portletContent">
+            <ul class="article-list">
+                <li class="article-list-item clearfix">
+                    <a href="recommend.php">注册会员</a>
+                </li>
+                <li class="article-list-item clearfix">
+                    <a href="checkout.php">产品购买</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="right-area"}
+<div class="portlet">
+    <div class="portletFrame">
+        <div class="portletHeader clearFix">
+            <div class="portletHeaderFrame clearFix">
+                <div class="title">
+                    <a name="anchorf642"></a>
+                    <span>注册会员</span>&nbsp;
+                </div>
+            </div>
+        </div>
+        <div class="portletContent">
+            <p class="input-wrapper">
+                <label class="input-label fl" for="name">真实姓名：</label>
+                <input type="text" class="input-text fl" name="name" id="name"/>
+                <span class="input-error" id="name-error"></span>
+            </p>
+            <p class="input-wrapper">
+                <label class="input-label fl" for="mobile">手机号码：</label>
+                <input type="text" class="input-text fl" name="mobile" id="mobile"/>
+                <span class="input-error" id="mobile-error"></span>
+            </p>
+            <p class="input-wrapper">
+                <label class="input-label fl" for="recommend">推荐人：</label>
+                <input type="text" class="input-text fl" name="recommend" id="recommend" value="{$member_info.account}"/>
+                <span class="input-error" id="recommend-error"></span>
+            </p>
+            <p class="input-wrapper">
+                <label class="input-label fl" for="sex">性别：</label>
+                <select name="sex" id="sex">
+                    {foreach from=$lang.sex item=name key=id}
+                    <option value="{$id}" {if $id eq $member_info.sex}selected="selected"{/if}>{$name}</option>
+                    {/foreach}
+                </select>
+                <span class="input-error" id="sex-error"></span>
+            </p>
+            <p class="input-wrapper">
+                <label class="input-label fl" for="code">验证码:</label>
+                <input class="input-code" type="text" name="code" id="code" placeholder="请输入验证码"/>
+                <img src="code.php?rand=0.011" onclick="this.src='code.php?'+Math.random()*1000" class="input-code-img"/>
+                <span class="input-error" id="code-error"></span>
+            </p>
+            <p class="input-wrapper">
+                <label class="input-label fl">&nbsp;</label>
+                <input type="hidden" name="opera" id="opera" value="register"/>
+                <a class="input-btn" href="javascript:void(0);" id="submit-btn">
+                    注册会员<img src="{$template_dir}images/btn_loading.gif" class="btn-loading-img"/>
+                </a>
+            </p>
+            <div id="mask"></div>
+            <script type="text/javascript">
+                $(function() {
+                    $("#submit-btn").click(function () {
+                        do_submit();
+                    });
+                });
+                /**
+                 * 这个解决方案可以作为Ajax提交表单的模板
+                 * 1、form的提交操作托管给do_submit处理;
+                 * 2、Ajax操作分为两部分，第一部分do_submit作为提交前的参数验证，第二部分do_resposne作为返回代码的处理;
+                 * 3、仅支持post方式提交表单;
+                 * 4、需要在提交按钮加入提交中的加载图片，以及遮罩层代码;
+                 **/
+                function do_submit() {
+                    //参数校验
+                    var flag = true;
+                    var name = $("#name").val().trim();
+                    var recommend = $("#recommend").val().trim();
+                    var mobile = $("#mobile").val().trim();
+                    var sex = $("#sex").val().trim();
+                    var code = $("#code").val().trim();
+
+                    if(code == "") {
+                        show_error_message("code", "请输入验证码");
+                        flag = false;
+                    } else {
+                        hide_error_message("code");
+                    }
+
+                    if(name == "") {
+                        show_error_message("name", "请输入真实姓名");
+                        flag = false;
+                    } else {
+                        hide_error_message("name");
+                    }
+
+                    if(recommend == "") {
+                        show_error_message("recommend", "请填写推荐人");
+                        flag = false;
+                    } else {
+                        hide_error_message("recommend");
+                    }
+
+                    if(mobile == "") {
+                        show_error_message("mobile", "请输入手机号码");
+                        flag = false;
+                    } else {
+                        hide_error_message("mobile");
+                    }
+
+                    if(flag) {
+                        //启用过渡效果
+                        show_mask("submit-btn");
+
+                        var params = { "opera":"register", "name":name, "mobile":mobile, "recommend": recommend, "sex":sex, "password":"123456", "code":code };
+                        var url = "{$smarty.const.API_URI}member.php";
+                        $.post(url, params, do_response, "json");
+                    }
+                }
+
+                function do_response(result) {
+                    //关闭过渡效果
+                    hide_mask("submit-btn");
+                    //处理返回结果
+                    if(result.errno == 0) {
+                        alert(result.errmsg+"\n初始密码为：123456，请牢记。");
+                        window.location.reload();
+                    } else {
+                        if(result.errmsg != "") {
+                            alert(result.errmsg);
+                        }
+
+                        if(result.errcontent) {
+                            for(var id in result.errcontent) {
+                                $("#"+id+"-error").text(result.errcontent[id]);
+                            }
+                        }
+                    }
+                }
+                /*----------------  Ajax end ---------------------*/
+            </script>
+        </div>
+    </div>
+</div>
+{/block}

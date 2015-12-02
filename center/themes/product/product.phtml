@@ -9,6 +9,8 @@
         <h5 class="pull-left">{$subTitle}</h5>
         {if $act eq 'view'}
         <div class="pull-right"><a class="btn btn-primary" href="?act=add">新增产品</a></div>
+        {else}
+        <div class="pull-right"><a class="btn btn-primary" href="javascript:history.go(-1);">返回</a></div>
         {/if}
         <div class="clear"></div>
     </div>
@@ -50,14 +52,11 @@
                 <th>产品编号</th>
                 <th>产品名称</th>
                 <th>价格</th>
-                <!--
-                <th>购买积分</th>
-                <th>赠送积分</th>
-                -->
-                <th>产品分类</th>
+                <th>PV</th>
+<!--                <th>产品分类</th>-->
                 <th>库存</th>
                 <th>状态</th>
-                <th class="text-right">操作</th>
+                <th>操作</th>
             </tr>
             </thead>
             <tbody>
@@ -66,20 +65,17 @@
                 <td>{$product.product_sn}</td>
                 <td>{$product.name}</td>
                 <td>{$product.price}</td>
-                <!--
-                <td>{$product.integral}</td>
-                <td>{$product.integral_given}</td>
-                -->
-                <td>{$cat_json[$product.category_id]}</td>
+                <td>{$product.pv}</td>
+<!--                <td>{$cat_json[$product.category_id]}</td>-->
                 <td>{$product.inventory}</td>
-                <td>{$LANG.product["status_{$product.status}"]}</td>
+                <td>{$lang.product["status_{$product.status}"]}</td>
                 <td>
                     {$product.operation}
                 </td>
             </tr>
             {/foreach}
             <tr>
-                <td colspan="9">
+                <td colspan="7">
                     <div class="pull-right">
                         <div class="pages">
                             <span>共有{$total}条，{$totalPage}页，每页显示：{$count}条</span>
@@ -127,9 +123,10 @@
                     {$product.product_sn}
                 </p>
                 {/if}
-                <p class="clear">
+                <p class="clear" style="display: none;">
                     <label class="l-title">产品分类：</label>
                     <select name="category_id" id="category_id" class="w150">
+                        <option value="0">--请选择--</option>
                         {foreach from=$category_list item=cat}
                         <option value="{$cat.id}">{$cat.name}</option>
                         {/foreach}
@@ -145,14 +142,14 @@
                     <input class="text-input w300" type="text" id="price" name="price" placeholder="请输入产品价格" value="{if $act eq 'edit'}{$product.price}{/if}">
                 </p>
 
-                <p style="display: none;">
-                    <label class="l-title">产品积分：</label>
-                    <input class="text-input w300" type="text" id="integral" name="integral" placeholder="请输入购买积分" value="{if $act eq 'edit'}{$product.integral}{/if}0">
+                <p>
+                    <label class="l-title">PV：</label>
+                    <input class="text-input w300" type="text" id="pv" name="pv" placeholder="请输入PV" value="{if $act eq 'edit'}{$product.pv}{/if}">
                 </p>
 
                 <p style="display: none;">
                     <label class="l-title">赠送积分：</label>
-                    <input class="text-input w300" type="text" id="price_integral" name="integral_given" placeholder="请输入赠送积分" value="{if $act eq 'edit'}{$product.integral_given}{/if}0">
+                    <input class="text-input w300" type="text" id="price_pv" name="pv_given" placeholder="请输入赠送积分" value="{if $act eq 'edit'}{$product.pv_given}{/if}0">
                 </p>
 
                 <p>
@@ -162,8 +159,8 @@
                 <p class="clear">
                     <label class="l-title">产品状态：</label>
                     <select name="status" id="status" class="w150">
-                        <option value="1">上架</option>
-                        <option value="0">下架</option>
+                        <option value="1" {if $act eq 'edit' and $product.status eq 1}checked="checked"{/if}>上架</option>
+                        <option value="0" {if $act eq 'edit' and $product.status eq 0}checked="checked"{/if}>下架</option>
                     </select>
                 </p>
                 <p class="clear" id="img-input">
@@ -173,7 +170,7 @@
                 </p>
                 <p>
                     <label class="l-title"></label>
-                    <img id="show-image" alt="" src="{if $act eq 'edit'}{$product.img}{else}about:blank{/if}">
+                    <img id="show-image" alt="" src="{if $act eq 'edit'}{$product.img}{else}http://www.placehold.it/200x150/EFEFEF/AAAAAA&amp;text=no+image{/if}">
                 </p>
                 <h5>产品详情：</h5>
                 <p>
@@ -225,7 +222,7 @@
 
                 var editor = K.editor({
                     allowFileManager : true,
-                    uploadJson : '../plugins/kindeditor/section_upload_json.php',
+                    uploadJson : '../plugins/kindeditor/upload_json.php',
                     fileManagerJson : '../plugins/kindeditor/file_manager_json.php'
                 });
 
@@ -256,6 +253,120 @@
                     });
                 });
             });
+        </script>
+        {/if}
+
+        {if $act eq 'price'}
+        <div class="inventory-main">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>会员等级</th>
+                    <th>价格</th>
+                    <th>最少购买量</th>
+                    <th>操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                {foreach from=$lang.level item=level key=level_id}
+                <form id="priceForm-{$level_id}" name="inventoryForm" method="post" onsubmit="return do_submit({$level_id});">
+                    <tr>
+                        <td>{$level}</td>
+                        <td>
+                            <input class="text-input w300" type="text" name="price" value="{if isset($price_list[{$level_id}])}{$price_list[{$level_id}].price}{/if}" id="price-{$level_id}">
+                            <span class="error-input" id="price-{$level_id}-error"></span>
+                        </td>
+                        <td>
+                            <input class="text-input w300" type="text" name="number" value="{if isset($price_list[{$level_id}])}{$price_list[{$level_id}].min_number}{/if}" id="number-{$level_id}">
+                            <span class="error-input" id="number-{$level_id}-error"></span>
+                        </td>
+                        <td>
+                            <a type="submit" class="btn btn-primary submit-btn" id="submit-btn-{$level_id}" data-id="{$level_id}" href="javascript:;">
+                                修改<img src="images/btn_loading.gif" class="btn-loading-img" id="btn-loading-img-{$level_id}"/>
+                            </a>&nbsp;
+                            <input type="hidden" name="opera" value="price" />
+                            <input type="hidden" name="id" id="id-{$level_id}" value="{if isset($price_list[{$level_id}])}{$price_list[{$level_id}].id}{/if}" />
+                            <input type="hidden" name="sn" id="sn-{$level_id}" value="{$product_sn}" />
+                        </td>
+                    </tr>
+                </form>
+                {/foreach}
+                </tbody>
+            </table>
+        </div>
+        <div id="mask"></div>
+        <script type="text/javascript">
+            /**
+             * 这个解决方案可以作为Ajax提交表单的模板
+             * 1、form的提交操作托管给do_submit处理;
+             * 2、Ajax操作分为两部分，第一部分do_submit作为提交前的参数验证，第二部分do_resposne作为返回代码的处理;
+             * 3、仅支持post方式提交表单;
+             * 4、需要在提交按钮加入提交中的加载图片，以及遮罩层代码<div id="mask"></div>
+             **/
+            $(function() {
+                $('.submit-btn').click(function() {
+                    var id = $(this).attr('data-id');
+                    do_submit(id);
+                });
+            });
+
+            function do_submit(id) {
+                //参数校验
+                var flag = true;
+                var price = $("#price-" + id).val();
+                var number = $("#number-" + id).val();
+                var eid = $("#id-" + id).val().trim();
+                var sn = $("#sn-" + id).val().trim();
+
+                price = parseFloat(price);
+                if( isNaN(price) || price < 0) {
+                    $("#price-" + id + '-error').text("-价格不能小于0");
+                    flag = false;
+                }
+
+                number = parseInt(number);
+                if( isNaN(number) ) {
+                    $("#number-" + id + '-error').text("-请输入有效数字");
+                    flag = false;
+                }
+
+                if(flag) {
+                    flag = true;
+                    //启用过渡效果
+                    $("#btn-loading-img-"+id).show();
+                    $(".submit-btn").addClass("btn-disabled");
+                    $("#mask").show();
+
+                    var params = { "opera":"price", "price":price, 'id':eid, "sn":sn, "number":number, "level_id":id };
+                    var url = "product.php";
+                    $.post(url, params, do_response, "json");
+                }
+
+                return flag;
+            }
+
+            function do_response(result) {
+                //关闭过渡效果
+                var edit_id = result.edit_id;
+                $(".btn-loading-img").hide();
+                $(".submit-btn").removeClass("btn-disabled");
+                $("#mask").hide();
+                //处理返回结果
+                if(result.error == 0) {
+                    alert(result.msg);
+                    $('#price-' + edit_id).val(result.price);
+                } else {
+                    if(result.msg != "") {
+                        alert(result.msg);
+                    }
+
+                    if(result.errmsg.length) {
+                        for(var id in result.errmsg) {
+                            $("#"+id+"-error").text(result.errmsg[id]);
+                        }
+                    }
+                }
+            }
         </script>
         {/if}
     </div>

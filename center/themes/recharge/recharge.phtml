@@ -33,8 +33,8 @@
                     <label>充值状态：</label>
                     <select name="status">
                         <option value="-1">全部</option>
-                        <option value="0" {if $status eq 0}selected="selected"{/if}>待处理</option>
-                        <option value="1" {if $status eq 1}selected="selected"{/if}>已处理</option>
+                        <option value="1" {if $status eq 1}selected="selected"{/if}>待支付</option>
+                        <option value="3" {if $status eq 3}selected="selected"{/if}>已支付</option>
                     </select><br/><br/>
                     <label>起止时间：</label>
                     <input class="text-input w150" type="text" id="begin_time" name="begin_time" value="{$begin_time}">&nbsp;
@@ -65,7 +65,7 @@
                 <td>{$recharge.account}</td>
                 <td>{$recharge.real_amount}</td>
                 <td>{$recharge.remark}</td>
-                <td>{$LANG.recharge["status_{$recharge.status}"]}</td>
+                <td>{$lang.recharge["status_{$recharge.status}"]}</td>
                 <td>
                     {$recharge.operation}
                 </td>
@@ -156,9 +156,7 @@
                 </p>
                 <p>
                     <label class="l-title">汇入账户：</label>
-                    开户行：{$recharge.bank_name}
-                    开户人：{$recharge.bank_account}
-                    银行卡号：{$recharge.bank_card}
+                    {str_replace('<br/>', "\n", $recharge.payment_name)}
                 </p>
                 <p>
                     <label class="l-title">备注：</label>

@@ -16,6 +16,18 @@ if('login' == $opera)
 {
     $account = trim(getPOST('account'));
     $password = trim(getPOST('password'));
+    $code = trim(getPOST('code'));
+
+    if(empty($code))
+    {
+        $response['errcontent']['code'] = '请填写验证码';
+    } else {
+        $code = strtolower($code);
+        if($code != $_SESSION['code'])
+        {
+            $response['errcontent']['code'] = '验证码错误';
+        }
+    }
 
     if(empty($account))
     {
@@ -64,6 +76,8 @@ if('login' == $opera)
                 {
                     $response['errno'] = 0;
                     $response['token'] = $token;
+                    $response['errmsg'] = '登录成功';
+                    $_SESSION['account'] = $member['account'];
                 } else {
                     $response['errmsg'] = '系统繁忙，请稍后再试';
                 }
@@ -138,6 +152,18 @@ if('register' == $opera)
     $email = getPOST('email');
     $from = getPOST('from');
     $place_area = getPOST('place_area');
+    $code = trim(getPOST('code'));
+
+    if(empty($code))
+    {
+        $response['errcontent']['code'] = '请填写验证码';
+    } else {
+        $code = strtolower($code);
+        if($code != $_SESSION['code'])
+        {
+            $response['errcontent']['code'] = '验证码错误';
+        }
+    }
 
     $recommend_info = null;
     $place_info = null;
@@ -225,7 +251,8 @@ if('register' == $opera)
             $field = 'email';
         }
 
-        $get_recommend_info = 'select `id`,`account`,`recommend_path` from '.$db->table('member').' where `'.$field.'\'=\''.$recommend.'\'';
+        $get_recommend_info = 'select `id`,`account`,`recommend_path` from '.$db->table('member').' where `'.$field.'`=\''.$recommend.'\'';
+        $log->record($get_recommend_info);
         $recommend_info = $db->fetchRow($get_recommend_info);
 
         if($recommend_info)
@@ -271,7 +298,7 @@ if('register' == $opera)
         }
 
         $get_place_info = 'select `id`,`account`,`place_path`,`lchild`,`rchild` from '.$db->table('member').
-                          ' where `'.$field.'\'=\''.$place.'\'';
+                          ' where `'.$field.'`=\''.$place.'\'';
         $place_info = $db->fetchRow($get_place_info);
 
         if($place_info)
@@ -394,6 +421,7 @@ if('register' == $opera)
 
                 $response['account'] = $account;
                 $response['errno'] = 0;
+                $response['errmsg'] = '注册成功，新会员的卡号为：'.$account;
             } else {
                 //退回卡号
                 $account_status = array('status' => 1);
@@ -417,6 +445,7 @@ if('modify' == $opera)
     $sex = getPOST('sex');
     $level_id = intval(getPOST('level_id'));
     $status = intval(getPOST('status'));
+    $old_password = trim(getPOST('old_password'));
     $password = trim(getPOST('password'));
     $super_password = trim(getPOST('super_password'));
 
@@ -491,11 +520,31 @@ if('modify' == $opera)
     if(!empty($password))
     {
         $member['password'] = md5($password.PASSWORD_END);
+
+        if(empty($old_password))
+        {
+            $response['errcontent']['old_password'] = '请填写旧密码';
+        } else {
+            if(!verify_password($account, $old_password))
+            {
+                $response['errcontent']['old_password'] = '旧密码错误';
+            }
+        }
     }
 
     if(!empty($super_password))
     {
         $member['super_password'] = md5($super_password.PASSWORD_END);
+
+        if(empty($old_password))
+        {
+            $response['errcontent']['old_password'] = '请填写旧密码';
+        } else {
+            if(!verify_super_password($account, $old_password))
+            {
+                $response['errcontent']['old_password'] = '旧密码错误';
+            }
+        }
     }
 
     if(count($response['errcontent']) == 0 && $response['errmsg'] == '')

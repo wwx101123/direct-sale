@@ -1,0 +1,241 @@
+{extends file="main.phtml"}
+{block name="left-area"}
+<div class="portlet">
+    <div class="portletFrame">
+        <div class="portletHeader clearFix">
+            <div class="portletHeaderFrame clearFix">
+                <div class="title">
+                    <a name="anchorf642"></a>
+                    <span>财务管理</span>&nbsp;
+                </div>
+            </div>
+        </div>
+        <div class="portletContent">
+            <ul class="article-list">
+                <li class="article-list-item clearfix">
+                    <a href="account.php">账户明细</a>
+                </li>
+                <li class="article-list-item clearfix">
+                    <a href="reward.php">奖金查看</a>
+                </li>
+                <li class="article-list-item clearfix">
+                    <a href="withdraw.php?act=add">提现申请</a>
+                </li>
+                <li class="article-list-item clearfix">
+                    <a href="withdraw.php">提现记录</a>
+                </li>
+                <li class="article-list-item clearfix">
+                    <a href="recharge.php?act=add">账户充值</a>
+                </li>
+                <li class="article-list-item clearfix">
+                    <a href="recharge.php">充值记录</a>
+                </li>
+                <li class="article-list-item clearfix">
+                    <a href="balance_transfer.php">余额转出</a>
+                </li>
+                <li class="article-list-item clearfix">
+                    <a href="reward_transfer.php">奖金转出</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="right-area"}
+<div class="portlet">
+    <div class="portletFrame">
+        <div class="portletHeader clearFix">
+            <div class="portletHeaderFrame clearFix">
+                <div class="title">
+                    <a name="anchorf642"></a>
+                    <span>{$sub_title}</span>&nbsp;
+                </div>
+            </div>
+        </div>
+        <div class="portletContent">
+            {if $act eq 'view'}
+            <div class="search-bar">
+                <form method="get">
+                    充值编号：<input type="text" name="recharge_sn" value="{$recharge_sn}" class="input-search"/>
+                    状态：<select name="status">
+                        <option value="-1">全部</option>
+                        <option value="1" {if $status eq 1}selected{/if}>待支付</option>
+                        <option value="3" {if $status eq 3}selected{/if}>已支付</option>
+                    </select>
+                    申请时间：<input type="input" class="input-search" name="begin_time" id="begin_time" value="{$begin_time}"/> 至
+                    <input type="input" class="input-search" name="end_time" id="end_time" value="{$end_time}"/>
+                    <input type="submit" name="submit" value="搜索" class="search-btn"/>
+                </form>
+            </div>
+            <table class="table">
+                <tr>
+                    <th>申请编号</th>
+                    <th>充值金额</th>
+                    <th>申请时间</th>
+                    <th>处理时间</th>
+                    <th>状态</th>
+                    <th>收款账号</th>
+                    <th>备注</th>
+                </tr>
+                {if $recharge_list}
+                {foreach from=$recharge_list item=recharge}
+                <tr>
+                    <td>{$recharge.recharge_sn}</td>
+                    <td>{price_format($recharge.amount)}</td>
+                    <td>{date('Y-m-d H:i:s', $recharge.add_time)}</td>
+                    <td>{if $recharge.pay_time gt 0}{date('Y-m-d H:i:s', $recharge.pay_time)}{/if}</td>
+                    <td>{if $recharge.status eq 1}待支付{else}已支付{/if}</td>
+                    <td>{$recharge.payment_name}</td>
+                    <td>{$recharge.remark}</td>
+                </tr>
+                {/foreach}
+                {else}
+                <tr>
+                    <td colspan="7">
+                        暂无记录
+                    </td>
+                </tr>
+                {/if}
+            </table>
+            {include file="page.phtml"}
+            <script type="text/javascript" src="{$template_dir}js/laydate/laydate.js"></script>
+            <script type="text/javascript">
+                var start = {
+                    elem: '#begin_time',
+                    format: 'YYYY-MM-DD',
+                    max: '9999-12-31 23:59:59', //最大日期
+                    istime: false,
+                    istoday: true,
+                    choose: function(datas){
+                        end.min = datas; //开始日选好后，重置结束日的最小日期
+                        end.start = datas //将结束日的初始值设定为开始日
+                        end.click;
+                    }
+                };
+
+                var end = {
+                    elem: '#end_time',
+                    format: 'YYYY-MM-DD',
+                    max: '9999-12-31 23:59:59',
+                    istime: false,
+                    istoday: true,
+                    choose: function(datas){
+                        start.max = datas; //结束日选好后，重置开始日的最大日期
+                    }
+                };
+
+                laydate(start);
+                laydate(end);
+            </script>
+            {/if}
+            {if $act eq 'add'}
+            <p class="input-wrapper">
+                <label class="input-label fl" for="">账户余额：</label>
+                <input type="text" class="input-text fl" value="{price_format($member_info.balance)}" readonly/>
+            </p>
+            <p class="input-wrapper">
+                <label class="input-label fl" for="reward">充值金额：</label>
+                <input type="text" class="input-text fl" name="reward" id="reward"/>
+            </p>
+            <p class="input-wrapper">
+                <label class="input-label fl" for="fee">手续费：</label>
+                <input type="text" class="input-text fl" name="fee" id="fee" value="0.00" readonly/>
+            </p>
+            <p class="input-wrapper">
+                <label class="input-label fl" for="bank">汇入账号：</label>
+                <select name="bank_id" id="bank_id">
+                    {foreach from=$bank_info item=bank}
+                    <option value="{$bank.id}">
+                        开户行: {$bank.bank_name} 开户人: {$bank.bank_account} 银行卡号: {$bank.bank_card}
+                    </option>
+                    {/foreach}
+                </select>
+            </p>
+            <p class="input-wrapper">
+                <label class="input-label fl" for="remark">备注：</label>
+                <input type="text" class="input-text fl" name="remark" id="remark"/>
+            </p>
+            <p class="input-wrapper">
+                <label class="input-label fl">&nbsp;</label>
+                <a class="input-btn" href="javascript:void(0);" id="submit-btn">
+                    提交申请<img src="{$template_dir}images/btn_loading.gif" class="btn-loading-img"/>
+                </a>
+                <input type="hidden" name="opera" value="safe_login" />
+            </p>
+            <script type="text/javascript">
+                var fee_rate = {$config.fee_rate};
+                var flag = true;
+
+                $(function() {
+                    $("#submit-btn").click(function () {
+                        do_submit();
+                    });
+                });
+                /**
+                 * 这个解决方案可以作为Ajax提交表单的模板
+                 * 1、form的提交操作托管给do_submit处理;
+                 * 2、Ajax操作分为两部分，第一部分do_submit作为提交前的参数验证，第二部分do_resposne作为返回代码的处理;
+                 * 3、仅支持post方式提交表单;
+                 * 4、需要在提交按钮加入提交中的加载图片，以及遮罩层代码;
+                 **/
+                function do_submit() {
+                    //参数校验
+                    var msg = "";
+                    var bank_id = $("#bank_id").val().trim();
+                    var reward = $("#reward").val().trim();
+                    var remark = $("#remark").val().trim();
+
+                    reward = parseFloat(reward);
+
+                    if(isNaN(reward) || reward <= 0) {
+                        msg += "-请输入正确的充值金额\n";
+                    }
+
+                    if(bank_id <= 0) {
+                        msg += "-请选择汇入账号\n";
+                    }
+
+                    if(msg == "" && flag) {
+                        //启用过渡效果
+                        flag = false;
+                        show_mask("submit-btn");
+
+                        var params = { "opera":"add", "bank_id":bank_id,  "remark":remark, "amount":reward};
+                        var url = "{$smarty.const.API_URI}recharge.php";
+                        $.post(url, params, do_response, "json");
+                        return true;
+                    }
+
+                    alert(msg);
+                    return false;
+                }
+
+                function do_response(result) {
+                    //关闭过渡效果
+                    flag = true;
+                    hide_mask("submit-btn");
+                    //处理返回结果
+                    if(result.errno == 0) {
+                        alert(result.errmsg);
+                        //重置当前页面
+                        window.location.reload();
+                    } else {
+                        if(result.errmsg != "") {
+                            alert(result.errmsg);
+                        }
+                        /*
+                         if(result.errmsg.length) {
+                         for(var id in result.errmsg) {
+                         $("#"+id+"-error").text(result.errmsg[id]);
+                         }
+                         }
+                         */
+                    }
+                }
+                /*----------------  Ajax end ---------------------*/
+            </script>
+            {/if}
+        </div>
+    </div>
+</div>
+{/block}

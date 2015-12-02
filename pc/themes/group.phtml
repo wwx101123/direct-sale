@@ -1,0 +1,246 @@
+{extends file="main.phtml"}
+{block name="left-area"}
+<div class="portlet">
+    <div class="portletFrame">
+        <div class="portletHeader clearFix">
+            <div class="portletHeaderFrame clearFix">
+                <div class="title">
+                    <a name="anchorf642"></a>
+                    <span>{$sub_title}</span>&nbsp;
+                </div>
+            </div>
+        </div>
+        <div class="portletContent">
+            <ul class="article-list">
+                <li class="article-list-item clearfix">
+                    <a href="group.php">我的团队</a>
+                </li>
+                {if $member_info.view_network}
+                <li class="article-list-item clearfix">
+                    <a href="group.php?act=network">团队网络</a>
+                </li>
+                {/if}
+                <li class="article-list-item clearfix">
+                    <a href="group.php?act=order">团队业绩</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="right-area"}
+<div class="portlet">
+    {if $act eq 'view'}
+    <div class="portletFrame">
+        <div class="portletHeader clearFix">
+            <div class="portletHeaderFrame clearFix">
+                <div class="title">
+                    <a name="anchorf642"></a>
+                    <span>我的团队</span>&nbsp;
+                </div>
+            </div>
+        </div>
+        <div class="portletContent">
+            <div class="search-bar">
+                <form method="get" action="group.php?act=view">
+                    会员账号：<input type="input" class="input-search" name="account" value="{$account}"/>&nbsp;
+                    等级：<select name="level_id">
+                        <option value="0">全部</option>
+                        {foreach from=$lang.level key=id item=level}
+                        <option value="{$id}" {if $level_id eq $id}selected="selected"{/if}>{$level}</option>
+                        {/foreach}
+                    </select>
+                    注册时间：<input type="input" class="input-search" name="begin_time" id="begin_time" value="{$begin_time}"/> 至
+                    <input type="input" class="input-search" name="end_time" id="end_time" value="{$end_time}"/>
+                    <input type="hidden" name="act" value="view"/>
+                    <input type="submit" name="submit" value="搜索" class="search-btn"/>
+                </form>
+            </div>
+            <table class="table">
+                <tr>
+                    <th>会员编号</th>
+                    <th>真实姓名</th>
+                    <th>联系电话</th>
+                    <th>注册级别</th>
+                    <th>注册时间</th>
+                    <th>状态</th>
+                </tr>
+                {if $user_list}
+                {foreach from=$user_list item=user}
+                <tr>
+                    <td>{$user.account}</td>
+                    <td>{$user.name}</td>
+                    <td>{$user.mobile}</td>
+                    <td>{$lang.level[{$user.level_id}]}</td>
+                    <td>{date('Y-m-d H:i:s', $user.add_time)}</td>
+                    <td>{$lang.member_status[{$user.status}]}</td>
+                </tr>
+                {/foreach}
+                {else}
+                <tr>
+                    <td colspan="6">
+                        暂无记录
+                    </td>
+                </tr>
+                {/if}
+            </table>
+            {include file="page.phtml"}
+            <script type="text/javascript" src="{$template_dir}js/laydate/laydate.js"></script>
+            <script type="text/javascript">
+                var start = {
+                    elem: '#begin_time',
+                    format: 'YYYY-MM-DD',
+                    max: '9999-12-31 23:59:59', //最大日期
+                    istime: false,
+                    istoday: true,
+                    choose: function(datas){
+                        end.min = datas; //开始日选好后，重置结束日的最小日期
+                        end.start = datas //将结束日的初始值设定为开始日
+                        end.click;
+                    }
+                };
+
+                var end = {
+                    elem: '#end_time',
+                    format: 'YYYY-MM-DD',
+                    max: '9999-12-31 23:59:59',
+                    istime: false,
+                    istoday: true,
+                    choose: function(datas){
+                        start.max = datas; //结束日选好后，重置开始日的最大日期
+                    }
+                };
+
+                laydate(start);
+                laydate(end);
+            </script>
+        </div>
+    </div>
+    {/if}
+
+    {if $act eq 'order'}
+    <div class="portletFrame">
+        <div class="portletHeader clearFix">
+            <div class="portletHeaderFrame clearFix">
+                <div class="title">
+                    <a name="anchorf642"></a>
+                    <span>团队业绩</span>&nbsp;
+                </div>
+            </div>
+        </div>
+        <div class="portletContent">
+            <div class="search-bar">
+                <form method="get" action="group.php?act=order">
+                    订单编号：<input type="text" name="order_sn" value="{$order_sn}"/>
+                    类型：<select name="type">
+                        <option value="0">全部</option>
+                        {foreach from=$lang.order_type key=id item=type_item}
+                        <option value="{$id}" {if $type eq $id}selected="selected"{/if}>{$type_item}</option>
+                        {/foreach}
+                    </select>
+                    下单时间：<input type="input" class="input-search" name="begin_time" id="begin_time" value="{$begin_time}"/> 至
+                    <input type="input" class="input-search" name="end_time" id="end_time" value="{$end_time}"/>
+                    <input type="hidden" name="act" value="order"/>
+                    <input type="submit" name="submit" value="搜索" class="search-btn"/>
+                </form>
+            </div>
+            <table class="table">
+                <tr>
+                    <th>订单编号</th>
+                    <th>订单类型</th>
+                    <th>订单总额</th>
+                    <th>订单状态</th>
+                    <th>下单时间</th>
+                    <th>备注</th>
+                    <th>操作</th>
+                </tr>
+                {if $order_list}
+                {foreach from=$order_list item=order}
+                <tr>
+                    <td>{$order.order_sn}</td>
+                    <td>{$lang.order_type[{$order.type}]}</td>
+                    <td>{price_format($order.amount)}</td>
+                    <td>{$lang.order_status[{$order.status}]}</td>
+                    <td>{date('Y-m-d H:i:s', $order.add_time)}</td>
+                    <td>{$order.remark}</td>
+                    <td>
+                        <a href="order_detail.php?sn={$order.order_sn}">查看</a>
+                    </td>
+                </tr>
+                {/foreach}
+                {else}
+                <tr>
+                    <td colspan="7">
+                        暂无记录
+                    </td>
+                </tr>
+                {/if}
+            </table>
+            {include file="page.phtml"}
+            <script type="text/javascript" src="{$template_dir}js/laydate/laydate.js"></script>
+            <script type="text/javascript">
+                var start = {
+                    elem: '#begin_time',
+                    format: 'YYYY-MM-DD',
+                    max: '9999-12-31 23:59:59', //最大日期
+                    istime: false,
+                    istoday: true,
+                    choose: function(datas){
+                        end.min = datas; //开始日选好后，重置结束日的最小日期
+                        end.start = datas //将结束日的初始值设定为开始日
+                        end.click;
+                    }
+                };
+
+                var end = {
+                    elem: '#end_time',
+                    format: 'YYYY-MM-DD',
+                    max: '9999-12-31 23:59:59',
+                    istime: false,
+                    istoday: true,
+                    choose: function(datas){
+                        start.max = datas; //结束日选好后，重置开始日的最大日期
+                    }
+                };
+
+                laydate(start);
+                laydate(end);
+            </script>
+        </div>
+    </div>
+    {/if}
+
+    {if $act eq 'network'}
+    <div class="portletFrame">
+        <div class="portletHeader clearFix">
+            <div class="portletHeaderFrame clearFix">
+                <div class="title">
+                    <a name="anchorf642"></a>
+                    <span>团队网络</span>&nbsp;
+                </div>
+            </div>
+        </div>
+        <div class="portletContent">
+            <div id="ztree" class="ztree"></div>
+            <link type="text/css" rel="stylesheet" href="{$template_dir}css/zTreeStyle.css"/>
+            <script type="text/javascript" src="{$template_dir}js/jquery.ztree.core-3.5.min.js"></script>
+            <script type="text/javascript">
+                var setting = {
+                    async: {
+                        enable: true,
+                        url: "group.php",
+                        autoParam: ["id"],
+                        otherParam: { "opera":"node" }
+                    }
+                };
+
+
+                $(function(){
+                    var t = $("#ztree");
+                    t = $.fn.zTree.init(t, setting);
+                });
+            </script>
+        </div>
+    {/if}
+</div>
+{/block}

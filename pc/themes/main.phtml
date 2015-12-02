@@ -1,0 +1,179 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <link type="text/css" rel="stylesheet" href="{$template_dir}css/main.css"/>
+	<script type="text/javascript" src="{$template_dir}js/jquery.min.js"></script>
+	<script type="text/javascript" src="{$template_dir}js/jquery.cycle.all.js"></script>
+	<script type="text/javascript" src="{$template_dir}js/request.js"></script>
+    <title>{$config.site_name}</title>
+</head>
+<body>
+<div id="container">
+<div id="header">
+    <a id="logo" href="index.php"></a>
+    <div id="header-bottom">
+		<div id="top-nav-wrapper">
+			<ul id="topnav">
+				<li class="first-level {if $active_script eq 'main.php'}current{/if}" >
+					<a class="first-level" href="main.php"><span>我的首页</span></a>
+				</li>
+				<li class="top-nav-seperator"></li>
+
+				<li class="first-level {if $active_script eq 'recommend.php'}current{/if}" >
+					<a class="first-level" href="recommend.php"><span>业务管理</span></a>
+
+				</li>
+				<li class="top-nav-seperator"></li>
+
+
+				<li class="first-level {if $active_script eq 'order.php'}current{/if}" >
+					<a class="first-level" href="order.php"><span>订单管理</span></a>
+
+				</li>
+				<li class="top-nav-seperator"></li>
+
+
+				<li class="first-level {if $active_script eq 'group.php'}current{/if}" >
+					<a class="first-level" href="group.php"><span>团队查看</span></a>
+
+				</li>
+				<li class="top-nav-seperator"></li>
+
+
+				<li class="first-level {if $active_script eq 'account.php'}current{/if}" >
+					<a class="first-level" href="account.php"><span>财务管理</span></a>
+				</li>
+				<li class="top-nav-seperator"></li>
+
+				<li class="first-level {if $active_script eq 'profile.php'}current{/if}" >
+					<a class="first-level" href="profile.php"><span>个人信息管理</span></a>
+				</li>
+			</ul>
+		</div>
+	</div>
+	<ul id="board">
+		<li id="welcomeMsg" class="font-bold">欢迎您：{$member_info.name}</li>
+		<li id="welcomeMsg"><a href="recommend.php" target="_blank"><font style="color:#6782C6;">客户注册</font></a></li>
+		<li><a href="recharge.php?act=add" id="siteMsg" title="帐户充值"><font style="color:#6782C6;">帐户充值</font></a></li>
+		<li><a href="logout.php" id="quit"><font style="color:#6782C6;">退出登录</font></a></li>
+	</ul>
+</div>
+
+{if isset($ads)}
+<div class="block" style="margin: 36px auto -40px; width: 990px;">
+	<div class="ad-list">
+		{foreach from=$ads item=ad}
+		<img src="{$ad.img}" width="990px"/>
+		{/foreach}
+	</div>
+</div>
+<script type="text/javascript">
+	$(function() {
+		$('.ad-list').cycle({
+			fx: 'scrollLeft',
+			delay: 3000
+		});
+	});
+</script>
+{/if}
+
+<div id="content" class="left-area">
+{block name="left-area"}
+	<div class="placeholder">&nbsp;</div>
+
+	<div class="portlet"  >
+		<div class="portletFrame">
+			<div class="portletHeader clearFix">
+				<div class="portletHeaderFrame clearFix">
+					<div class="title">
+						<span>访问信息</span>
+					</div>
+				</div>
+			</div>
+			<div class="portletContent">
+				欢迎您，{$member_info.name}
+				<p class="clearfix">会员卡号: {$member_info.account}</p>
+				<p class="clearfix">会员级别: {$lang.level[{$member_info.level_id}]}</p>
+				<p class="clearfix">账户余额: {price_format($member_info.balance)}</p>
+				<p class="clearfix">奖金余额: {price_format($member_info.reward)}</p>
+				<p class="clearfix">待发奖金: {price_format($member_info.reward_await)}</p>
+			</div>
+		</div>
+	</div>
+
+	<div class="portlet">
+		<div class="portletFrame">
+			<div class="portletHeader clearFix">
+				<div class="portletHeaderFrame clearFix">
+					<div class="title">
+						<a name="anchorf563"></a>
+						<span>个人邮箱</span>
+					</div>
+				</div>
+			</div>
+			<div class="portletContent">
+				您的收件箱目前有
+				<a href='message.php'><font style="color:#FF0000; font-weight:bold; font-size:16px">{$message_count}</font></a>封新邮件
+				<a href='message.php'>进入邮箱</a>
+			</div>
+		</div>
+	</div>
+	<div class="placeholder">&nbsp;</div>
+{/block}
+</div>
+
+<div id="content" class="right-area">
+	{block name="right-area"}
+	<div class="portlet">
+		<div class="portletFrame">
+			<div class="portletHeader clearFix">
+				<div class="portletHeaderFrame clearFix">
+					<div class="title">
+						<a name="anchorf642"></a>
+						<span>系统公告</span>&nbsp;
+					</div>
+				</div>
+			</div>
+			<div class="portletContent">
+				{if $contents}
+				<ul class="article-list">
+					{foreach from=$contents item=content}
+					<li class="article-list-item clearfix">
+						<a href="article.php?id={$content.id}">
+							{$content.title|escape}
+							<span class="date fr">{date("Y-m-d H:i:s", $content.add_time)}</span>
+						</a>
+					</li>
+					{/foreach}
+				</ul>
+				{else}
+				暂无系统公告.
+				{/if}
+			</div>
+		</div>
+	</div>
+
+	<div class="portlet">
+		<div class="portletFrame">
+			<div class="portletHeader clearFix">
+				<div class="portletHeaderFrame clearFix">
+					<div class="title">
+						<a name="anchorf642"></a>
+						<span>业务提醒</span>&nbsp;
+					</div>
+				</div>
+			</div>
+			<div class="portletContent">
+				<p>团队新增人数: {intval($group_count)}</p>
+				<p>团队新增业绩: {price_format($achievement_count)}</p>
+			</div>
+		</div>
+	</div>
+	{/block}
+	<div class="placeholder">&nbsp;</div>
+</div>
+</div>
+
+</body>
+</html>

@@ -28,10 +28,6 @@
 {if $active_nav eq 'main'}
     $(function () {
         menu1("", "", ".menu_index a.nav-top-item");
-    })
-{else}
-    $(function() {
-        menu1("#id_{$menu_mark}", "#id_{$menu_mark} a", ".{$menu_mark} a.nav-top-item");
     });
 {/if}
 </script>

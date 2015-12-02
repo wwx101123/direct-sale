@@ -1,0 +1,170 @@
+{extends file="main.phtml"}
+{block name="left-area"}
+<div class="portlet">
+    <div class="portletFrame">
+        <div class="portletHeader clearFix">
+            <div class="portletHeaderFrame clearFix">
+                <div class="title">
+                    <a name="anchorf642"></a>
+                    <span>{$sub_title}</span>&nbsp;
+                </div>
+            </div>
+        </div>
+        <div class="portletContent">
+            <ul class="article-list">
+                <li class="article-list-item clearfix">
+                    <a href="order.php">订单管理</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="right-area"}
+<div class="portlet">
+    {if $act eq 'view'}
+    <div class="portletFrame">
+        <div class="portletHeader clearFix">
+            <div class="portletHeaderFrame clearFix">
+                <div class="title">
+                    <a name="anchorf642"></a>
+                    <span>我的订单</span>&nbsp;
+                </div>
+            </div>
+        </div>
+        <div class="portletContent">
+            <div class="search-bar">
+                <form method="get">
+                    订单编号：<input type="text" name="order_sn" value="{$order_sn}"/>
+                    类型：<select name="type">
+                        <option value="0">全部</option>
+                        {foreach from=$lang.order_type key=id item=type_item}
+                        <option value="{$id}" {if $type eq $id}selected="selected"{/if}>{$type_item}</option>
+                        {/foreach}
+                    </select>
+                    下单时间：<input type="input" class="input-search" name="begin_time" id="begin_time" value="{$begin_time}"/> 至
+                    <input type="input" class="input-search" name="end_time" id="end_time" value="{$end_time}"/>
+                    <input type="submit" name="submit" value="搜索" class="search-btn"/>
+                </form>
+            </div>
+            <table class="table">
+                <tr>
+                    <th>订单编号</th>
+                    <th>订单类型</th>
+                    <th>订单总额</th>
+                    <th>订单状态</th>
+                    <th>下单时间</th>
+                    <th>备注</th>
+                    <th>操作</th>
+                </tr>
+                {if $order_list}
+                {foreach from=$order_list item=order}
+                <tr>
+                    <td>{$order.order_sn}</td>
+                    <td>{$lang.order_type[{$order.type}]}</td>
+                    <td>{price_format($order.total_amount)}</td>
+                    <td>{$lang.order_status[{$order.status}]}</td>
+                    <td>{date('Y-m-d H:i:s', $order.add_time)}</td>
+                    <td>{$order.remark}</td>
+                    <td>
+                        <a href="order.php?act=detail&sn={$order.order_sn}">查看</a>
+                    </td>
+                </tr>
+                {/foreach}
+                {else}
+                <tr>
+                    <td colspan="7">
+                        暂无记录
+                    </td>
+                </tr>
+                {/if}
+            </table>
+            {include file="page.phtml"}
+            <script type="text/javascript" src="{$template_dir}js/laydate/laydate.js"></script>
+            <script type="text/javascript">
+                var start = {
+                    elem: '#begin_time',
+                    format: 'YYYY-MM-DD',
+                    max: '9999-12-31 23:59:59', //最大日期
+                    istime: false,
+                    istoday: true,
+                    choose: function(datas){
+                        end.min = datas; //开始日选好后，重置结束日的最小日期
+                        end.start = datas //将结束日的初始值设定为开始日
+                        end.click;
+                    }
+                };
+
+                var end = {
+                    elem: '#end_time',
+                    format: 'YYYY-MM-DD',
+                    max: '9999-12-31 23:59:59',
+                    istime: false,
+                    istoday: true,
+                    choose: function(datas){
+                        start.max = datas; //结束日选好后，重置开始日的最大日期
+                    }
+                };
+
+                laydate(start);
+                laydate(end);
+            </script>
+        </div>
+    </div>
+    {/if}
+
+    {if $act eq 'detail'}
+    <div class="portletFrame">
+        <div class="portletHeader clearFix">
+            <div class="portletHeaderFrame clearFix">
+                <div class="title">
+                    <a name="anchorf642"></a>
+                    <span>订单详情</span>&nbsp;
+                </div>
+            </div>
+        </div>
+        <div class="portletContent">
+            <table class="table">
+                <tr>
+                    <td>订单编号</td>
+                    <td>{$order.order_sn}</td>
+                    <td>订单状态</td>
+                    <td>{$lang.order_status[{$order.status}]}</td>
+                    <td>订单类型</td>
+                    <td>{$lang.order_type[{$order.type}]}</td>
+                </tr>
+                <tr>
+                    <td>下单时间</td>
+                    <td>{$order.add_time}</td>
+                    <td>物流公司</td>
+                    <td>{if $order.status gt 5}{$order.delivery_name}{/if}</td>
+                    <td>物流单号</td>
+                    <td>{if $order.status gt 5}{$order.delivery_sn}{/if}</td>
+                </tr>
+                <tr>
+                    <td colspan="6" align="left">订单详情</td>
+                </tr>
+                <tr>
+                    <td>产品图片</td>
+                    <td>产品编号</td>
+                    <td>产品价格</td>
+                    <td>购买数量</td>
+                    <td>小计</td>
+                    <td></td>
+                </tr>
+                {foreach from=$order_detail item=od}
+                <tr>
+                    <td><img src="{$od.img}" width="120px"/></td>
+                    <td>{$od.product_sn}</td>
+                    <td>{price_format($od.price)}</td>
+                    <td>{$od.number}</td>
+                    <td>{price_format($od.price*$od.number)}</td>
+                    <td></td>
+                </tr>
+                {/foreach}
+            </table>
+        </div>
+    </div>
+    {/if}
+</div>
+{/block}

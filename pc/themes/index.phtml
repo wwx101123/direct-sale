@@ -1,0 +1,125 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>{$config.site_name}</title>
+    <link rel="stylesheet" type="text/css" href="{$template_dir}css/style.css"/>
+    <script type="text/javascript" src="{$template_dir}js/jquery.min.js"></script>
+    <script type="text/javascript" src="{$template_dir}js/request.js"></script>
+</head>
+<body>
+<div class="container" style="background: url({$template_dir}images/jyhlw.jpg) no-repeat center 35px;margin:0 auto;height: 100%;border:0;">
+  <div class="login-form">
+      <div class="input-wrapper">
+        <label class="input-label" for="account">会员卡号/手机号:</label>
+        <input class="input-text" type="text" name="account" id="account" placeholder="请输入客户卡号/手机号码"/>
+        <label class="input-label">&nbsp;</label>
+        <p id="account-error" class="input-error"></p>
+      </div>
+      <div class="input-wrapper">
+        <label class="input-label" for="password">登录密码:</label>
+        <input class="input-text" type="password" name="password" id="password" placeholder="请输入登录密码"/>
+        <label class="input-label">&nbsp;</label>
+        <p class="input-error" id="password-error"></p>
+      </div>
+      <div class="input-wrapper">
+        <label class="input-label" for="code">验证码:</label>
+        <input class="input-code" type="text" name="code" id="code" placeholder="请输入验证码"/>
+        <img src="code.php?rand=0.011" onclick="this.src='code.php?'+Math.random()*1000" class="input-code-img"/>
+        <label class="input-label">&nbsp;</label>
+        <p class="input-error" id="code-error"></p>
+      </div>
+      <div class="input-wrapper">
+        <input type="hidden" name="rand" value="4601"/>
+        <input type="hidden" name="opera" value="login"/>
+        <a href="javascript:void(0);" class="input-btn input-opsitive" id="submit-btn">
+            登录<img src="{$template_dir}images/btn_loading.gif" class="btn-loading-img"/>
+        </a>
+        <a href="register.php" class="input-btn input-negetive">注册</a>
+        <a href="#" class="wjmm" style="display: none;">忘记密码？</a>
+      </div>
+  </div>
+</div>
+<div id="mask"></div>
+<script type="text/javascript">
+    /**
+     * 这个解决方案可以作为Ajax提交表单的模板
+     * 1、form的提交操作托管给do_submit处理;
+     * 2、Ajax操作分为两部分，第一部分do_submit作为提交前的参数验证，第二部分do_resposne作为返回代码的处理;
+     * 3、仅支持post方式提交表单;
+     * 4、需要在提交按钮加入提交中的加载图片，以及遮罩层代码<div id="mask"></div>
+     **/
+    $(function(){
+        $("#submit-btn").click(function(){
+            do_submit();
+        });
+    });
+    function do_submit() {
+        //参数校验
+        var flag = true;
+
+        var account = $("#account").val().trim();
+        var password = $("#password").val().trim();
+        var code = $("#code").val().trim();
+
+        if(account == "") {
+            show_error_message("account", "请填写会员卡号/手机号码/邮箱");
+            flag = false;
+        } else {
+            hide_error_message("account");
+        }
+
+        if(password == "") {
+            show_error_message("password", "请填写登录密码");
+            flag = false;
+        } else {
+            hide_error_message("password");
+        }
+
+        if(code == "") {
+            show_error_message("code", "请填写验证码");
+            flag = false;
+        } else {
+            hide_error_message("code");
+        }
+
+        if(flag) {
+            flag = true;
+            //启用过渡效果
+            $(".btn-loading-img").show();
+            $("#submit-btn").addClass("btn-disabled");
+            $("#mask").show();
+
+            var params = { "opera":"login", "account":account, "password":password, "code":code };
+            var url = "{$smarty.const.API_URI}member.php";
+            $.post(url, params, do_response, "json");
+        }
+
+        return flag;
+    }
+
+    function do_response(result) {
+        //关闭过渡效果
+        $(".btn-loading-img").hide();
+        $("#submit-btn").removeClass("btn-disabled");
+        $("#mask").hide();
+        //处理返回结果
+        if(result.errno == 0) {
+            alert(result.errmsg);
+            window.location.href = "main.php";
+        } else {
+            if(result.errmsg != "") {
+                alert(result.errmsg);
+            }
+
+            if(result.errcontent) {
+                for(var id in result.errcontent) {
+                    $("#"+id+"-error").text(result.errcontent[id]);
+                }
+            }
+        }
+    }
+    /*----------------  Ajax end ---------------------*/
+</script>
+</body>
+</html>

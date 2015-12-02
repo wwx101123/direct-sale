@@ -1,6 +1,6 @@
 /*YUI 3.18.1 (build f7e7bcb)Copyright 2014 Yahoo! Inc. All rights reserved.Licensed under the BSD License.http://yuilibrary.com/license/*/html{color:#000;background:#FFF}body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,code,form,fieldset,legend,input,textarea,p,blockquote,th,td{margin:0;padding:0}table{border-collapse:collapse;border-spacing:0}fieldset,img{border:0}address,caption,cite,code,dfn,em,strong,th,var{font-style:normal;font-weight:normal}ol,ul{list-style:none}caption,th{text-align:left}h1,h2,h3,h4,h5,h6{font-size:100%;font-weight:normal}q:before,q:after{content:''}abbr,acronym{border:0;font-variant:normal}sup{vertical-align:text-top}sub{vertical-align:text-bottom}input,textarea,select{font-family:inherit;font-size:inherit;font-weight:inherit;*font-size:100%}legend{color:#000}#yui3-css-stamp.cssreset{display:none}
 /* 通用css */
-body{ background: url('../images/bg-body.png') top left repeat-y;font-size:14px;font-family: "Helvetica Neue", "Luxi Sans", "DejaVu Sans", Tahoma, "Hiragino Sans GB", STHeiti, "Microsoft YaHei"; color:#333;line-height:22px;}
+body{ background: url('../images/bg-body.png') top left repeat-y;font-size:12px;font-family: "Helvetica Neue", "Luxi Sans", "DejaVu Sans", Tahoma, "Hiragino Sans GB", STHeiti, "Microsoft YaHei"; color:#333;line-height:22px;}
 .clear{clear:both;}
 a{color:#06C;cursor:pointer;text-decoration: none;}
 a:hover{color:#039}
@@ -371,7 +371,7 @@ ul.tabs li.active a{
 .table {
     color: #666;
     background: #FFF;
-    font-size: 14px;
+    font-size: 12px;
     margin-top: 8px;
     border: 1px solid #e1e6eb;
     width: 100%;
@@ -533,4 +533,126 @@ ul.tabs li.active a{
 {
     width: 120px;
     height: 120px;
+}
+
+/* menu */
+.custom-menu-list
+{
+    display: inline-block;
+    width: 200px;
+    border: 1px solid #e7e7eb;
+    border-top: 0;
+    min-height: 530px;
+    float: left;
+}
+.custom-menu-toolbar
+{
+    background: #f7f8f9;
+    line-height: 38px;
+    overflow: hidden;
+    padding: 0 12px;
+    border-bottom: 1px solid #e7e7eb;
+}
+#add-item
+{
+    float: right;
+    background: url(img/icon.png) no-repeat 0px -4204px;
+    height: 16px;
+    width: 16px;
+    margin: 10px 0;
+}
+#add-item:hover
+{
+    background-position: 0 -4230px;
+}
+.custom-menu-item
+{
+    line-height: 32px;
+}
+.menu-group
+{
+    border-top: 1px solid #e7e7eb;
+    text-indent: 20px;
+}
+.menu-group:first-child
+{
+    border-top: 0;
+}
+.menu-group-item
+{
+    cursor: pointer;
+}
+.menu-group-item-hover
+{
+    background: #f7f8f9;
+}
+.menu-group-subitem
+{
+    cursor: pointer;
+    text-indent: 30px;
+}
+.menu-group-subitem-hover
+{
+    background: #f7f8f9;
+}
+.custom-menu-content
+{
+    float: left;
+    width: 537px;
+    display: inline-block;
+    min-height: 530px;
+    border: 1px solid #e7e7eb;
+    border-left: 0;
+    border-top: 0;
+}
+.menu-form-label,.menu-input-error
+{
+    float: left;
+    line-height: 32px;
+    padding: 0 10px 0 20px;
+    margin-left: 122px;
+    color: #ff0000;
+    font-size: 14px;
+}
+.menu-input-error
+{
+    padding-right: 0;
+    width: 190px;
+}
+.menu-input-wrapper
+{
+    width: 210px;
+}
+.custom-menu-add-form
+{
+    padding: 20px 0;
+}
+.menu-form-item
+{
+    padding-bottom: 20px;
+}
+.menu-remove, .menu-add
+{
+    background: url(img/icon.png) 0 -3369px no-repeat;
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+}
+.menu-add:hover
+{
+    background-position: 0 -3393px;
+}
+.menu-remove
+{
+    background-position: 0 -3465px;
+}
+.menu-remove:hover
+{
+    background-position: 0 -3489px;
+}
+.menu-item-toolbar
+{
+    display: inline-block;
+    float: right;
+    padding: 9px 7px;
 }

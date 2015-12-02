@@ -24,7 +24,13 @@ $data[] = array(
     array('key'=>'access_token', 'name'=>'access_token', 'value'=>'', 'type'=>'text', 'group'=>'config'),
     array('key'=>'expired', 'name'=>'expired', 'value'=>'0', 'type'=>'text', 'group'=>'config'),
     array('key'=>'mch_id', 'name'=>'expired', 'value'=>'1289510101', 'type'=>'text', 'group'=>'themes'),
-    array('key'=>'mch_key', 'name'=>'expired', 'value'=>'keruihuanbaoderuierweiliangzisui', 'type'=>'text', 'group'=>'themes')
+    array('key'=>'mch_key', 'name'=>'expired', 'value'=>'keruihuanbaoderuierweiliangzisui', 'type'=>'text', 'group'=>'themes'),
+    array('key'=>'level_4', 'name'=>'金级平级奖', 'value'=>'10', 'type'=>'text', 'group'=>'config'),
+    array('key'=>'level_5', 'name'=>'钻级平级奖', 'value'=>'5', 'type'=>'text', 'group'=>'config'),
+    array('key'=>'level_61', 'name'=>'皇冠平级奖1', 'value'=>'5', 'type'=>'text', 'group'=>'config'),
+    array('key'=>'level_62', 'name'=>'皇冠平级奖2', 'value'=>'3', 'type'=>'text', 'group'=>'config'),
+    array('key'=>'level_63', 'name'=>'皇冠平级奖3', 'value'=>'2', 'type'=>'text', 'group'=>'config'),
+    array('key'=>'level_6_else', 'name'=>'皇冠团队奖', 'value'=>'10', 'type'=>'text', 'group'=>'config')
 );
 
 //管理员
@@ -87,3 +93,5 @@ foreach($table as $key=>$name)
         echo ' <font color="red">fail</font>:'.$db->errmsg().'<br/>';
     }
 }
+
+//register_mobile('13900000000', '嘟喷哒公司', '123456');

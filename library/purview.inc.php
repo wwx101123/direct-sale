@@ -19,15 +19,18 @@ $purview = array(
         'pur_member_edit',
         'pur_member_del',
     ),
-    'pur_business' => array(
-        'pur_business_view',
-        'pur_business_edit',
-        'pur_business_exam',
-        'pur_business_frozen',
-    ),
-    'pur_exchange' => array(
-        'pur_exchange_view',
-        'pur_exchange_reward',
+//    'pur_business' => array(
+//        'pur_business_view',
+//        'pur_business_edit',
+//        'pur_business_exam',
+//        'pur_business_frozen',
+//    ),
+//    'pur_exchange' => array(
+//        'pur_exchange_view',
+////        'pur_exchange_reward',
+//    ),
+    'pur_reward' => array(
+        'pur_reward_view',
     ),
     'pur_withdraw' => array(
         'pur_withdraw_view',
@@ -62,13 +65,17 @@ $purview = array(
     ),
     'pur_order' => array(
         'pur_order_view',
-//        'pur_order_del',
-//        'pur_order_edit',
+        'pur_order_del',
+        'pur_order_edit',
     ),
 
-    'pur_virtual_order' => array(
-        'pur_virtual_order_view',
+    'pur_bank' => array(
+        'pur_bank_view'
     ),
+
+//    'pur_virtual_order' => array(
+//        'pur_virtual_order_view',
+//    ),
 
     //模板控制
     /*
@@ -79,51 +86,51 @@ $purview = array(
     */
     //产品
     'pur_product' => array(
-        'pur_product_view',
-        'pur_product_exam',
+        'pur_product_add',
+        'pur_product_edit',
 //        'pur_product_edit',
 //        'pur_product_del',
     ),
 
     //虚拟产品
-    'pur_virtual_product' => array(
-        'pur_virtual_product_view',
-        'pur_virtual_product_exam',
-//        'pur_product_edit',
-//        'pur_product_del',
-    ),
+//    'pur_virtual_product' => array(
+//        'pur_virtual_product_view',
+//        'pur_virtual_product_exam',
+////        'pur_product_edit',
+////        'pur_product_del',
+//    ),
 
     //主营分类
-    'pur_category' => array(
-        'pur_category_view',
-        'pur_category_add',
-        'pur_category_edit',
-        'pur_category_del',
-    ),
+//    'pur_category' => array(
+//        'pur_category_view',
+//        'pur_category_add',
+//        'pur_category_edit',
+//        'pur_category_del',
+//    ),
 
     //产品类型
-    'pur_type' => array(
-        'pur_type_view',
-        'pur_type_add',
-        'pur_type_edit',
-        'pur_type_del',
-    ),
+//    'pur_type' => array(
+//        'pur_type_view',
+//        'pur_type_add',
+//        'pur_type_edit',
+//        'pur_type_del',
+//    ),
 
     //产品品牌
-    'pur_brand' => array(
-        'pur_brand_view',
-        'pur_brand_add',
-        'pur_brand_edit',
-        'pur_brand_del',
-    ),
+//    'pur_brand' => array(
+//        'pur_brand_view',
+//        'pur_brand_add',
+//        'pur_brand_edit',
+//        'pur_brand_del',
+//    ),
 
     //主营行业
-    'pur_industry' => array(
-        'pur_industry_view',
-        'pur_industry_add',
-        'pur_industry_edit',
-        'pur_industry_del',
-    ),
+//    'pur_industry' => array(
+//        'pur_industry_view',
+//        'pur_industry_add',
+//        'pur_industry_edit',
+//        'pur_industry_del',
+//    ),
 
     //栏目
     'pur_section' => array(
@@ -156,27 +163,27 @@ $purview = array(
         'pur_ad_del',
     ),
     //统计
-    'pur_statistics' => array(
-        'pur_statistics_view',
-    ),
+//    'pur_statistics' => array(
+//        'pur_statistics_view',
+//    ),
     //导航
-    'pur_nav' => array(
-        'pur_nav_add',
-        'pur_nav_view',
-        'pur_nav_edit',
-        'pur_nav_del',
-    ),
+//    'pur_nav' => array(
+//        'pur_nav_add',
+//        'pur_nav_view',
+//        'pur_nav_edit',
+//        'pur_nav_del',
+//    ),
     //微信菜单
     'pur_wechat_menu' => array(
         'pur_wechat_menu_edit',
     ),
     //微信客服
-    'pur_wechat_kf' => array(
-        'pur_wechat_kf_add',
-        'pur_wechat_kf_view',
-        'pur_wechat_kf_edit',
-        'pur_wechat_kf_del',
-    ),
+//    'pur_wechat_kf' => array(
+//        'pur_wechat_kf_add',
+//        'pur_wechat_kf_view',
+//        'pur_wechat_kf_edit',
+//        'pur_wechat_kf_del',
+//    ),
     //微信回复规则
     'pur_wechat_rule' => array(
         'pur_wechat_rule_add',
@@ -184,12 +191,12 @@ $purview = array(
         'pur_wechat_rule_edit',
         'pur_wechat_rule_del',
     ),
-    'pur_activity' => array(
-        'pur_activity_add',
-        'pur_activity_view',
-        'pur_activity_edit',
-        'pur_activity_del',
-    ),
+//    'pur_activity' => array(
+//        'pur_activity_add',
+//        'pur_activity_view',
+//        'pur_activity_edit',
+//        'pur_activity_del',
+//    ),
 );
 
 global $L_purview;
@@ -206,11 +213,14 @@ $L_purview = array(
     'pur_member_edit'=>'编辑会员',
     'pur_member_del'=>'删除会员',
 
-    'pur_business' => '商户管理',
-    'pur_business_view' => '查看商户',
-    'pur_business_edit' => '编辑商户信息',
-    'pur_business_exam' => '商户审核',
-    'pur_business_frozen' => '冻结商户/解除冻结',
+    'pur_bank' => '银行账号设置',
+    'pur_bank_view' => '银行卡设置',
+
+//    'pur_business' => '商户管理',
+//    'pur_business_view' => '查看商户',
+//    'pur_business_edit' => '编辑商户信息',
+//    'pur_business_exam' => '商户审核',
+//    'pur_business_frozen' => '冻结商户/解除冻结',
 
 
     'pur_adpos' => '广告位置',
@@ -237,9 +247,11 @@ $L_purview = array(
     'pur_recharge_log'=>'查看充值日志',
 
 
-    'pur_exchange' => '交易记录',
-    'pur_exchange_view' => '查看交易记录',
-    'pur_exchange_reward' => '佣金记录',
+//    'pur_exchange' => '交易记录',
+//    'pur_exchange_view' => '查看交易记录',
+
+    'pur_reward' => '奖金管理',
+    'pur_reward_view' => '奖金管理',
 
     'pur_account' => '账户明细',
     'pur_account_view' => '查看账户明细',
@@ -258,13 +270,14 @@ $L_purview = array(
 
     'pur_product' => '产品管理',
     'pur_product_view'=>'查看产品',
-    'pur_product_exam'=>'审核产品',
-//    'pur_product_edit'=>'编辑产品',
+    'pur_product_add'=>'新增产品',
+//    'pur_product_edit'=>'审核产品',
+    'pur_product_edit'=>'编辑产品',
 //    'pur_product_del'=>'删除产品',
 
-    'pur_virtual_product' => '虚拟产品管理',
-    'pur_virtual_product_view' => '查看虚拟产品',
-    'pur_virtual_product_exam' => '审核虚拟产品',
+//    'pur_virtual_product' => '虚拟产品管理',
+//    'pur_virtual_product_view' => '查看虚拟产品',
+//    'pur_virtual_product_exam' => '审核虚拟产品',
 
     'pur_self' => '个人信息',
     'pur_passwd_edit' => '密码修改',
@@ -274,16 +287,16 @@ $L_purview = array(
     'pur_order_edit' => '编辑订单状态',
     'pur_order_del' => '删除订单',
 
-    'pur_virtual_order' => '消费券管理',
-    'pur_virtual_order_view' => '查看消费券',
+//    'pur_virtual_order' => '消费券管理',
+//    'pur_virtual_order_view' => '查看消费券',
 
-    'pur_template' => '主题',
-    'pur_template_view' => '模板列表',
-    'pur_template_apply' => '更换模板',
+//    'pur_template' => '主题',
+//    'pur_template_view' => '模板列表',
+//    'pur_template_apply' => '更换模板',
 
-    'pur_stastics' => '站点统计',
-    'pur_stastics_view' => '查看统计',
-
+//    'pur_stastics' => '站点统计',
+//    'pur_stastics_view' => '查看统计',
+/*
     'pur_category' => '主营分类',
     'pur_category_view' => '查看主营分类',
     'pur_category_add' => '添加主营分类',
@@ -307,7 +320,7 @@ $L_purview = array(
     'pur_industry_add' => '添加主营行业',
     'pur_industry_edit' => '编辑主营行业',
     'pur_industry_del' => '删除主营行业',
-
+*/
     'pur_section' => '栏目管理',
     'pur_section_view' => '查看栏目',
     'pur_section_add' => '添加栏目',
@@ -320,23 +333,23 @@ $L_purview = array(
     'pur_content_edit' => '编辑资讯',
     'pur_content_del' => '删除资讯',
 
-    'pur_statistics' => '站点统计',
-    'pur_statistics_view' => '查看统计',
+//    'pur_statistics' => '站点统计',
+//    'pur_statistics_view' => '查看统计',
 
-    'pur_nav' => '导航管理',
-    'pur_nav_add'=>'添加导航栏',
-    'pur_nav_view'=>'查看导航栏',
-    'pur_nav_edit'=>'编辑导航栏',
-    'pur_nav_del'=>'删除导航栏',
+//    'pur_nav' => '导航管理',
+//    'pur_nav_add'=>'添加导航栏',
+//    'pur_nav_view'=>'查看导航栏',
+//    'pur_nav_edit'=>'编辑导航栏',
+//    'pur_nav_del'=>'删除导航栏',
 
     'pur_wechat_menu' => '微信菜单管理',
     'pur_wechat_menu_edit' => '微信菜单管理',
 
-    'pur_wechat_kf' => '微信客服管理',
-    'pur_wechat_kf_add' => '微信客服添加',
-    'pur_wechat_kf_view' => '微信客服查看',
-    'pur_wechat_kf_edit' => '微信客服编辑',
-    'pur_wechat_kf_del' => '微信客服删除',
+//    'pur_wechat_kf' => '微信客服管理',
+//    'pur_wechat_kf_add' => '微信客服添加',
+//    'pur_wechat_kf_view' => '微信客服查看',
+//    'pur_wechat_kf_edit' => '微信客服编辑',
+//    'pur_wechat_kf_del' => '微信客服删除',
 
     'pur_wechat_rule' => '微信规则管理',
     'pur_wechat_rule_add' => '添加微信规则',
@@ -344,16 +357,17 @@ $L_purview = array(
     'pur_wechat_rule_edit' => '编辑微信规则',
     'pur_wechat_rule_del' => '删除微信规则',
 
-    'pur_activity' => '活动管理',
-    'pur_activity_view' => '活动查看',
-    'pur_activity_add' => '活动添加',
-    'pur_activity_edit' => '活动编辑',
-    'pur_activity_del' => '活动删除',
+//    'pur_activity' => '活动管理',
+//    'pur_activity_view' => '活动查看',
+//    'pur_activity_add' => '活动添加',
+//    'pur_activity_edit' => '活动编辑',
+//    'pur_activity_del' => '活动删除',
 );
 
 global $menus;
 $menus = array(
     'pur_product' => array('url'=>'product.php', 'title'=>'产品管理', 'parent' => 'menu_product'),
+    'pur_bank' => array('url'=>'bank.php', 'title'=>'银行卡设置', 'parent'=>'menu_site'),
     'pur_virtual_product' => array('url'=>'virtual_product.php', 'title'=>'虚拟产品管理', 'parent' => 'menu_product'),
     'pur_brand' => array('url'=>'brand.php', 'title'=>'产品品牌', 'parent'=>'menu_product'),
     'pur_type' => array('url'=>'type.php', 'title'=>'产品类型', 'parent'=>'menu_product'),
@@ -365,10 +379,11 @@ $menus = array(
     'pur_withdraw' => array('url'=>'withdraw.php', 'title'=>'提现管理', 'parent' => 'menu_account'),
     'pur_recharge' => array('url'=>'recharge.php', 'title'=>'充值管理', 'parent' => 'menu_account'),
     'pur_exchange' => array('url'=>'exchange.php', 'title'=>'交易管理', 'parent' => 'menu_account'),
+    'pur_reward' => array('url'=>'reward.php', 'title'=>'奖金管理', 'parent' => 'menu_account'),
     'pur_admin' => array('url'=>'admin.php', 'title'=>'管理员管理', 'parent' => 'menu_admin'),
     'pur_role' => array('url'=>'role.php', 'title'=>'管理员角色管理', 'parent' => 'menu_admin'),
     'pur_sysconf' => array('url'=>'sysconf.php', 'title'=>'参数设置', 'parent' => 'menu_site'),
-    'pur_passwd' => array('url' => 'password.php', 'title' => '修改密码', 'parent' => 'memu_self'),
+    'pur_passwd' => array('url' => 'profile.php?act=passwd', 'title' => '修改密码', 'parent' => 'memu_self'),
     'pur_adpos' => array('url' => 'adpos.php', 'title' => '广告位置管理', 'parent' => 'menu_site'),
     'pur_ad' => array('url' => 'ad.php', 'title' => '广告管理', 'parent' => 'menu_site'),
     'pur_statistics' => array('url' => 'statistics.php', 'title' => '查看统计', 'parent' => 'menu_site'),

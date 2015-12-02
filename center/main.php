@@ -27,6 +27,16 @@ $member_amount = $db->fetchOne($get_member_amount);
 $get_order_amount = 'select count(*) from '.$db->table('order').' where `add_time`>='.$today;
 $order_amount = $db->fetchOne($get_order_amount);
 
+//最新留言数
+$get_message_count = 'select count(*) from '.$db->table('message').' where `add_time`>='.$today.' and `from`<>\'系统管理员\'';
+$message_count = $db->fetchOne($get_message_count);
+
+//新增业绩
+$get_achievement_amount = 'select sum(`amount`) from '.$db->table('order').' where `add_time`>='.$today;
+$achievement_amount = $db->fetchOne($get_achievement_amount);
+
+assign('achievement_amount', $achievement_amount);
+assign('message_count', $message_count);
 assign('member_amount', $member_amount);
 assign('order_amount', $order_amount);
 $template .= $act.'.phtml';

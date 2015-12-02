@@ -1,0 +1,130 @@
+{extends file="main.phtml"}
+{block name="left-area"}
+<div class="portlet">
+    <div class="portletFrame">
+        <div class="portletHeader clearFix">
+            <div class="portletHeaderFrame clearFix">
+                <div class="title">
+                    <a name="anchorf642"></a>
+                    <span>财务管理</span>&nbsp;
+                </div>
+            </div>
+        </div>
+        <div class="portletContent">
+            <ul class="article-list">
+                <li class="article-list-item clearfix">
+                    <a href="account.php">账户明细</a>
+                </li>
+                <li class="article-list-item clearfix">
+                    <a href="reward.php">奖金查看</a>
+                </li>
+                <li class="article-list-item clearfix">
+                    <a href="withdraw.php?act=add">提现申请</a>
+                </li>
+                <li class="article-list-item clearfix">
+                    <a href="withdraw.php">提现记录</a>
+                </li>
+                <li class="article-list-item clearfix">
+                    <a href="recharge.php?act=add">账户充值</a>
+                </li>
+                <li class="article-list-item clearfix">
+                    <a href="recharge.php">充值记录</a>
+                </li>
+                <li class="article-list-item clearfix">
+                    <a href="balance_transfer.php">余额转出</a>
+                </li>
+                <li class="article-list-item clearfix">
+                    <a href="reward_transfer.php">奖金转出</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="right-area"}
+<div class="portlet">
+    <div class="portletFrame">
+        <div class="portletHeader clearFix">
+            <div class="portletHeaderFrame clearFix">
+                <div class="title">
+                    <a name="anchorf642"></a>
+                    <span>账户明细</span>&nbsp;
+                </div>
+            </div>
+        </div>
+        <div class="portletContent">
+            <div class="search-bar">
+                <form method="get">
+                    明细类型：<select name="type">
+                        <option value="0">全部</option>
+                        {foreach from=$lang.account_type key=id item=type_item}
+                        <option value="{$id}" {if $type eq $id}selected="selected"{/if}>{$type_item}</option>
+                        {/foreach}
+                    </select>
+                    记录时间：<input type="input" class="input-search" name="begin_time" id="begin_time" value="{$begin_time}"/> 至
+                    <input type="input" class="input-search" name="end_time" id="end_time" value="{$end_time}"/>
+                    <input type="submit" name="submit" value="搜索" class="search-btn"/>
+                </form>
+            </div>
+            <table class="table">
+                <tr>
+                    <th>明细类型</th>
+                    <th>账户余额</th>
+                    <th>奖金余额</th>
+                    <th>待发奖金</th>
+                    <th>记录时间</th>
+                    <th>备注</th>
+                </tr>
+                {if $account_list}
+                {foreach from=$account_list item=account}
+                <tr>
+                    <td>{$lang.account_type[{$account.type}]}</td>
+                    <td>{price_format($account.balance)}</td>
+                    <td>{price_format($account.reward)}</td>
+                    <td>{price_format($account.reward_await)}</td>
+                    <td>{date('Y-m-d H:i:s', $account.add_time)}</td>
+                    <td>{$account.remark}</td>
+                </tr>
+                {/foreach}
+                {else}
+                <tr>
+                    <td colspan="6">
+                        暂无记录
+                    </td>
+                </tr>
+                {/if}
+            </table>
+            {include file="page.phtml"}
+            <script type="text/javascript" src="{$template_dir}js/laydate/laydate.js"></script>
+            <script type="text/javascript">
+                var start = {
+                    elem: '#begin_time',
+                    format: 'YYYY-MM-DD',
+                    max: '9999-12-31 23:59:59', //最大日期
+                    istime: false,
+                    istoday: true,
+                    choose: function(datas){
+                        end.min = datas; //开始日选好后，重置结束日的最小日期
+                        end.start = datas //将结束日的初始值设定为开始日
+                        end.click;
+                    }
+                };
+
+                var end = {
+                    elem: '#end_time',
+                    format: 'YYYY-MM-DD',
+                    max: '9999-12-31 23:59:59',
+                    istime: false,
+                    istoday: true,
+                    choose: function(datas){
+                        start.max = datas; //结束日选好后，重置开始日的最大日期
+                    }
+                };
+
+                laydate(start);
+                laydate(end);
+            </script>
+        </div>
+    </div>
+</div>
+{/block}

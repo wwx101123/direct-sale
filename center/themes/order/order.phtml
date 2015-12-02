@@ -30,16 +30,13 @@
                     <input class="text-input w150" type="text" id="small-input" name="order_sn" value="{$order_sn}">&nbsp;
                     <label>会员编号：</label>
                     <input class="text-input w150" type="text" id="small-input" name="account" value="{$account}">&nbsp;
-                    <label>明细类型：</label>
+                    <label>订单状态：</label>
                     <select name="status">
                         <option value="0">全部</option>
-                        <option value="1" {if $status eq 1}selected="selected"{/if}>待发货</option>
-                        <option value="2" {if $status eq 2}selected="selected"{/if}>已发货</option>
-                    </select><br/><br/>
-                    <label>起止时间：</label>
-                    <input class="text-input w150" type="text" id="begin_time" name="begin_time" value="{$begin_time}">&nbsp;
-                    至
-                    <input class="text-input w150" type="text" id="end_time" name="end_time" value="{$end_time}">&nbsp;
+                        {foreach from=$lang.order_status key=id item=name}
+                        <option value="{$id}" {if $status eq $id}selected="selected"{/if}>{$name}</option>
+                        {/foreach}
+                    </select>
                     <button type="submit" class="btn btn-default">搜索</button>
                 </div>
                 </p>
@@ -63,12 +60,10 @@
                 <th>订单编号</th>
                 <th>会员账号</th>
                 <th>订单总额</th>
-<!--                <th>积分总额</th>-->
-<!--                <th>赠送积分</th>-->
                 <th>订单状态</th>
                 <th>下单时间</th>
                 <th>备注</th>
-                <th class="text-right">操作</th>
+                <th>操作</th>
             </tr>
             </thead>
             <tbody>
@@ -77,10 +72,8 @@
                 <td><input type="checkbox" name="id[]" value="{$order.id}"/></td>
                 <td>{$order.order_sn}</td>
                 <td>{$order.account}</td>
-                <td>{$order.amount}</td>
-<!--                <td>{$order.integral_amount}</td>-->
-<!--                <td>{$order.integral_given_amount}</td>-->
-                <td>{$LANG.order["status_{$order.status}"]}</td>
+                <td>{$order.total_amount}</td>
+                <td>{$lang.order_status["{$order.status}"]}</td>
                 <td>{date('Y-m-d H:i:s', $order.add_time)}</td>
                 <td>{$order.remark}</td>
                 <td>
@@ -89,15 +82,15 @@
             </tr>
             {/foreach}
             <tr>
-                <td colspan="10">
+                <td colspan="8">
                     <div class="pull-right">
                         <div class="pages">
                             <span>共有{$total}条，{$totalPage}页，每页显示：{$count}条</span>
                             {if $go_first}
-                            <a href="?page=1&status={$stauts}&account={$account}&count={$count}">首页</a>
+                            <a href="?page=1&keyword={$keyword}&count={$count}">首页</a>
                             {/if}
                             {if $has_prev}
-                            <a href="?page={$page - 1}&status={$stauts}&account={$account}&count={$count}">上一页</a>
+                            <a href="?page={$page - 1}&keyword={$keyword}&count={$count}">上一页</a>
                             {/if}
                             {if $has_many_prev}
                             ...
@@ -106,17 +99,17 @@
                             {if $pageNum eq $page}
                             <b>{$page}</b>
                             {else}
-                            <a href="?page={$pageNum}&status={$stauts}&account={$account}&count={$count}">{$pageNum}</a>
+                            <a href="?page={$pageNum}&keyword={$keyword}&count={$count}">{$pageNum}</a>
                             {/if}
                             {/foreach}
                             {if $has_many_next}
                             ...
                             {/if}
                             {if $go_last}
-                            <a href="?page={$totalPage}&status={$stauts}&account={$account}&count={$count}">末页</a>
+                            <a href="?page={$totalPage}&keyword={$keyword}&count={$count}">末页</a>
                             {/if}
                             {if $has_next}
-                            <a href="?page={$page + 1}&status={$stauts}&account={$account}&count={$count}">下一页</a>
+                            <a href="?page={$page + 1}&keyword={$keyword}&count={$count}">下一页</a>
                             {/if}
                         </div>
                     </div>
@@ -124,35 +117,6 @@
             </tr>
             </tbody>
         </table>
-        <script type="text/javascript" src="laydate/laydate.js"></script>
-        <script type="text/javascript">
-            var start = {
-                elem: '#begin_time',
-                format: 'YYYY-MM-DD',
-                max: '9999-12-31 23:59:59', //最大日期
-                istime: false,
-                istoday: true,
-                choose: function(datas){
-                    end.min = datas; //开始日选好后，重置结束日的最小日期
-                    end.start = datas //将结束日的初始值设定为开始日
-                    end.click;
-                }
-            };
-
-            var end = {
-                elem: '#end_time',
-                format: 'YYYY-MM-DD',
-                max: '9999-12-31 23:59:59',
-                istime: false,
-                istoday: true,
-                choose: function(datas){
-                    start.max = datas; //结束日选好后，重置开始日的最大日期
-                }
-            };
-
-            laydate(start);
-            laydate(end);
-        </script>
         <script type="text/javascript">
             function order_export() {
                 var form = $("<form>");
@@ -241,20 +205,20 @@
                     {$order.order_sn}
                 </p>
                 <p>
+                    <label class="l-title">订单类型：</label>
+                    {$lang.order_type[{$order.type}]}
+                </p>
+                <p>
+                    <label class="l-title">订单状态：</label>
+                    {$lang.order_status[{$order.status}]}
+                </p>
+                <p>
                     <label class="l-title">会员账号：</label>
                     {$order.account}
                 </p>
                 <p>
                     <label class="l-title">订单总额：</label>
-                    {$order.amount}
-                </p>
-                <p>
-                    <label class="l-title">积分总额：</label>
-                    {$order.integral_amount}
-                </p>
-                <p>
-                    <label class="l-title">赠送积分：</label>
-                    {$order.integral_given_amount}
+                    {$order.total_amount}
                 </p>
                 <p>
                     <label class="l-title">备注：</label>
@@ -263,14 +227,14 @@
                 <p>
                     <label class="l-title">收货信息：</label>
                     收货人：{$order.consignee}
-                    联系电话：{$order.mobile}
+                    联系电话：{$order.phone}
                     收货地址：{$order.address}
                     邮政编码：{$order.zipcode}
                 </p>
-                {if $order.status eq 2 and $act eq 'detail'}
+                {if $order.status eq 6 and $act eq 'detail'}
                 <p>
                     <label class="l-title">物流信息：</label>
-                    物流公司：{$order.delivery_company}
+                    物流公司：{$order.delivery_name}
                     物流单号：{$order.delivery_sn}
                 </p>
                 {/if}
@@ -278,15 +242,13 @@
                     <label class="l-title">订单详情:</label>
                     <table class="table">
                         <thead>
-                        <tr><th>产品编号</th><th>产品名称</th><th>产品价格</th><th>积分</th><th>赠送积分</th><th>购买数量</th></tr>
+                        <tr><th>产品编号</th><th>产品名称</th><th>产品价格</th><th>购买数量</th></tr>
                         </thead>
                         {foreach from=$order_detail item=product}
                         <tr>
                             <td>{$product.product_sn}</td>
                             <td>{$product.name}</td>
                             <td>{$product.price}</td>
-                            <td>{$product.integral}</td>
-                            <td>{$product.integral_given}</td>
                             <td>{$product.number}</td>
                         </tr>
                         {/foreach}

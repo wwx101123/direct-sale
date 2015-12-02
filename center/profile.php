@@ -25,7 +25,7 @@ $opera = check_action($operation, getPOST('opera'));
 
 //编辑个人信息
 if( 'info' == $opera ) {
-    if( !check_purview('pur_info_edit', $_SESSION['purview']) ) {
+    if( !check_purview('pur_passwd_edit', $_SESSION['purview']) ) {
         show_system_message('权限不足', array());
         exit;
     }
@@ -86,7 +86,7 @@ if( 'info' == $opera ) {
 
 //修改密码
 if( 'passwd' == $opera ) {
-    if( !check_purview('pur_self_edit', $_SESSION['purview']) ) {
+    if( !check_purview('pur_passwd_edit', $_SESSION['purview']) ) {
         show_system_message('权限不足', array());
         exit;
     }
@@ -150,7 +150,7 @@ if( 'passwd' == $opera ) {
 
 //编辑个人信息
 if( 'info' == $act ) {
-    if( !check_purview('pur_info_edit', $_SESSION['purview']) ) {
+    if( !check_purview('pur_passwd_edit', $_SESSION['purview']) ) {
         show_system_message('权限不足', array());
         exit;
     }
@@ -171,7 +171,7 @@ if( 'info' == $act ) {
 
 //修改密码
 if( 'passwd' == $act ) {
-    if( !check_purview('pur_self_edit', $_SESSION['purview']) ) {
+    if( !check_purview('pur_passwd_edit', $_SESSION['purview']) ) {
         show_system_message('权限不足', array());
         exit;
     }

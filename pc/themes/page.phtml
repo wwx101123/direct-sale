@@ -1,0 +1,32 @@
+<div class="page-bar clearfix">
+    共{$total_count}条记录
+    <ul class="pager fr">
+        {if $total_page gt 1}
+        <li {if $page eq 1}class="on"{/if}>
+        {if 1 neq $page}
+            <a href="?page=1{$param_list}">首页</a>
+        {else}
+            首页
+        {/if}
+        </li>
+        {/if}
+        {for $i=1 to $total_page}
+        <li {if $i eq $page}class="on"{/if}>
+            {if $i neq $page}
+            <a href="?page={$i}{$param_list}">{$i}</a>
+            {else}
+            {$i}
+            {/if}
+        </li>
+        {/for}
+        {if $total_page gt 1}
+        <li {if $page eq $total_page}class="on"{/if}>
+        {if $total_page neq $page}
+        <a href="?page={$total_page}{$param_list}">尾页</a>
+        {else}
+        尾页
+        {/if}
+        </li>
+        {/if}
+    </ul>
+</div>

@@ -93,13 +93,28 @@ if('consume' == $opera)
 
                 $_number = $number;
                 $total_pv += $number * $product['pv'];
+
+                if($member_info['level_id'] == 1)
+                {
+                    $_number--;
+                    $product['price'] = $price_list_json[1]['price'];
+                    $product['number'] = $price_list_json[1]['min_number'];
+                    $amount += $product['number']*$product['price'];
+
+                    $cart_list[] = $product;
+                }
+
                 foreach($price_list_json as $level_id=>$pc)
                 {
-                    if($_number > $pc['min_number'])
+                    $greater = $level_id+1;
+
+                    if(isset($price_list_json[$greater]) && $_number >= $price_list_json[$greater]['min_number'])
                     {
-                        $product['number'] = $pc['min_number'];
-                        $_number -= $pc['min_number'];
+                        $log->record('ignore level '.$level_id);
+                        continue;
                     } else {
+                        $log->record('current level '.$level_id);
+                        $log->record_array($pc);
                         $product['number'] = $_number;
                         $_number = 0;
                     }
@@ -244,7 +259,7 @@ if('consume' == $opera)
                 }
 
                 //升级判断
-                if($c['number'] == $price_list_json[$member_info['level_id']]['min_number'] && $member_info['level_id'] < 5)
+                if($c['number'] == $price_list_json[$member_info['level_id']+1]['min_number'] && $member_info['level_id'] < 5)
                 {
                     $member_data = array(
                         'level_id' => ($member_info['level_id'] + 1)

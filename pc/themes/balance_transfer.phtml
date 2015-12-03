@@ -129,7 +129,7 @@
                     show_mask("submit-btn");
 
                     var params = { "opera":"reward_transfer", "password":password,  "remark":remark, "reward":reward, "target":target };
-                    var url = "reward_transfer.php";
+                    var url = "balance_transfer.php";
                     $.post(url, params, do_response, "json");
                     return true;
                 }
@@ -146,7 +146,6 @@
                 if(result.error == 0) {
                     alert(result.msg);
                     //重置当前页面
-                    document.forms[0].reset();
                     window.location.reload();
                 } else {
                     if(result.msg != "") {

@@ -160,6 +160,7 @@
     var total_amount = 0;
     var emoney = {$member_info.balance};
     var flag = true;
+    var current_level = {$member_info.level_id};
 
     $(function(){
         $("#submit-btn").click(function(){
@@ -236,10 +237,14 @@
         var number = 0;
         var pc = product_list[pid].price_list;
 
-        for(var i=1;i <= level_id; i++) {
-            if(pc[i] != undefined) {
-                number += parseInt(pc[i].min_number);
-            }
+        if(pc[2] != undefined && current_level == 1) {
+            number += parseInt(pc[2].min_number);
+            console.info("add level 2 number:"+parseInt(pc[2].min_number));
+        }
+
+        if(pc[level_id] != undefined && level_id > 2) {
+            number += parseInt(pc[level_id].min_number);
+            console.info("add level "+level_id+" number:"+parseInt(pc[level_id].min_number));
         }
 
         $("#number_"+pid).val(number);
@@ -292,15 +297,18 @@
         var pc = product_list[pid].price_list;
         var price = 0;
 
+        if(current_level == 1) {
+            number--;
+            price += pc[1].price;
+        }
+
         for(var i in pc) {
             console.info('level_id='+i+',number='+number+',min_number='+pc[i].min_number+',price='+pc[i].price);
 
             if(number > pc[i].min_number) {
                 var greater_index = ""+(parseInt(i)+1);
                 if(pc[greater_index] != undefined && number >= pc[greater_index].min_number) {
-                    console.info('greater than level up');
-                    price += pc[greater_index].price * pc[greater_index].min_number;
-                    number -= pc[greater_index].min_number;
+                    continue;
                 } else {
                     console.info('less than level up');
                     price += pc[i].price * number;
@@ -395,7 +403,9 @@
         flag = true;
         //处理返回结果
         if(result.error == 0) {
-            alert(result.msg);
+            $("#message-close-btn").click(function () {
+                window.location.reload();
+            });
             //重置当前页面
             show_system_message(result.content);
         } else {

@@ -65,3 +65,61 @@ if(!check_member_login())
 
     assign('member_info', $member_info);
 }
+
+//皇冠代理升级
+$now = time();
+$now = strtotime('2015-12-01');
+$day = date('d', $now);
+$day = 1;
+
+//每个月1号进行升级
+if($day == 1)
+{
+    $last_month = $now - 24*3600;
+    $year = date('Y', $last_month);
+    $month = date('m', $last_month);
+
+    $three_month_ago = $now - 24*30*3600*3;
+    $tyear = date('Y', $three_month_ago);
+    $tmonth = date('m', $three_month_ago);
+
+    $second_month = $tmonth + 1;
+    $second_year = $tyear;
+    if($second_month == 1)
+    {
+        $second_year++;
+    }
+
+    $get_member_list = 'select da.`account`,sum(da.`number`) as total_number ,(select max(db.`level_up`) as level_up from '.
+                       $db->table('achievement').' as db where db.`account`=da.`account` and ('.
+                       '(db.`year`='.$tyear.' and db.`month`='.$tmonth.') or '.
+                       '(db.`year`='.$year.' and db.`month`='.$month.') or '.
+                       '(db.`year`='.$second_year.' and db.`month`='.$second_month.')'.
+                       ')) as level_up from '.$db->table('achievement').' as da group by da.`account`';
+
+    $member_list = $db->fetchAll($get_member_list);
+
+    if($member_list)
+    {
+        foreach($member_list as $node)
+        {
+            if($node['level_up'] && $node['total_number'] >= 3000)
+            {
+                $check_level_up = 'select max(`level_up`) as level_up from '.
+                    $db->table('achievement').' where `account`= \''.$node['account'].'\' and ('.
+                    '(`year`='.$year.' and `month`='.$month.') or '.
+                    '(`year`='.$second_year.' and `month`='.$second_month.'))';
+
+                $check_recommend = 'select count(*) from '.$db->table('member').' where `recommend`=\''.$node['account'].'\' and `level_id`=5';
+                $recommend_count = $db->fetchOne($check_recommend);
+
+                if($db->fetchOne($check_level_up) && $recommend_count >= 4)
+                {
+                    $node_data = array('level_id'=>6);
+
+                    $db->autoUpdate('member', $node_data, '`account`=\''.$node['account'].'\'');
+                }
+            }
+        }
+    }
+}

@@ -20,6 +20,11 @@
                 {/if}
             </li>
             {/foreach}
+            <li class="business_menu_index">
+                <a href="logout.php" class="nav-top-item">
+                    <em class="icon"></em>退出登录
+                </a>
+            </li>
         </ul>
     </div>
 </div>

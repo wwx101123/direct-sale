@@ -196,7 +196,7 @@ $(document).ready(function() {
                 maxlength: 32
             },
             menuUrl: {
-                required: true,
+                required: true
                 //url: true
             },
             menuSort:{

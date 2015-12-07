@@ -7,7 +7,7 @@
  */
 include 'library/init.inc.php';
 
-$code = new Code();
+$code = new Code(array('line'=>false, 'snow'=>false, 'height'=>40, 'width'=>100));
 
 $code->doimg();
 $_SESSION['code'] = $code->getCode();

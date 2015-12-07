@@ -185,11 +185,13 @@ if('consume' == $opera)
 
             member_account_change($_SESSION['account'], -1*$amount, 0, 0, 0, 0, 0, $_SESSION['account'], 2, $order_sn.'订单支付');
             //3、结算、累计业绩
-            add_achievement($member_info['account'], $amount, 0, 0, $total_pv, $number, $level_up);
             //依据订单产品进行结算
             $path = $member_info['recommend_path'];
+            $total_number = 0;
             foreach($cart_list as $c)
             {
+                $total_number += $c['number'];
+                add_achievement($member_info['account'], $amount, 0, 0, $total_pv, $c['number'], $level_up);
                 $get_price_list = 'select `price`,`level_id`,`min_number` from '.$db->table('price_list').' where `product_sn`=\''.$c['product_sn'].'\' order by `level_id`';
 
                 $price_list = $db->fetchAll($get_price_list);
@@ -209,11 +211,20 @@ if('consume' == $opera)
                 $current_level = $member_info['level_id'];
                 $refund = 0;
                 $group_reward = 1;
+                $add_achievement = 1;
                 $member_list = $db->fetchAll($get_member_list);
 
                 array_pop($member_list);
                 while($node = array_pop($member_list))
                 {
+                    if($add_achievement)
+                    {
+                        add_achievement($node['account'], $amount, 0, 0, $total_pv, $c['number']);
+                        if($node['level_id'] == 6)
+                        {
+                            $add_achievement = 0;
+                        }
+                    }
                     //级差奖、平级奖
                     if($current_level < $node['level_id'])
                     {
@@ -284,10 +295,30 @@ if('consume' == $opera)
                         $member_info['level_id'] = $member_data['level_id'];
                     }
                 }
-                //皇冠代理升级
             }
 
             //皇冠团队奖
+            $get_member_list = 'select `account` from '.$db->table('member').' where `level_id`=6 and `id` in ('.$path.'0) order by find_in_set(`id`,\''.$path.'0\')';
+            $member_list = $db->fetchAll($get_member_list);
+
+            while($account = array_pop($member_list))
+            {
+                $check_total_number = 'select sum(`number`) from '.$db->table('achievement').' where `account`=\''.$account.'\'';
+                $_total_number = $db->fetchOne($check_total_number);
+
+                if($_total_number > 5000)
+                {
+                    if($_total_number - $total_number > 5000)
+                    {
+                        $reward = $total_number * 10;
+                        add_reward($account, $reward, 0, '', '团队奖');
+                    } else {
+                        $total_number = $_total_number - 5000 + $total_number;
+                        $reward = $total_number * 10;
+                        add_reward($account, $reward, 0, '', '团队奖');
+                    }
+                }
+            }
             //结算结束
 
             $response['msg'] = '报单成功';

@@ -1,9 +1,12 @@
 <?php
 /**
- * 移动版会员中心
- * @author winsen
- * @version 1.0.0
+ * 首页
+ * Created by PhpStorm.
+ * User: apple
+ * Date: 15/8/14
+ * Time: 下午10:11
  */
 include 'library/init.inc.php';
 
-$smarty->display('user.phtml');
+
+$smarty->display('login.phtml');

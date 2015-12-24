@@ -1,0 +1,30 @@
+{extends file="index.phtml"}
+{block name="header"}
+<header class="header">
+    <a href="javascript:history.back();" class="back"></a>
+    <h1><em>{$section_name}</em></h1>
+</header>
+{/block}
+{block name="content"}
+<!-- 资讯页面 -->
+<section class="article">
+    <section class="article-con">
+        <h1>{$article.title}</h1>
+        <span class="article-time">{date('Y-m-d H:i:s', $article.add_time)}</span>
+        <div>
+            {$article.content}
+        </div>
+    </section>
+</section>
+<script type="text/javascript">
+    $(function(){
+        var container_width = $(".article-con").width();
+        var imgs = $(".article-con").children().children("img");
+        for(var i in imgs) {
+            if(imgs[i].width > container_width) {
+                imgs[i].width = container_width;
+            }
+        }
+    });
+</script>
+{/block}

@@ -13,8 +13,8 @@ session_start();
 date_default_timezone_set('Asia/Shanghai');
 define('ROOT_PATH', str_replace('library/bootstrap.inc.php', '',str_replace('\\', '/', __FILE__)));
 define('BASE_DIR', str_replace($_SERVER['DOCUMENT_ROOT'], '', ROOT_PATH));
-define('API_URI', 'http://localhost/direct-sale/api/');
-define('IMG_URI', 'http://localhost/direct-sale/');
+define('API_URI', 'http://123.57.60.217/api/');
+define('IMG_URI', 'http://123.57.60.217/');
 
 if(!class_exists('AutoLoader'))
 {
@@ -37,8 +37,8 @@ $log_file = date('Ymd').'.log';
 $log = new Logs($debug_mode, $log_file);
 
 //注册错误处理机制
-register_shutdown_function('shutdown_handler');
-set_error_handler('error_handler', E_ALL);
+//register_shutdown_function('shutdown_handler');
+//set_error_handler('error_handler', E_ALL);
 
 //初始化数据库链接
 global $db;

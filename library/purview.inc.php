@@ -69,8 +69,20 @@ $purview = array(
         'pur_order_edit',
     ),
 
+    //支付插件
+    'pur_payment' => array(
+        'pur_payment_view',
+        'pur_payment_add',
+        'pur_payment_edit',
+        'pur_payment_del',
+    ),
+
     'pur_bank' => array(
         'pur_bank_view'
+    ),
+
+    'pur_backup' => array(
+        'pur_backup_view'
     ),
 
 //    'pur_virtual_order' => array(
@@ -277,10 +289,19 @@ $L_purview = array(
 
 //    'pur_virtual_product' => '虚拟产品管理',
 //    'pur_virtual_product_view' => '查看虚拟产品',
-//    'pur_virtual_product_exam' => '审核虚拟产品',
+    //    'pur_virtual_product_exam' => '审核虚拟产品',
+    //
+    'pur_backup' => '数据库管理',
+    'pur_backup_view' => '数据库备份',
 
     'pur_self' => '个人信息',
     'pur_passwd_edit' => '密码修改',
+
+    'pur_payment' => '支付插件',
+    'pur_payment_view' => '查看支付插件',
+    'pur_payment_add' => '添加支付插件',
+    'pur_payment_edit' => '编辑支付插件',
+    'pur_payment_del' => '删除支付插件',
 
     'pur_order' => '订单管理',
     'pur_order_view' => '查看订单',
@@ -345,11 +366,11 @@ $L_purview = array(
     'pur_wechat_menu' => '微信菜单管理',
     'pur_wechat_menu_edit' => '微信菜单管理',
 
-//    'pur_wechat_kf' => '微信客服管理',
-//    'pur_wechat_kf_add' => '微信客服添加',
-//    'pur_wechat_kf_view' => '微信客服查看',
-//    'pur_wechat_kf_edit' => '微信客服编辑',
-//    'pur_wechat_kf_del' => '微信客服删除',
+    'pur_wechat_kf' => '微信客服管理',
+    'pur_wechat_kf_add' => '微信客服添加',
+    'pur_wechat_kf_view' => '微信客服查看',
+    'pur_wechat_kf_edit' => '微信客服编辑',
+    'pur_wechat_kf_del' => '微信客服删除',
 
     'pur_wechat_rule' => '微信规则管理',
     'pur_wechat_rule_add' => '添加微信规则',
@@ -366,6 +387,8 @@ $L_purview = array(
 
 global $menus;
 $menus = array(
+    'pur_passwd' => array('url' => 'profile.php?act=passwd', 'title' => '修改密码', 'parent' => 'memu_self'),
+    'pur_payment' => array('url'=>'payment.php', 'title'=>'支付插件', 'parent'=>'menu_site'),
     'pur_product' => array('url'=>'product.php', 'title'=>'产品管理', 'parent' => 'menu_product'),
     'pur_bank' => array('url'=>'bank.php', 'title'=>'银行卡设置', 'parent'=>'menu_site'),
     'pur_virtual_product' => array('url'=>'virtual_product.php', 'title'=>'虚拟产品管理', 'parent' => 'menu_product'),
@@ -383,7 +406,6 @@ $menus = array(
     'pur_admin' => array('url'=>'admin.php', 'title'=>'管理员管理', 'parent' => 'menu_admin'),
     'pur_role' => array('url'=>'role.php', 'title'=>'管理员角色管理', 'parent' => 'menu_admin'),
     'pur_sysconf' => array('url'=>'sysconf.php', 'title'=>'参数设置', 'parent' => 'menu_site'),
-    'pur_passwd' => array('url' => 'profile.php?act=passwd', 'title' => '修改密码', 'parent' => 'memu_self'),
     'pur_adpos' => array('url' => 'adpos.php', 'title' => '广告位置管理', 'parent' => 'menu_site'),
     'pur_ad' => array('url' => 'ad.php', 'title' => '广告管理', 'parent' => 'menu_site'),
     'pur_statistics' => array('url' => 'statistics.php', 'title' => '查看统计', 'parent' => 'menu_site'),
@@ -396,6 +418,7 @@ $menus = array(
     'pur_wechat_kf' => array('url' => 'wechat_kf.php', 'title' => '客服管理', 'parent' => 'menu_wechat'),
     'pur_wechat_rule' => array('url' => 'wechat_rule.php', 'title' => '回复规则管理', 'parent' => 'menu_wechat'),
     'pur_activity' => array('url' => 'activity.php', 'title' => '活动管理', 'parent' => 'menu_site'),
+    'pur_backup' => array('url' => 'backup.php', 'title' => '数据库备份', 'parent' => 'menu_site'),
 );
 
 global $topMenus;

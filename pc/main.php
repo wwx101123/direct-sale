@@ -17,7 +17,7 @@ assign('message_count', $message_count);
 
 $nearby = time()-7*24*3600;
 $get_group_count = 'select count(*) from '.$db->table('member').
-    ' where `path` like \''.$member_info['recommend_path'].'%\' and `account`<>\''.$_SESSION['account'].'\' and `add_time`>='.$nearby;
+    ' where `recommend_path` like \''.$member_info['recommend_path'].'%\' and `account`<>\''.$_SESSION['account'].'\' and `add_time`>='.$nearby;
 $group_count = $db->fetchOne($get_group_count);
 assign('group_count', $group_count);
 

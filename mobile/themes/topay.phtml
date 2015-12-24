@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <title>{$config.site_name}</title>
+    <title>生活圈移动商城</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, width=device-width">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <meta name="application-name" content="{$config.site_name}">
+    <meta name="application-name" content="生活圈移动商城">
+    <link rel="apple-touch-icon-precomposed" href="{$template_dir}images/touch/touch-icon-iphone.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="{$template_dir}images/touch/touch-icon-ipad.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="{$template_dir}images/touch/touch-icon-iphone4.png">
     <meta name="description" content="">
     <meta name="keywords" content="">
     <meta name="author" content="www.kwanson.com">
@@ -14,7 +17,7 @@
     <meta http-equiv="Cache-Control" content="no-cache">
     <meta name="format-detection" content="telephone=no, address=no">
     <link rel="stylesheet" href="{$template_dir}css/common.css">
-    <link rel="stylesheet" href="{$template_dir}css/app.css">
+    <link rel="stylesheet" href="{$template_dir}css/mobile.css">
     <link rel="stylesheet" href="{$template_dir}css/fonts.css">
 </head>
 <body>
@@ -23,27 +26,24 @@
     <h1><em>确认支付</em></h1>
 </header>
 <!-- 支付详情 -->
-<section class="paycon">
+<section class="paycon border_bottom">
     <div class="paydetail">
         <ul>
-            <li>订单编号：{$order.order_sn}</li>
+            <li>支付订单：{$order.order_sn}</li>
             <li>订单详情：</li>
             {foreach from=$order_detail item=od}
-            <li>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                {$od.product_name}x{$od.count}
-            </li>
+            <li>{$od.product_name}x{$od.count}</li>
             {/foreach}
             <li>支付金额：<i class="red_money">{sprintf("%.2f", $order.amount)}元</i></li>
             <li>支付方式：
                 {foreach from=$payment_list item=payment}
-                <span onclick="get_pay_link('{$payment.plugins}');">{$payment.name}</span>
+                <span onclick="get_pay_link('{$payment.plugins}');"><em class="icon" style="color: #32b16c;padding-right: 5px;">&#xe60f;</em>{$payment.name}</span>
                 {/foreach}
             </li>
         </ul>
-        <div class="paybtn-con">
-            <a href="javascript:topay();" class="paybtn" id="pay_btn">确认支付</a>
-        </div>
+    </div>
+    <div class="paybtn-con">
+        <a href="javascript:topay();" class="paybtn" id="pay_btn">确认支付</a>
     </div>
 </section>
 <div class="cd-popup" role="alert">
@@ -146,16 +146,16 @@
     }
 
     {if is_weixin()}
-    wx.config({
-        appId: '{$signPackage.appId}',
-        timestamp: {$signPackage.timestamp},
-        nonceStr: '{$signPackage.nonceStr}',
-        signature: '{$signPackage.signature}',
-        jsApiList: [
-            'chooseWXPay',
-            'closeWindow'
-        ]
-    });
+        wx.config({
+                appId: '{$signPackage.appId}',
+                timestamp: {$signPackage.timestamp},
+                nonceStr: '{$signPackage.nonceStr}',
+                signature: '{$signPackage.signature}',
+                jsApiList: [
+                    'chooseWXPay',
+                    'closeWindow'
+                ]
+        });
     {/if}
 </script>
 </body>

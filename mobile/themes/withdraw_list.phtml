@@ -1,0 +1,78 @@
+{extends file="index.phtml"}
+{block name="header"}
+<header class="header">
+    <a href="javascript:history.back();" class="back"></a>
+    <h1><em>提现记录</em></h1>
+    <a href="withdraw.php" class="edit">提现</a>
+</header>
+{/block}
+{block name="content"}
+<!-- 订单列表 -->
+<section class="order-list" style="padding-top: 0rem;">
+    {foreach from=$withdraw_list item=withdraw}
+    <div class="block">
+        <div class="order_list">
+            <!--非当当自营显示店铺入口-->
+            <div class="shop_title">
+                <a href="#">
+                    <!--店铺名称-->
+                    <div class="fl">
+                        {$withdraw.withdraw_sn}
+                    </div>
+                    <span class="fr sn_status">
+                        {$lang.withdraw_status[$withdraw.status]}
+                    </span>
+                </a>
+            </div>
+            <!-- 信息 -->
+            <p class="withdraw-info">提现金额: ￥{$withdraw.amount}</p>
+            <p class="withdraw-info"> 手 续 费 : ￥{$withdraw.fee}</p>
+            <p class="withdraw-info">开户银行: {$withdraw.bank}</p>
+            <p class="withdraw-info"> 开 户 人 : {$withdraw.bank_account}</p>
+            <p class="withdraw-info">银行卡号: {$withdraw.bank_card}</p>
+            <p class="withdraw-info">申请时间: {date('Y-m-d H:i:s', $withdraw.add_time)}</p>
+            {if $withdraw.status eq 2}
+            <p class="withdraw-info">处理时间: {date('Y-m-d H:i:s', $withdraw.solve_time)}</p>
+            {/if}
+            <!--操作按键-->
+            {if $withdraw.status eq 1}
+            <div class="detail3">
+                <a href="javascript:delete_withdraw('{$withdraw.withdraw_sn}');">取消申请</a>
+            </div>
+            {/if}
+        </div>
+    </div>
+    {/foreach}
+</section>
+<script type="text/javascript">
+    function delete_withdraw(sn) {
+        if (confirm("您确定要取消该申请?")) {
+            cancel_withdraw(sn);
+        }
+    }
+
+    function cancel_withdraw(sn) {
+        var url = "withdraw.php";
+        var data = { "opera":"cancel", "withdraw_sn":sn }
+
+        show_mask();
+        $.post(url, data, cancel_withdraw_handler, "json");
+    }
+
+    function cancel_withdraw_handler(response) {
+        hide_mask();
+        if(response.error == 0) {
+            $("#dialog_close_btn").attr("href", "javascript:void(0);");
+            $("#dialog_close_btn").click(function() {
+                window.location.reload();
+            });
+            $("#dialog_close").click(function() {
+                window.location.reload();
+            });
+        }
+        show_message_dialog(response.msg);
+    }
+</script>
+{/block}
+{block name="footer"}
+{/block}

@@ -270,7 +270,7 @@ if('consume' == $opera)
                 }
 
                 //升级判断
-                if($c['number'] == $price_list_json[$member_info['level_id']+1]['min_number'] && $member_info['level_id'] < 5)
+                if($member_info['level_id'] < 5 && $c['number'] == $price_list_json[$member_info['level_id']+1]['min_number'])
                 {
                     $member_data = array(
                         'level_id' => ($member_info['level_id'] + 1)
@@ -303,6 +303,7 @@ if('consume' == $opera)
 
             while($account = array_pop($member_list))
             {
+                $account = $account['account'];
                 $check_total_number = 'select sum(`number`) from '.$db->table('achievement').' where `account`=\''.$account.'\'';
                 $_total_number = $db->fetchOne($check_total_number);
 

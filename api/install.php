@@ -480,6 +480,24 @@ $sql[] = 'create table if not exists '.$db->table('wx_response').' (
     PRIMARY KEY (`id`)
 ) default charset=utf8;';
 
+$table[] = '短信验证码池';
+$sql[] = 'create table if not exists '.$db->table('message_code').' (
+    `id` bigint not null auto_increment unique,
+    `mobile` varchar(255) not null primary key,
+    `code` varchar(255) not null,
+    `expire` int not null
+) default charset=utf8;';
+
+$table[] = '支付方式';
+$sql[] = 'create table if not exists '.$db->table('payment').' (
+    `id` bigint not null auto_increment primary key,
+    `name` varchar(255) not null,
+    `plugins` varchar(255) not null,
+    `configure` text,
+    `desc` varchar(255),
+    `status` int not null default \'0\'
+) default charset=utf8;';
+
 foreach($table as $index=>$tb_name)
 {
     echo 'create table '.$tb_name;

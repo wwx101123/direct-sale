@@ -708,6 +708,9 @@ function query_express($type, $postid, $id = 1, $valicode = '') {
     $temp = rand(0, 100000000);
     $temp /= 100000000;
     $params = 'type='.$type.'&postid='.$postid.'&id='.$id.'&valicode='.$valicode.'&temp='.$temp;
+//    $params = 'type=shentong&postid=229910866398&id=1&valicode=&temp=0.004117542877793312';
+    global $log;
+    $log->record($url.'?'.$params);
     return get($url, $params);
 }
 
@@ -741,4 +744,9 @@ function decodeUnicode($str)
 function is_email($email) {
     $pattern = "/^([0-9A-Za-z\\-_\\.]+)@([0-9a-z]+\\.[a-z]{2,3}(\\.[a-z]{2})?)$/i";
     return preg_match($pattern, $email);
+}
+
+function build_url($url)
+{
+    return 'http://www.dupenda.cn'.$url;
 }

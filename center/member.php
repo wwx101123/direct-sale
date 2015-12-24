@@ -321,34 +321,22 @@ if('delete' == $opera)
 
 if('get_node' == $act)
 {
-    if(getPOST('id') == '')
-    {
-        $_POST['id'] = -1;
-    }
     $id = intval(getPOST('id'));
 
     $tree_nodes = array();
-    if($id > -1) {
-        $get_nodes = 'select `id`,`parent_id` as `pid`,`name`,`account`,`level_id`,`add_time`,`emoney`,`reward`,`reward_await` from ' . $db->table('member') . ' where `parent_id`=' . $id;
+    $get_nodes = 'select `id`,`recommend_id` as `pid`,`name`,`account`,`level_id`,`add_time`,`balance`,`reward`,`reward_await` from ' . $db->table('member') . ' where `recommend_id`=' . $id;
 
-        $nodes = $db->fetchAll($get_nodes);
-        if($nodes)
-        {
-            foreach ($nodes as $node) {
-                $check_children = 'select count(*) from ' . $db->table('member') . ' where `parent_id`=' . $node['id'];
+    $nodes = $db->fetchAll($get_nodes);
+    if($nodes)
+    {
+        foreach ($nodes as $node) {
+            $check_children = 'select count(*) from ' . $db->table('member') . ' where `recommend_id`=' . $node['id'];
 
-                $node['isParent'] = $db->fetchOne($check_children) ? true : false;
+            $node['isParent'] = $db->fetchOne($check_children) ? true : false;
 
-                $node['name'] .= '[会员卡号:' . $node['account'] . ', 会员等级:' . $member_level[$node['level_id']] . ', 报单时间:' . date('Y-m-d H:i:s', $node['add_time']) . ']';
-                $tree_nodes[] = $node;
-            }
+            $node['name'] .= '[会员卡号:' . $node['account'] . ', 会员等级:' . $lang['level'][$node['level_id']] . ', 报单时间:' . date('Y-m-d H:i:s', $node['add_time']) . ']';
+            $tree_nodes[] = $node;
         }
-    } else {
-        $tree_nodes[] = array(
-            'id' => 0,
-            'name' => '公司',
-            'isParent' => true
-        );
     }
 
     echo json_encode($tree_nodes);

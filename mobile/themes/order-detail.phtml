@@ -1,34 +1,18 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <title>{$config.site_name}</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, width=device-width">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <meta name="application-name" content="{$config.site_name}">
-    <meta name="description" content="">
-    <meta name="keywords" content="">
-    <meta name="author" content="www.kwanson.com">
-    <meta name="version" content="v.1.0.0">
-    <meta http-equiv="Cache-Control" content="no-cache">
-    <meta name="format-detection" content="telephone=no, address=no">
-    <link rel="stylesheet" href="{$template_dir}css/common.css">
-    <link rel="stylesheet" href="{$template_dir}css/app.css">
-    <link rel="stylesheet" href="{$template_dir}css/fonts.css">
-</head>
-<body>
+{extends file="index.phtml"}
+{block name="header"}
 <header class="header">
     <a href="javascript:history.back();" class="back"></a>
     <h1><em>订单详情</em></h1>
 </header>
+{/block}
+{block name="content"}
 <!-- 确定订单 -->
 <section class="orderdetail-con">
     <!-- 订单状态 -->
     <section class="order-status border_bottom">
-        <div class="status-title red-font"><i class="icon">&#xe629;</i> &nbsp;订单状态：{$order.show_status}</div>
+        <div class="status-title red-font"><i class="icon">&#xe60e;</i> &nbsp;订单状态：{$order.show_status}</div>
         {if $order.status eq 1}
-        <a href="topay.php">
+        <a href="#">
             <div class="status-con">
                 <div class="status-content">
                     <span>您的订单已经成功提交，为避免心头宝被抢走，赶紧去付款吧！</span>
@@ -40,18 +24,14 @@
     <!-- 收货地址 -->
     <div class="colorBar shadow_top" style="margin-top:6px;"></div>
     <section class="address">
-        <div class="address-title"><i class="icon">&#xe628;</i> &nbsp;收货信息</div>
+        <div class="address-title"><i class="icon">&#xe60c;</i> &nbsp;收货信息</div>
         <div class="address-con">
             <div class="address-user">
                 <span>{$order.consignee}</span>
-                <span>{$order.mobile}</span>
+                <span>{$order.phone}</span>
             </div>
             <div class="address-detail">
                 <div class="address-content">
-                    {$order.province_name}
-                    {$order.city_name}
-                    {$order.district_name}
-                    {$order.group_name}
                     {$order.address}
                 </div>
             </div>
@@ -62,7 +42,7 @@
     <section class="orders">
         <div class="w_panel border_lr order_main border_top rarrow">
             <h4 class="h_title">
-                <i class="icon">&#xe610;</i>&nbsp;{$order.shop_name}
+                <i class="icon">&#xe605;</i>&nbsp;{$order.order_sn}
             </h4>
         </div>
         <div class="border_lr trans_div order_action_block border_bottom">
@@ -73,21 +53,15 @@
                         <li>
                             <div class="box">
                                 <div class="product_cover">
-                                    <img width="100%" src="{$od.img}">
+                                    <img width="100%" src="{$od.img|build_url}">
                                 </div>
                                 <div class="product_info cr_2">
-                                    <p class="product_name">{$od.product_name}</p>
+                                    <p class="product_name">{$od.name}</p>
                                     <p>
-                                        {if $od.integral gt 0}
-                                        <span class="red_money">{$od.integral}积分</span>
-                                        {else}
-                                        <span class="red_money">￥{$od.product_price}</span>
-                                        {/if}
-                                        <span>&nbsp;×{$od.count}</span>
+                                        <span class="red_money">￥{$od.price}</span>
+                                        <span>&nbsp;×{$od.number}</span>
                                     </p>
-                                    {if $order.status eq 1}
-                                    <a href="topay.php" class="red_btn">付款</a>
-                                    {/if}
+                                    <!--<a class="red_btn">付款</a>-->
                                 </div>
                             </div>
                         </li>
@@ -99,22 +73,17 @@
                     <span class="t_span">产品总额：</span>
                     <span class="right_action"><em class="red_money">￥{$order.product_amount}</em></span>
                     <br/>
-                    {if $order.integral_amount gt 0}
-                    <span class="t_span">积分总额：</span>
-                    <span class="right_action"><em class="red_money">￥{sprintf("%.2f", $order.integral_amount/$config.integral_rate)}</em></span>
-                    <br/>
-                    {/if}
                     <span class="t_span">运费：</span>
                     <span class="right_action"><em class="red_money">￥{$order.delivery_fee}</em></span>
                     <br/>
                     {if $order.integral_paid gt 0}
                     <span class="t_span">积分抵用：</span>
-                    <span class="right_action"><em style="color: #787878;">- ￥{sprintf("%.2f", $order.integral_paid/$config.integral_rate)}</em></span>
+                    <span class="right_action"><em style="color: #787878;">- ￥{$order.integral_paid}</em></span>
                     <br/>
                     {/if}
                     {if $order.reward_paid gt 0}
-                    <span class="t_span">佣金抵用：</span>
-                    <span class="right_action"><em style="color: #787878;">- ￥{sprintf("%.2f", $order.reward_paid/$config.reward_rate)}</em></span>
+                    <span class="t_span">奖金抵用：</span>
+                    <span class="right_action"><em style="color: #787878;">- ￥{$order.reward_paid}</em></span>
                     <br/>
                     {/if}
                     {if $order.balance_paid gt 0}
@@ -123,12 +92,7 @@
                     <br/>
                     {/if}
                     <span class="t_span">实付总额（含运费）：</span>
-                    <span class="right_action"><em class="red_money">￥{$order.amount}</em></span>
-                </div>
-                <div class="single_line_div border_0 leavemessage">
-                    <span>
-                        <input placeholder="要对商家说...（限70字）" value="{$order.remark}" data-original-length="0" type="text" maxlength="70" readonly>
-                    </span>
+                    <span class="right_action"><em class="red_money">￥{$order.total_amount}</em></span>
                 </div>
             </div>
         </div>
@@ -149,15 +113,65 @@
             <div style="float:left;width:69%;padding:5px 0;line-height:41px;">
                 <div style="float:left;">
                     <span style="font-size:12px;display:inline-block;color:#464646;">共{count($order.order_detail)}件商品，总额(含运费)</span>
-                    <a class="red_money" style="margin:0 0 0 5px;font-size:14px;display:inline-block;">￥{$order.amount} </a>
+                    <a class="red_money" style="margin:0 0 0 5px;font-size:14px;display:inline-block;">￥{$order.total_amount} </a>
                     <br>
                 </div>
             </div>
-            <a href="topay.php" class="yellow_btn">前去付款</a>
+            <a href="javascript:pay_now('{$order.order_sn}');" class="yellow_btn">前去付款</a>
         </div>
     </section>
     {/if}
 </section>
+<script type="text/javascript">
+    function pay_now(order_sn) {
+        if(order_sn != '') {
+            var url = "order.php";
+            var data = { "opera":"pay_now", "order_sn":order_sn };
 
-</body>
-</html>
+            show_mask();
+            $.post(url, data, pay_now_handler, "json");
+        }
+    }
+
+    function pay_now_handler(response) {
+        if(response.error == 0) {
+            wx.chooseWXPay({
+                timestamp: response.timestamp,
+                nonceStr: response.nonce_str,
+                package: 'prepay_id='+response.prepay_id,
+                signType: 'MD5',
+                paySign: response.sign,
+                success: function (res) {
+                    // 支付成功后的回调函数
+                    if(res.errMsg == "chooseWXPay:ok") {
+                        show_message_dialog("支付成功");
+                        $("#dialog_close_btn,#dialog_close").click(function(){
+                            window.location.reload();
+                        });
+                    } else {
+                        show_message_dialog(res.errMsg+":支付失败");
+                    }
+                }
+            });
+        } else {
+            hide_mask();
+            show_message_dialog(response.msg);
+        }
+    }
+
+    {if is_weixin()}
+    wx.config({
+            appId: '{$signPackage.appId}',
+            timestamp: {$signPackage.timestamp},
+        nonceStr: '{$signPackage.nonceStr}',
+        signature: '{$signPackage.signature}',
+        jsApiList: [
+        'chooseWXPay',
+        'closeWindow'
+    ]
+    });
+    {/if}
+</script>
+{/block}
+{block name="footer"}
+{/block}

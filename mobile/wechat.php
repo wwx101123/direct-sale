@@ -26,9 +26,11 @@ if(isset($data->ToUserName))
         echo '请求服务器错误';
         exit;
     }
+} else {
+    $data = simplexml_load_string('<xml></xml>');
 }
 
-$openid = isset($data->FromUserName) ? $data->FromUserName : '';
+$openid = isset($data->FromUserName)? $data->FromUserName : '';
 $openid = $db->escape($openid);
 
 $public_account = isset($data->ToUserName) ? $data->ToUserName : '';
@@ -37,9 +39,7 @@ $public_account = $db->escape($public_account);
 $response_id = 0;
 $response = '';
 
-$msgType = isset($data->MsgType) ? $data->MsgType : '';
-
-switch(strtolower($msgType))
+switch(strtolower($data->MsgType))
 {
 //文本消息
     case 'text':
@@ -52,12 +52,14 @@ switch(strtolower($msgType))
         {
             if(1 == $rule['match_mode'])//精确匹配
             {
+                $log->record('match rule '.$rule['rule'].':'.$data->Content);
                 if($rule['rule'] == $data->Content)
                 {
                     $response_id = $rule['response_id'];
                     break;
                 }
             } else {//正则匹配
+                $log->record('mass match rule '.$rule['rule'].':'.$data->Content);
                 if(preg_match('/'.$rule['rule'].'/', $data->Content))
                 {
                     $response_id = $rule['response_id'];
@@ -88,7 +90,7 @@ switch(strtolower($msgType))
             */
             case 'subscribe'://关注事件
                 //检查用户是否已存在
-                $check_member = 'select `id` from '.$db->table('member').' where `openid`=\''.$openid.'\'';
+                $check_member = 'select `id` from '.$db->table('member').' where `wx_openid`=\''.$openid.'\'';
                 $user = $db->fetchRow($check_member);
                 if(!$user)
                 {
@@ -119,11 +121,6 @@ switch(strtolower($msgType))
                 break;
             case 'unsubscribe'://取消关注事件
                 //设置取消关注时间
-                $member_data = array(
-                    'leave_time' => time()
-                );
-
-                $db->autoUpdate('member', $member_data, '`openid`=\''.$openid.'\'');
                 break;
             case 'location'://上报地理位置
                 /*
@@ -139,11 +136,6 @@ switch(strtolower($msgType))
                 </xml>
                 */
                 //更新用户的地理位置信息
-                $member_data = array(
-                    'longitude' => floatval($data->Longitude),
-                    'latitude' => floatval($data->Latitude)
-                );
-                $db->autoUpdate('member', $member_data, '`openid`=\''.$openid.'\'');
                 break;
             case 'scan'://已关注用户扫描推广二维码
                 /*
@@ -157,7 +149,50 @@ switch(strtolower($msgType))
                     <Ticket><![CDATA[TICKET]]></Ticket>
                 </xml>
                  */
-                //目前不做处理
+                //检查用户是否已存在
+                $check_member = 'select `id`,`recommend_id` from '.$db->table('member').' where `wx_openid`=\''.$openid.'\'';
+                $user = $db->fetchRow($check_member);
+                $scene_id = isset($data->EventKey) ? intval($data->EventKey) : 0;
+
+                if(!$user)
+                {
+                    //用户不存在，新增用户
+                    $post_data = array(
+                        'openid' => $openid,
+                        'timestamp' => time(),
+                        'scene_id' => $scene_id
+                    );
+                    post('http://'.$_SERVER['HTTP_HOST'].'/api/new_user.php', $post_data);
+                } else {
+                    //判断用户是否有推荐人且当前scene_id不对应自己
+                    if($user['recommend_id'] == 0)
+                    {
+                        $get_parent = 'select `id`,`account`,`recommend_path` from '.$db->table('member').' where `scene_id`='.$scene_id;
+                        $parent = $db->fetchRow($get_parent_id);
+
+                        if($parent['id'] != $user['id'])
+                        {
+                            $member_data = array(
+                                'recommend_id' => $parent['id'],
+                                'recommend_path' => $parent['recommend_path'].$user['id'].',',
+                                'recommend' => $parent['account']
+                            );
+
+                            $db->autoUpdate('member', $member_data, '`wx_openid`=\''.$openid.'\'');
+                        }
+                    }
+                }
+
+
+                $get_response_id  = 'select `response_id` from '.$db->table('wx_rule').' where `rule`=\'scan\'';
+
+                $response_id = $db->fetchOne($get_response_id);
+
+                if(!$response_id)
+                {
+                    //没有符合的规则
+                    $log->record('没有关注回复事件，默认不处理');
+                }
                 break;
             case 'click'://点击事件菜单
                 /*
@@ -268,7 +303,7 @@ if(0 < $response_id)
 } else {
     //多客服
     $get_kf_account = 'select k.`kf_account` from '.$db->table('wx_kf').' as k join '.$db->table('member').' as m on m.`kf_id`=k.`id`'.
-        ' where m.`openid`=\''.$openid.'\'';
+                      ' where m.`openid`=\''.$openid.'\'';
     $kf_account = $db->fetchOne($get_kf_account);
     $content = 'MultiServerTransfer';
     $responseObj = new $content($public_account, $openid, $kf_account);

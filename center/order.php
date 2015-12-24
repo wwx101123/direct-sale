@@ -26,6 +26,8 @@ if($opera == 'export')
     $order_sn = getGET('order_sn');
     $account = getGET('account');
     $status = intval(getGET('status'));
+    $begin_time = getGET('begin_time');
+    $end_time = getGET('end_time');
 
     $sql = 'select * from '.$db->table('order');
     $where = ' where 1';
@@ -54,6 +56,24 @@ if($opera == 'export')
             $order_sn = $db->escape($order_sn);
             $where .= ' and `order_sn`=\''.$order_sn.'\'';
         }
+
+        if($begin_time != '')
+        {
+            $begin_time = strtotime($begin_time.' 00:00:00');
+            if($begin_time)
+            {
+                $where .= ' and `add_time`>='.intval($begin_time);
+            }
+        }
+
+        if($end_time != '')
+        {
+            $end_time = strtotime($end_time.' 23:59:59');
+            if($end_time)
+            {
+                $where .= ' and `add_time`<='.intval($end_time);
+            }
+        }
     }
 
     $order_list = $db->fetchAll($sql.$where);
@@ -69,6 +89,7 @@ if($opera == 'export')
     $excel = new PHPExcel();
 
     $excel->getActiveSheet(0)->getColumnDimension('B')->setWidth(20);
+    $excel->getActiveSheet(0)->getColumnDimension('C')->setWidth(20);
     $excel->getActiveSheet(0)->getColumnDimension('D')->setWidth(20);
     $excel->getActiveSheet(0)->getColumnDimension('F')->setWidth(20);
 
@@ -80,7 +101,7 @@ if($opera == 'export')
         $sheet->setCellValue('A'.$row, '订单编号');
         $sheet->setCellValueExplicit('B'.$row, $order['order_sn']);
         $sheet->setCellValue('C'.$row, '订单状态');
-        $sheet->setCellValue('D'.$row, $order_status[$order['status']]);
+        $sheet->setCellValue('D'.$row, $lang['order_status'][$order['status']]);
         $sheet->setCellValue('E'.$row, '下单时间');
         $sheet->setCellValue('F'.$row, date('Y-m-d H:i:s', $order['add_time']));
         $row++;
@@ -89,7 +110,7 @@ if($opera == 'export')
         $sheet->setCellValue('A'.$row, '收货人');
         $sheet->setCellValue('B'.$row, $order['consignee']);
         $sheet->setCellValue('C'.$row, '联系电话');
-        $sheet->setCellValueExplicit('D'.$row, $order['mobile']);
+        $sheet->setCellValueExplicit('D'.$row, $order['phone']);
         $sheet->setCellValue('E'.$row, '邮政编码');
         $sheet->setCellValue('F'.$row, $order['zipcode']);
         $row++;
@@ -136,9 +157,9 @@ if($opera == 'export')
         $sheet->getStyle('A'.$row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
         $sheet->setCellValue('A'.$row, '合计：');
         $sheet->getStyle('C'.$row)->getNumberFormat()->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
-        $sheet->setCellValue('C'.$row, sprintf('%.2f', $order['amount']));
+        $sheet->setCellValue('C'.$row, sprintf('%.2f', $order['total_amount']));
         $sheet->getStyle('D'.$row)->getNumberFormat()->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
-        $sheet->setCellValue('D'.$row, sprintf('%.2f', $order['pv']));
+        $sheet->setCellValue('D'.$row, sprintf('%.2f', $order['pv_amount']));
 
         $row++;
 
@@ -150,11 +171,11 @@ if($opera == 'export')
             $row++;
 
             $sheet->setCellValue('A' . $row, '物流公司');
-            $sheet->setCellValue('B' . $row, $order['delivery_company']);
+            $sheet->setCellValue('B' . $row, $order['delivery_name']);
             $sheet->setCellValue('C' . $row, '发货单号');
             $sheet->setCellValue('D' . $row, $order['delivery_sn']);
             $sheet->setCellValue('E' . $row, '发货时间');
-            $sheet->setCellValue('F' . $row, date('Y-m-d H:i:s', $order['delivery_time']));
+            $sheet->setCellValue('F' . $row, $order['delivery_time'] != '' ? date('Y-m-d H:i:s', $order['delivery_time']): '');
         }
         $row += 2;
     }
@@ -174,7 +195,8 @@ if($opera == 'edit')
 {
     $order_sn = getPOST('eorder_sn');
     $delivery_sn = getPOST('delivery_sn');
-    $delivery_company = getPOST('delivery_company');
+    $delivery_code = getPOST('delivery_code');
+    $delivery_company = '';
 
     if($order_sn == '')
     {
@@ -183,11 +205,13 @@ if($opera == 'edit')
         $order_sn = $db->escape($order_sn);
     }
 
-    if($delivery_company == '')
+    if($delivery_code == '')
     {
-        show_system_message('请填写物流公司');
+        show_system_message('请选择物流公司');
     } else {
-        $delivery_company = $db->escape($delivery_company);
+        $delivery_code = $db->escape($delivery_code);
+        $get_delivery_company = 'select `name` from '.$db->table('express').' where `code`=\''.$delivery_code.'\'';
+        $delivery_company = $db->fetchOne($get_delivery_company);
     }
 
     if($delivery_sn == '')
@@ -201,6 +225,7 @@ if($opera == 'edit')
         'delivery_time' => time(),
         'delivery_sn' => $delivery_sn,
         'delivery_name' => $delivery_company,
+        'delivery_code' => $delivery_code,
         'status' => 6
     );
 
@@ -239,6 +264,10 @@ if('edit' == $act || 'detail' == $act)
 
     assign('order_detail', $order_detail);
     assign('order', $order);
+
+    $get_express_list = 'select `code`,`name` from '.$db->table('express');
+    $express_list = $db->fetchAll($get_express_list);
+    assign('express_list', $express_list);
 }
 
 if('view' == $act) {
@@ -247,6 +276,8 @@ if('view' == $act) {
     $account = getGET('account');
     $order_sn = getGET('order_sn');
     $status = intval(getGET('status'));
+    $begin_time = getGET('begin_time');
+    $end_time = getGET('end_time');
 
     $where = ' where 1 ';
 
@@ -266,6 +297,24 @@ if('view' == $act) {
     {
         $order_sn = $db->escape($order_sn);
         $where .= ' and `order_sn`=\''.$order_sn.'\' ';
+    }
+
+    if($begin_time != '')
+    {
+        $begin_time = strtotime($begin_time.' 00:00:00');
+        if($begin_time)
+        {
+            $where .= ' and `add_time`>='.intval($begin_time);
+        }
+    }
+
+    if($end_time != '')
+    {
+        $end_time = strtotime($end_time.' 23:59:59');
+        if($end_time)
+        {
+            $where .= ' and `add_time`<='.intval($end_time);
+        }
     }
 
     $get_total = 'select count(*) from '.$db->table('order').$where;
@@ -290,6 +339,8 @@ if('view' == $act) {
     assign('account', $account);
     assign('order_sn', $order_sn);
     assign('status', $status);
+    assign('begin_time', $begin_time > 0 ? date('Y-m-d', $begin_time): '');
+    assign('end_time', $end_time > 0 ? date('Y-m-d', $end_time): '');
 
 
     $get_order_list = 'select * from '.$db->table('order').$where.' order by `order_sn` DESC limit '.$offset.','.$count;

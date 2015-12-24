@@ -144,7 +144,7 @@ function get_qrcode($openid, $access_token)
             'expired' => time()+1800
         );
 
-        $db->autoUpdate('member', $data, '`openid`=\''.$openid.'\'');
+        $db->autoUpdate('member', $data, '`wx_openid`=\''.$openid.'\'');
         $qrcode = 'https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket='.$response->ticket;
         return $qrcode;
     }

@@ -1,0 +1,49 @@
+{include file="library/header.lbi"}
+<body>
+{include file="library/navbar.lbi"}
+{include file="library/sidebar.lbi"}
+
+<!-- content -->
+<div id="content">
+    <div class="content-title">
+        <h5 class="pull-left">{$subTitle}</h5>
+        <div class="clear"></div>
+    </div>
+    <div class="article-main">
+        <div class="article-main-header">
+            <form action="" method="post" />
+            <fieldset>
+                <p>
+                <div class="pull-left">
+                    <input type="hidden" name="opera" value="backup"/>
+                    <button type="submit" class="btn btn-default">备份</button>
+                </div>
+                </p>
+            </fieldset>
+            </form>
+            <div class="clear"></div>
+        </div>
+    </div>
+    <div class="adminUser-main">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>备份日期</th>
+                <th>下载链接</th>
+            </tr>
+            </thead>
+            <tbody>
+            {foreach from=$files item=file}
+            <tr>
+                <td>{$file.date}</td>
+                <td><a href="{$file.url}">下载</a></td>
+            </tr>
+            {/foreach}
+            </tbody>
+        </table>
+    </div>
+</div>
+<!-- END content -->
+{include file="library/footer.lbi"}
+</body>
+</html>

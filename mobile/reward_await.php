@@ -1,9 +1,26 @@
 <?php
 /**
- * 移动版会员中心
- * @author winsen
- * @version 1.0.0
+ * Created by PhpStorm.
+ * User: apple
+ * Date: 15/9/17
+ * Time: 下午4:56
  */
 include 'library/init.inc.php';
 
-$smarty->display('user.phtml');
+//获取用户信息
+$get_user_info = 'select `reward_await` from '.$db->table('member').' where `account`=\''.$_SESSION['account'].'\'';
+$user_info = $db->fetchRow($get_user_info);
+assign('user_info', $user_info);
+
+//获取明细
+$get_member_exchange = 'select `reward_await`,`add_time`,`remark` from '.$db->table('account').' where `account`=\''.$_SESSION['account'].
+    '\' and `reward_await`<>0 order by `add_time` DESC';
+
+$member_exchange = $db->fetchAll($get_member_exchange);
+assign('member_exchange', $member_exchange);
+
+assign('mode', 'reward_await');
+assign('unit', '元');
+assign('notice', '快来推广赚奖金');
+assign('title', '待发奖金');
+$smarty->display('points.phtml');

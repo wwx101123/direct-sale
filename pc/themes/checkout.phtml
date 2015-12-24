@@ -239,12 +239,10 @@
 
         if(pc[2] != undefined && current_level == 1) {
             number += parseInt(pc[2].min_number);
-            console.info("add level 2 number:"+parseInt(pc[2].min_number));
         }
 
         if(pc[level_id] != undefined && level_id > 2) {
             number += parseInt(pc[level_id].min_number);
-            console.info("add level "+level_id+" number:"+parseInt(pc[level_id].min_number));
         }
 
         $("#number_"+pid).val(number);
@@ -303,14 +301,11 @@
         }
 
         for(var i in pc) {
-            console.info('level_id='+i+',number='+number+',min_number='+pc[i].min_number+',price='+pc[i].price);
-
             if(number > pc[i].min_number) {
                 var greater_index = ""+(parseInt(i)+1);
                 if(pc[greater_index] != undefined && number >= pc[greater_index].min_number) {
                     continue;
                 } else {
-                    console.info('less than level up');
                     price += pc[i].price * number;
                     number  = 0;
                 }

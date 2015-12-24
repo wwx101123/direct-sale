@@ -7,6 +7,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="application-name" content="{$config.site_name}">
+    <link rel="apple-touch-icon-precomposed" href="{$template_dir}images/touch/touch-icon-iphone.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="{$template_dir}images/touch/touch-icon-ipad.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="{$template_dir}images/touch/touch-icon-iphone4.png">
     <meta name="description" content="">
     <meta name="keywords" content="">
     <meta name="author" content="www.kwanson.com">
@@ -15,139 +18,182 @@
     <meta name="format-detection" content="telephone=no, address=no">
     <link rel="stylesheet" href="{$template_dir}css/common.css">
     <link rel="stylesheet" href="{$template_dir}css/app.css">
+    <link rel="stylesheet" href="{$template_dir}css/index.css">
     <link rel="stylesheet" href="{$template_dir}css/fonts.css">
+    <script type="text/javascript" src="{$template_dir}js/jquery-1.11.0.min.js"></script>
+    {if is_weixin()}
+    <script type="text/javascript" src="http://res.wx.qq.com/open/js/jweixin-1.1.0.js"></script>
+    {/if}
 </head>
-<body id="index">
-<!-- 首页头部 -->
-<header class="header">
-    <div class="logo">
-        <a href="#">嘟喷哒</a>
-    </div>
-    <div class="header_service">
-        <a href="#"><span class="icon">&#xe600;</span><em>客服</em></a>
-    </div>
-</header>
-<!-- 广告轮拨区 -->
-<section id="focus" class="focus">
-    <div class="hd">
-        <ul></ul>
-    </div>
-    <div class="bd">
-        <ul>
-            {foreach from=$cycle_ad item=ad}
-            <li><a href="{$ad.url}"><img _src="{$ad.img}" src="{$template_dir}images/blank.png" /></a></li>
-            {/foreach}
-        </ul>
-    </div>
-</section>
-<!-- 首页公告区 -->
-<section class="index-news clearfix">
-    <div class="index-news-l fl"></div>
-    <div id="myscroll" class="index-news-r fr">
-        <ul id="notice" class="news-title">
-            {foreach from=$notice item=n}
-            <li><a href="article_list.php?id=1">{$n.title}</a></li>
-            {/foreach}
-        </ul>
-    </div>
-</section>
+<body>
+{block name="header"}
+    <!-- 首页头部 -->
+    <header class="header">
+        <div class="logo">
+            <a href="#">{$config.site_name}</a>
+        </div>
+        <div class="search_box" style="text-align: center">
+            {$config.site_name}
+            <!--
+            <a href="#" >
+                <div class="search">
+                    <form method="get" action="">
+                        <div class="text_box">
+                            <input id="keyword" name="keyword" type="text" placeholder="搜索商品/店铺" class="keyword text" onkeydown="this.style.color='#404040'" autocomplete="off">
+                        </div>
+                        <input type="submit" value="" class="submit" dd_name="搜索">
+                    </form>
+                </div>
+            </a>
+            -->
+        </div>
+    </header>
+{/block}
+{block name="content"}
+    <!-- 广告轮播区 -->
+    <section id="focus" class="focus">
+        <div class="hd">
+            <ul></ul>
+        </div>
+        <div class="bd">
+            <ul>
+                {foreach from=$cycle_ad item=ad}
+                <li><a href="#"><img _src="{$ad.img|build_url}" src="{$template_dir}images/blank.png" /></a></li>
+                {/foreach}
+            </ul>
+        </div>
+    </section>
+    <script type="text/javascript" src="{$template_dir}js/TouchSlide.1.1.js"></script>
+    <script type="text/javascript">
+    TouchSlide({
+        slideCell:"#focus",
+        titCell:".hd ul", //开启自动分页 autoPage:true ，此时设置 titCell 为导航元素包裹层
+        mainCell:".bd ul",
+        effect:"left",
+        autoPlay:true,//自动播放
+        autoPage:true, //自动分页
+        switchLoad:"_src" //切换加载，真实图片路径为"_src"
+    });
+    </script>
+    <!-- 广告轮播区 end -->
 
-<!-- 专区 -->
-{foreach from=$perform_ad item=ad}
-<section class="index-floor">
-    <div class="floor-con">
-        <a href="{$ad.url}"><img src="{$ad.img}" alt="{$ad.alt}"></a>
-    </div>
-</section>
-{/foreach}
+    <!-- 首页公告区 -->
+    <section class="index-news clearfix">
+        <div class="index-news-l fl">
+            <span class="icon">&#xe613;</span>
+        </div>
+        <div id="myscroll" class="index-news-r">
+            <ul id="notice" class="news-title">
+                {foreach from=$notice item=content}
+                <li><a href="article.php?id={$content.id}">{$content.title|escape}</a></li>
+                {/foreach}
+            </ul>
+        </div>
+    </section>
+    <script type="text/javascript" src="{$template_dir}js/scrolltext.js"></script>
+    <script type="text/javascript">
+        var newsHeight = $(".index-news").height();
+        if(document.getElementById("notice")){
+            var scrollup = new ScrollText("notice");
+            scrollup.LineHeight =  (newsHeight ==120)?40:20;//单排文字滚动的高度
+            scrollup.Amount = 1;            //注意:子模块(LineHeight)一定要能整除Amount.
+            scrollup.Delay = 35;           //延时
+            scrollup.Start();             //文字自动滚动
+            scrollup.Direction = "down"; //文字向下滚动
+        }
+    </script>
 
-<div style="height:1rem; "></div>
-<!-- 底部菜单 -->
+    <!-- 首页功能区 -->
+    <ul class="index-nav">
+        <li><a href="reward.php" title="我的奖金"><img class="" src="{$template_dir}images/jifen.png"><span>我的奖金</span></a></li>
+        <li><a href="withdraw.php" title="账户提现"><img class="" src="{$template_dir}images/tixian.png"><span>账户提现</span></a></li>
+        <li><a href="order.php" title="我的订单"><img class="" src="{$template_dir}images/dingdan.png"><span>我的订单</span></a></li>
+        <li><a href="address.php" title="收货地址"><img class="" src="{$template_dir}images/dizhi.png"><span>收货地址</span></a></li>
+    </ul>
+
+    <!-- 商家推荐区 -->
+    <section class="floor">
+    <h2>
+        <a class="title"><i class="icon">&#xe610;</i>商家推荐</a>
+    </h2>
+    </section>
+    {foreach from=$perform_ad_4 item=ad}
+    <section class="index-floor">
+        <div class="floor-con">
+            <a href="{$ad.url}"><img src="{$ad.img|build_url}" alt="{$ad.alt}" width="100%"></a>
+        </div>
+    </section>
+    {/foreach}
+
+    <div style="height:2.2rem; "></div>
+{/block}
+{block name="footer"}
 <section class="menu">
     <ul>
         <li><a class="active" href="index.php"><em class="icon">&#xe601;</em><span>首页</span></a></li>
-        <li><a href="article_list.php"><em class="icon">&#xe603;</em><span>资讯列表</span></a></li>
+        <li><a href="article_list.php"><em class="icon">&#xe603;</em><span>资讯</span></a></li>
         <li><a href="cart.php"><em class="icon">&#xe602;</em><span>购物车</span></a></li>
-        <li><a href="user.php"><em class="icon">&#xe604;</em><span>我</span></a></li>
+        <li><a href="user.php"><em class="icon">&#xe600;</em><span>我</span></a></li>
     </ul>
 </section>
+{/block}
+{block name="dialog"}
 <div class="cd-popup" role="alert">
+    <div class="cd-popup-container" id="confirm_dialog" style="display: none;">
+        <p id="confirm-message"></p>
+        <ul class="cd-buttons">
+            <li><a id="dialog_confirm_btn" href="javascript:void(0);"></a></li>
+            <li><a id="dialog_confirm_cancel" href="javascript:close_operation_dialog('confirm_dialog');"></a></li>
+        </ul>
+        <a href="javascript:close_operation_dialog('confirm_dialog');" class="cd-popup-close img-replace" id="dialog_confirm_close">X</a>
+    </div>
+
     <div class="cd-popup-container" id="message_dialog" style="display: none;">
         <p id="dialog-message"></p>
         <ul class="cd-buttons">
             <li class="cd-signle-button"><a href="javascript:close_message_dialog();" id="dialog_close_btn">确认</a></li>
         </ul>
-        <a href="javascript:close_message_dialog_cancel();" class="cd-popup-close img-replace" id="dialog_close">X</a>
+        <a href="javascript:close_message_dialog();" class="cd-popup-close img-replace" id="dialog_close">X</a>
     </div>
 
     <div class="progressbar">
         <img src="{$template_dir}images/loading.gif"/>
     </div>
 </div>
-<script type="text/javascript" src="{$template_dir}js/jquery-1.11.0.min.js"></script>
-<script type="text/javascript" src="{$template_dir}js/jquery.lazyload.min.js"></script>
 <script type="text/javascript">
-    $(function() {
-        $("img.lazy").lazyload({
-            effect : "fadeIn"
-        });
-    });
-</script>
-<script type="text/javascript" src="{$template_dir}js/TouchSlide.1.1.js"></script>
-<script type="text/javascript">
-    TouchSlide({
-        slideCell:"#focus",
-        titCell:".hd ul", //开启自动分页 autoPage:true ，此时设置 titCell 为导航元素包裹层
-        mainCell:".bd ul",
-        effect:"left",
-        autoPlay:true,//自动拨放
-        autoPage:true, //自动分页
-        switchLoad:"_src" //切换加载，真实图片路径为"_src"
-    });
-</script>
-<script type="text/javascript" src="{$template_dir}js/scrolltext.js"></script>
-<script type="text/javascript">
-    var newsHeight = $(".index-news").height();
-    if(document.getElementById("notice")){
-        var scrollup = new ScrollText("notice");
-        scrollup.LineHeight =  (newsHeight ==120)?40:20;//单排文字滚动的高度
-        scrollup.Amount = 1;            //注意:子模块(LineHeight)一定要能整除Amount.
-        scrollup.Delay = 35;           //延时
-        scrollup.Start();             //文字自动滚动
-        scrollup.Direction = "down"; //文字向下滚动
-    }
-</script>
-<script type="text/javascript">
-    function change_fav() {
-        var url = "data_center.php";
-        var data = { "opera":"get_fav" };
-        $.post(url, data, change_fav_handler, "json");
-    }
-
-    function change_fav_handler(response) {
-        if(response.error == 0) {
-            $("#fav_list").html(response.content);
-        }
-    }
     function show_message_dialog(message) {
         $(".cd-popup").addClass("is-visible");
         $(".progressbar").hide();
-        $("#dialog-message").empty();
-        $("#dialog-message").append(message);
+        $("#dialog-message").html(message);
         $("#message_dialog").show();
     }
 
     function close_message_dialog() {
         $(".cd-popup").removeClass("is-visible");
         $("#message_dialog").hide();
-        var phone = $('#message_dialog').find('a:eq(0)').text();
-        window.location.href="tel://"+phone;
     }
 
-    function close_message_dialog_cancel() {
+    function show_mask() {
+        $(".cd-popup").addClass("is-visible");
+        $(".progressbar").show();
+    }
+
+    function hide_mask() {
         $(".cd-popup").removeClass("is-visible");
-        $("#message_dialog").hide();
+        $(".progressbar").hide();
+    }
+
+    function show_operation_dialog() {
+        $(".cd-popup").addClass("is-visible");
+        $(".progressbar").hide();
+        $("#confirm_dialog").show();
+    }
+
+    function close_operation_dialog() {
+        $(".cd-popup").removeClass("is-visible");
+        $("#confirm_dialog").hide();
     }
 </script>
+{/block}
 </body>
 </html>

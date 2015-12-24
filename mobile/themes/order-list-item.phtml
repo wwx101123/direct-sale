@@ -20,7 +20,7 @@
                 <!--电子书加签-->
                 {foreach from=$order.order_detail item=od}
                 <!--包裹图片-->
-                <img src="{$template_dir}images/product_1.jpg" class="fl pro_pic">
+                <img src="{$od.img}" class="fl pro_pic">
                 {/foreach}
                 <!--包裹详情-->
                 <div class="detail">
@@ -70,7 +70,7 @@
 {else}
 <div class="block">
     <div class="empty-con">
-        <span class="icon">&#xe63d;</span>
+        <span class="icon">&#xe62c;</span>
         <span class="empty-tips">找不到任何订单!</span>
             <span class="empty-btn">
                 <a href="index.php" class="btn">去逛逛</a>

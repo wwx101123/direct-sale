@@ -98,11 +98,12 @@
 				<p class="clearfix">账户余额: {price_format($member_info.balance)}</p>
 				<p class="clearfix">奖金余额: {price_format($member_info.reward)}</p>
 				<p class="clearfix">待发奖金: {price_format($member_info.reward_await)}</p>
+				<p class="clearfix">持有瓶数: {$member_info.pnumber}</p>
 			</div>
 		</div>
 	</div>
 
-	<div class="portlet">
+	<div class="portlet" style="display: none;">
 		<div class="portletFrame">
 			<div class="portletHeader clearFix">
 				<div class="portletHeaderFrame clearFix">

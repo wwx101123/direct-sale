@@ -1,0 +1,77 @@
+{extends file="index.phtml"}
+{block name="header"}
+<header class="header">
+    <a href="javascript:history.back();" class="back"></a>
+    <h1><em>充值记录</em></h1>
+    <a href="recharge.php" class="edit">充值</a>
+</header>
+{/block}
+{block name="content"}
+<!-- 订单列表 -->
+<section class="order-list" style="padding-top: 0rem;overflow: auto;">
+    {foreach from=$recharge_list item=recharge}
+    <div class="block">
+        <div class="order_list">
+            <!--非当当自营显示店铺入口-->
+            <div class="shop_title">
+                <a href="#">
+                    <!--店铺名称-->
+                    <div class="fl">
+                        {$recharge.recharge_sn}
+                    </div>
+                    <span class="fr sn_status">
+                        {$lang.recharge["status_{$recharge.status}"]}
+                    </span>
+                </a>
+            </div>
+            <!-- 信息 -->
+            <p class="withdraw-info">充值金额: ￥{$recharge.amount}</p>
+            <p class="withdraw-info">支付方式: {$recharge.payment_name}</p>
+            <p class="withdraw-info">备注:{$recharge.remark}</p>
+            <p class="withdraw-info">申请时间: {date('Y-m-d H:i:s', $recharge.add_time)}</p>
+            {if $recharge.status eq 3}
+            <p class="withdraw-info">处理时间: {date('Y-m-d H:i:s', $recharge.pay_time)}</p>
+            {/if}
+            <!--操作按键-->
+            {if $recharge.status eq 1}
+            <div class="detail3">
+                <a href="javascript:delete_withdraw('{$recharge.recharge_sn}');">取消申请</a>
+            </div>
+            {/if}
+        </div>
+    </div>
+    {/foreach}
+</section>
+<div style="height: 1rem"></div>
+<script type="text/javascript">
+    function delete_withdraw(sn) {
+        if (confirm("您确定要取消该申请?")) {
+            cancel_withdraw(sn);
+        }
+    }
+
+    function cancel_withdraw(sn) {
+        var url = "recharge.php";
+        var data = { "opera":"cancel", "withdraw_sn":sn }
+
+        show_mask();
+        $.post(url, data, cancel_withdraw_handler, "json");
+    }
+
+    function cancel_withdraw_handler(response) {
+        hide_mask();
+        if(response.error == 0) {
+            $("#dialog_close_btn").attr("href", "javascript:void(0);");
+            $("#dialog_close_btn").click(function() {
+                window.location.reload();
+            });
+            $("#dialog_close").click(function() {
+                window.location.reload();
+            });
+        }
+        show_message_dialog(response.msg);
+    }
+</script>
+{/block}
+{block name="footer"}
+{/block}

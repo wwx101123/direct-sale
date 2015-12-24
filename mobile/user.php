@@ -1,9 +1,14 @@
 <?php
 /**
- * 移动版会员中心
- * @author winsen
- * @version 1.0.0
+ * Created by PhpStorm.
+ * User: apple
+ * Date: 15/8/20
+ * Time: 上午9:38
  */
 include 'library/init.inc.php';
 
-$smarty->display('user.phtml');
+$get_user_info = 'select * from '.$db->table('member').' where `account`=\''.$_SESSION['account'].'\'';
+$user_info = $db->fetchRow($get_user_info);
+
+assign('member_info', $user_info);
+$smarty->display('home.phtml');

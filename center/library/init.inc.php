@@ -23,7 +23,7 @@ $loader->setConfigs($configs);
 
 $class_list = array('Smarty', 'Logs', 'MySQL', 'Code', 'PHPExcel');
 $loader->includeClass($class_list);
-$script_list = array('configs','functions','lang', 'purview', 'member', 'account');
+$script_list = array('configs','functions','lang', 'purview', 'member', 'account', 'wechat');
 $loader->includeScript($script_list);
 //初始化数据库链接
 global $db;

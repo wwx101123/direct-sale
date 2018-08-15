@@ -10,16 +10,6 @@
 <section class="checkout-con">
     <section class="userinfo" style="background: #fff;">
         <div class="edit-userinfo">
-            <label><span>会员等级:</span>
-                <select id="level_id" name="level_id" onchange="caculate_fee();">
-                    <option value="0">请选择会员等级</option>
-                    {foreach from=$lang.level key=level_id item=level_name}
-                    {if $level_id gt 1}
-                    <option value="{$level_id}">{$level_name}</option>
-                    {/if}
-                    {/foreach}
-                </select>
-            </label>
             <label><span>真实姓名:</span>
                 <input name="name" id="name" type="text" value="" placeholder="请输入真实姓名"/>
             </label>
@@ -31,6 +21,40 @@
             </label>
         </div>
     </section>
+
+    <section class="product-selection preferential">
+        {foreach from=$product_list item=product name=product_list}
+        <div class="product-optional">
+            <input type="radio" name="product_sn" class="c_checkbox" data-price="{$product.price|floatval}" value="{$product.product_sn}" {if $smarty.foreach.product_list.first}checked="checked"{/if}>
+            <img src="{$product.img}"/>
+            <div class="product-info">
+                <p class="product-name">{$product.name|escape}</p>
+                <p class="product-price">￥{$product.price|string_format:'%.2f'}</p>
+                <p class="product-meta">报单等级：{$lang.level[$product.target_level]}</p>
+            </div>
+        </div>
+        {/foreach}
+    </section>
+
+    <div class="edit-address preferential border_bottom">
+        <div class="w_panel border_lr order_main border_top">
+            <h4 class="h_title">
+                收货信息
+            </h4>
+        </div>
+        <div class="single_line_div leavemessage">
+            <span><input name="consignee" id="consignee" placeholder="收货人" value="" data-original-length="0" type="text"></span>
+        </div>
+        <div class="single_line_div leavemessage">
+            <span><input name="zipcode" id="zipcode" placeholder="邮政编码" value="" data-original-length="0" type="text"></span>
+        </div>
+        <div class="single_line_div leavemessage">
+            <span><input name="address" id="address" placeholder="收货地址" value="" data-original-length="0" type="text"></span>
+        </div>
+        <div class="single_line_div leavemessage">
+            <span><input name="cmobile" id="cmobile" placeholder="联系电话" value="" data-original-length="0" type="text"></span>
+        </div>
+    </div>
 
     {if ($member_info.integral gt 0 or $member_info.reward gt 0 or $member_info.balance gt 0)}
     <section class="preferential border_bottom">
@@ -51,26 +75,6 @@
     </section>
     {/if}
 
-    <!-- 支付详情 -->
-    <section class="paycon border_bottom">
-        <div class="paydetail">
-            <ul>
-                <li>支付方式：
-                    <span class="on">微信支付</span>
-                </li>
-            </ul>
-            <input type="hidden" name="payment_id" id="payment_id" value="1"/>
-        </div>
-    </section>
-    <script type="text/javascript">
-        $(function() {
-            $(".paydetail ul li span").click(function(){
-                $(this).siblings().removeClass("on");
-                $(this).addClass("on");
-            })
-        });
-    </script>
-
     <div style="height: 60px;"></div>
     <input type="hidden" name="payment_id" id="payment_id" value="1"/>
     <!-- 提交订单 -->
@@ -90,11 +94,9 @@
 
 <script type="text/javascript">
     var total_amount = 0;
-    var level_fee = {$level_fee};
-    var user_balance = {$member_info.balance};
-    var user_reward = {$member_info.reward};
+    var user_balance = {$member_info.balance|floatval};
+    var user_reward = {$member_info.reward|floatval};
     var mobile = '';
-    var pay_params = null;
 
     $(function(){
         hide_mask();
@@ -112,6 +114,12 @@
         if($("#use_balance") != undefined) {
             $("#use_balance").bind("click", function() { caculate_fee(); });
         }
+
+        $('input[name=product_sn]').click(function() {
+            caculate_fee();
+        });
+
+        caculate_fee();
 
         {if $member_info.status eq 1}
         show_message_dialog('您的会员身份尚未激活.<br/>请先支付注册订单激活身份');
@@ -175,16 +183,15 @@
     }
 
     function caculate_fee() {
-        var level_id = $("#level_id").val();
+        $('input[name=product_sn]').each(function() {
+            if($(this).prop('checked')) {
+                total_amount = parseFloat($(this).attr('data-price'));
 
-        level_id = parseInt(level_id);
-
-        if(isNaN(level_id) || level_id <= 1) {
-            show_message_dialog("请选择会员等级");
-            return false;
-        }
-
-        total_amount = level_fee[level_id];
+                if(isNaN(total_amount) || total_amount <= 0) {
+                    total_amount = 0;
+                }
+            }
+        });
 
         if($("#use_reward") != undefined && $("#use_reward").is(":checked")) {
 
@@ -212,17 +219,9 @@
     }
 
     function submit_order() {
-        var payment_id = $("#payment_id").val();
         var msg = "";
-        var level_id = $("#level_id").val();
+        var product_sn = '';
         var name = $("#name").val();
-        var recommend = $("#recommend").val();
-
-        level_id = parseInt(level_id);
-
-        if(isNaN(level_id) || level_id <= 1) {
-            msg += "-请选择会员等级<br/>";
-        }
 
         if(name == "") {
             msg += "-请填写真实姓名<br/>";
@@ -232,12 +231,48 @@
             msg += "-请填写手机号码<br/>";
         }
 
-        if(recommend == "") {
-            msg += "-请填写推荐人账号/手机号码<br/>";
+        $('input[name=product_sn]').each(function() {
+            if($(this).prop('checked')) {
+                product_sn = $(this).val();
+            }
+        });
+
+        var data = {
+            opera: "submit_order",
+            use_integral: false,
+            use_reward: false,
+            use_balance: false,
+            product_sn: product_sn,
+            name: name,
+            mobile: mobile,
+            consignee: $('#consignee').val(),
+            cmobile: $('#cmobile').val(),
+            address: $('#address').val(),
+            zipcode: $('#zipcode').val(),
+            recommend: $('#recommend').val()
+        };
+
+        if(data.product_sn == '') {
+            msg += '-请选择报单产品<br/>';
         }
 
-        var data = { "opera":"submit_order", "use_integral": false, "use_reward": false, "use_balance": false, "level_id": level_id, "name": name, "mobile": mobile, "recommend": recommend, "payment_id":payment_id };
-        if($("#use_integral") != undefined && $("#use_integral").is(":checked")) {
+        if(data.consignee == '') {
+            msg += '-请填写收货人姓名<br/>';
+        }
+
+        if(data.address == '') {
+            msg += '-请填写收货地址<br/>';
+        }
+
+        if(data.cmobile == '') {
+            msg += '-请填写联系电话<br/>';
+        }
+
+        if(data.recommend == '') {
+            msg += '-请填写推荐人账号/手机号码<br/>';
+        }
+
+        if($("#use_integral").length && $("#use_integral").is(":checked")) {
             data.use_integral = true;
             if(total_amount < 0) {
                 $("#use_integral").attr("checked", false);
@@ -245,7 +280,7 @@
             }
         }
 
-        if($("#use_reward") != undefined && $("#use_reward").is(":checked")) {
+        if($("#use_reward").length && $("#use_reward").is(":checked")) {
             data.use_reward = true;
             if(total_amount < 0) {
                 $("#use_reward").attr("checked", false);
@@ -253,18 +288,12 @@
             }
         }
 
-        if($("#use_balance") != undefined && $("#use_balance").is(":checked")) {
+        if($("#use_balance").length && $("#use_balance").is(":checked")) {
             data.use_balance = true;
             if(total_amount < 0) {
                 $("#use_balance").attr("checked", false);
                 return false;
             }
-        }
-
-        payment_id = parseInt(payment_id);
-
-        if(isNaN(payment_id) || payment_id <= 0) {
-            msg += "-请选择支付方式\n";
         }
 
         if(msg != "") {
@@ -293,7 +322,7 @@
                 $("#dialog_confirm_btn").text("继续报单");
                 pay_params = response.pay_params;
                 $("#dialog_confirm_cancel").click(function(){
-                    pay(pay_params.timestamp, pay_params.nonce_str, pay_params.prepay_id, pay_params.sign);
+                    window.location.href = 'topay.php';
                 });
                 $("#dialog_confirm_btn,#dialog_confirm_close").click(function(){
                     window.location.reload();
@@ -308,38 +337,5 @@
 {/block}
 {block name="footer"}
 <script type="text/javascript">
-    {if is_weixin()}
-    wx.config({
-        appId: '{$signPackage.appId}',
-        timestamp: {$signPackage.timestamp},
-        nonceStr: '{$signPackage.nonceStr}',
-        signature: '{$signPackage.signature}',
-        jsApiList: [
-                'chooseWXPay',
-                'closeWindow'
-        ]
-    });
-    {/if}
-
-    function pay(timestamp, nonce_str, prepay_id, sign) {
-        wx.chooseWXPay({
-            timestamp: timestamp,
-            nonceStr: nonce_str,
-            package: 'prepay_id='+prepay_id,
-            signType: 'MD5',
-            paySign: sign,
-            success: function (res) {
-                // 支付成功后的回调函数
-                if(res.errMsg == "chooseWXPay:ok") {
-                    show_message_dialog("支付成功,订单已完成");
-                    $("#dialog_close_btn,#dialog_close").click(function(){
-                        window.location.reload();
-                    });
-                } else {
-                    show_message_dialog(res.errMsg+":支付失败");
-                }
-            }
-        });
-    }
 </script>
 {/block}

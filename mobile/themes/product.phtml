@@ -361,8 +361,8 @@
     wx.ready(function() {
         var share_title = '我在{$config.site_name}淘到一款好产品，快来看哦';
         var share_link = '{$recommend_url}';
-        var share_img = '{$config.domain}{$product.img}';
-        var share_desc = '{$product.desc}';
+        var share_img = '{$product.img}';
+        var share_desc = '快来看看哦';
         //分享到朋友圈
         wx.onMenuShareTimeline({
             title: share_title, // 分享标题

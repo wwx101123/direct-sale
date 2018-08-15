@@ -70,7 +70,7 @@ if('install' == $act)
     }
 
     $plugin = $db->escape($plugin);
-    $plugin_path = ROOT_PATH.'plugins/payment/';
+    $plugin_path = ROOT_PATH.'/center/plugins/payment/';
 
     include $plugin_path.$plugin.'.class.php';
 
@@ -138,7 +138,7 @@ if('edit' == $act)
         $payment_plugins['configure'] = unserialize($payment_plugins['configure']);
     }
 
-    $plugin_path = ROOT_PATH.'plugins/payment/';
+    $plugin_path = ROOT_PATH.'/center/plugins/payment/';
 
     include $plugin_path.$payment_plugins['plugins'].'.class.php';
     $payment_plugins['configures'] = $plugins[0]['configure'];
@@ -148,7 +148,7 @@ if('edit' == $act)
 
 if('view' == $act)
 {
-    $plugin_path = ROOT_PATH.'plugins/payment/';
+    $plugin_path = ROOT_PATH.'/center/plugins/payment/';
 
     $dir = dir($plugin_path);
 

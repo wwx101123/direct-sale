@@ -14,5 +14,6 @@ define('DB_USERNAME', 'root');
 define('DB_PASSWORD', 'root');
 define('DB_DBNAME', 'directsale');
 define('DB_PREFIX', 'ds_');
+define('DB_CHARSET', 'utf8mb4');
 
 define('PASSWORD_END', '_kwanson');

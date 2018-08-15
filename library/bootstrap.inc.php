@@ -42,7 +42,7 @@ $log = new Logs($debug_mode, $log_file);
 
 //初始化数据库链接
 global $db;
-$db = new MySQL(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_DBNAME, DB_PREFIX);
+$db = new MySQL(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_DBNAME, DB_PREFIX, DB_CHARSET);
 
 //读取网站设置
 $get_sysconf = 'select `key`,`value` from '.$db->table('sysconf');

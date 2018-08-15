@@ -6,6 +6,7 @@
  * Time: 下午4:47
  */
 include 'library/init.inc.php';
+global $db, $log, $smarty, $config, $lang;
 
 $template = 'order-list.phtml';
 $action = 'list|detail|comment|express_info|product_comment';
@@ -18,7 +19,7 @@ if('' == $act)
     $act = 'list';
 }
 
-
+//确认收货
 if('receive' == $opera)
 {
     $order_sn = getPOST('order_sn');
@@ -41,6 +42,7 @@ if('receive' == $opera)
             {
                 $response['error'] = 0;
                 $response['msg'] = '确认收货成功';
+                //奖金发放
             } else {
                 $response['msg'] = '系统繁忙，请稍后再试';
             }
@@ -53,6 +55,7 @@ if('receive' == $opera)
     exit;
 }
 
+//订单取消
 if('cancel' == $opera)
 {
     $order_sn = getPOST('order_sn');
@@ -113,6 +116,10 @@ if('pay_now' == $opera)
 
         if($order_sn)
         {
+            $_SESSION['order_sn'] = $order_sn;
+            $response['error'] = 0;
+            $response['message'] = '前往支付页面';
+            /*
             $mch_id = $config['mch_id'];
             $mch_key = $config['mch_key'];
 
@@ -153,6 +160,7 @@ if('pay_now' == $opera)
             $response['timestamp'] = $time_stamp;
             $response['sign'] = $sign;
             $response['prepay_id'] = "".$res->prepay_id;
+            */
         } else {
             $response['msg'] = '订单错误';
         }
@@ -240,7 +248,7 @@ if('list' == $act)
 
     $get_order_list = 'select * from '.$db->table('order').' where `account`=\''.$_SESSION['account'].'\' order by `add_time` DESC';
 
-    $get_order_list .= ' order by `add_time` DESC';
+    $log->record($get_order_list);
 
     $order_list = $db->fetchAll($get_order_list);
 

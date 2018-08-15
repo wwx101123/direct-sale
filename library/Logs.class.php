@@ -32,41 +32,13 @@ class Logs
     {
         if(!$this->debug) return;
 
-        $message = '';
-        if(is_array($array))
-        {
-            $message = $this->array_to_string($array);
-        } else {
-            $message = 'object is null.';
-        }
+        $message = json_encode($array);
 
         $message = substr($message, 0, strlen($message)-1);
         $formated = '['.date('Y-m-d H:i:s').'] %s'."\n";
         $message = sprintf($formated, $message);
 
         fwrite($this->handler, $message);
-    }
-
-    public function array_to_string($array)
-    {
-        $str = '';
-        if(!is_array($array)) {
-            $str .= $array;
-        } else {
-            foreach($array as $key=>$value)
-            {
-                $str .= $key.'=';
-                if(is_array($value))
-                {
-                    $tmp = $this->array_to_string($value);
-                    $str .= '['.substr($tmp, 0, strlen($tmp)-1).']'."\n";
-                } else {
-                    $str .= $value;
-                }
-                $str .= '&';
-            }
-        }
-        return $str;
     }
 
     public function record($message, $format = true)

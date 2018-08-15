@@ -57,26 +57,30 @@
         <a class="slide-link" href="order.php">
             <span class="icon" style="background-color: #009a44;">&#xe622;</span>我的订单
         </a>
-        <!--
+        {if $member_info.level_id gt 1}
         <a class="slide-link" href="recommend.php">
-            <span class="icon" style="background-color: #ff0000;">&#xe628;</span>注册会员
+            <span class="icon" style="background-color: #ff0000;">&#xe628;</span>报单
         </a>
-        -->
         <a class="slide-link" href="qrcode.php?ticket={base64_encode($member_info.wx_openid)}">
             <span class="icon" style="background-color: #c2cb5a;">&#xe604;</span>推广名片
         </a>
+        {if $member_info.view_network}
         <a class="slide-link" href="team.php">
             <span class="icon" style="background-color: #f29902;">&#xe620;</span>我的团队
         </a>
+        {/if}
+        {/if}
         <a class="slide-link" href="reward.php">
             <span class="icon" style="background-color: #80c269;">&#xe624;</span>我的奖金
         </a>
         <a class="slide-link" href="recharge.php">
             <span class="icon" style="background-color: #008fbf;">&#xe61c;</span>我要充值
         </a>
+        {if $member_info.status neq 4}
         <a class="slide-link" href="withdraw.php">
             <span class="icon" style="background-color: #fb9065;">&#xe621;</span>我要提现
         </a>
+        {/if}
         <a class="slide-link" href="bank.php">
             <span class="icon" style="background-color: #f29ec2;">&#xe623;</span>我的银行卡
         </a>
@@ -84,11 +88,22 @@
             <span class="icon" style="background-color: #d0c0a6;">&#xe600;</span>个人信息
         </a>
     </section>
-    <section class="f-section">
+    <section class="f-section" style="display: none">
         <a class="slide-link" href="javascript:alert('建设中...');">
             <span class="icon" style="background-color: #acd697;">&#xe61e;</span>意见反馈
         </a>
     </section>
 </section>
 <div style="height: 2.2rem;"></div>
+{/block}
+
+{block name="footer"}
+<section class="menu">
+    <ul>
+        <li><a href="index.php"><em class="icon">&#xe601;</em><span>首页</span></a></li>
+        <li><a href="article_list.php"><em class="icon">&#xe603;</em><span>资讯</span></a></li>
+        <li><a href="cart.php"><em class="icon">&#xe602;</em><span>购物车</span></a></li>
+        <li><a class="active" href="user.php"><em class="icon">&#xe600;</em><span>我</span></a></li>
+    </ul>
+</section>
 {/block}

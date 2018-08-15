@@ -29,4 +29,9 @@ $get_perform_ad = 'select `img`,`url`,`alt` from '.$db->table('ad').' where `ad_
 $perform_ad = $db->fetchAll($get_perform_ad);
 assign('perform_ad_4', $perform_ad);
 
+//获取非报单产品
+$get_product_list = 'select * from '.$db->table('product').' where `status`=1 and `special`=0';
+$product_list = $db->fetchAll($get_product_list);
+assign('product_list', $product_list);
+
 $smarty->display('index.phtml');

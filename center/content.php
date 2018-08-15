@@ -7,6 +7,8 @@
  * @version 1.0.0
  */
 include 'library/init.inc.php';
+global $db, $log, $smarty, $config, $lang;
+
 back_base_init();
 
 $template = 'content/';
@@ -46,11 +48,6 @@ if( 'add' == $opera ) {
 
     if( '' != $original ) {
         $original = $db->escape(htmlspecialchars($original));
-        if( file_exists('../'.$original) ) {
-            $thumb = str_replace('image', 'thumb', $original);
-        } else {
-            $thumb = '';
-        }
     }
 
     if( '' == $title ) {
@@ -67,16 +64,16 @@ if( 'add' == $opera ) {
     }
 
     if( '' == $keywords ) {
-        show_system_message('出于SEO的考虑，请务必填写关键词', array());
-        exit;
+//        show_system_message('出于SEO的考虑，请务必填写关键词', array());
+//        exit;
     } else {
         $keywords = $db->escape(htmlspecialchars($keywords));
     }
 
     if( '' == $description )
     {
-        show_system_message('出于SEO的考虑，请务必填写摘要', array());
-        exit;
+//        show_system_message('出于SEO的考虑，请务必填写摘要', array());
+//        exit;
     } else {
         $description = $db->escape(htmlspecialchars($description));
     }
@@ -85,7 +82,7 @@ if( 'add' == $opera ) {
         show_system_message('参数错误', array());
         exit;
     } else {
-        $articleCatId = intval($articleCatId);
+        $section_id = intval($section_id);
     }
     if( empty($content) ) {
         show_system_message('文章内容不能为空', array());
@@ -104,7 +101,7 @@ if( 'add' == $opera ) {
     if('' == $isAutoPublish || 0 == intval($isAutoPublish) )
     {
         $isAutoPublish = 0;
-        $publishTime = $addTime;
+        $publishTime = 0;
     } else {
         if(preg_match('^(?:(?!0000)[0-9]{4}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1[0-9]|2[0-8])|(?:0[13-9]|1[0-2])-(?:29|30)|(?:0[13578]|1[02])-31)|(?:[0-9]{2}(?:0[48]|[2468][048]|[13579][26])|(?:0[48]|[2468][048]|[13579][26])00)-02-29)\ \d{1,2}:\d{1,2}:\d{1,2}$', $publishTime)) {
             $dateTime = explode(' ', $publishTime);
@@ -137,12 +134,19 @@ if( 'add' == $opera ) {
         'wap_content' => $wap_content,
         'keywords' => $keywords,
         'description' => $description,
-        'thumb' => $thumb,
+        'thumb' => $original,
         'original' => $original,
         'order_view' => $order_view,
         'original_url' => $original_url,
         'section_id' => $section_id,
     );
+
+    if($publishTime == 0) {
+        $data['publish_time'] = $add_time;
+    } else {
+        $data['publish_time'] = $publishTime;
+    }
+
     if( $db->autoInsert('content', array($data)) ) {
         $links = array(
             array('alt'=>'返回列表', 'link'=>'content.php'),
@@ -186,11 +190,6 @@ if( 'edit' == $opera ) {
 
     if( '' != $original ) {
         $original = $db->escape(htmlspecialchars($original));
-        if( file_exists('../'.$original) ) {
-            $thumb = str_replace('image', 'thumb', $original);
-        } else {
-            $thumb = '';
-        }
     }
 
     if( '' == $title ) {
@@ -207,16 +206,16 @@ if( 'edit' == $opera ) {
     }
 
     if( '' == $keywords ) {
-        show_system_message('出于SEO的考虑，请务必填写关键词', array());
-        exit;
+//        show_system_message('出于SEO的考虑，请务必填写关键词', array());
+//        exit;
     } else {
         $keywords = $db->escape(htmlspecialchars($keywords));
     }
 
     if( '' == $description )
     {
-        show_system_message('出于SEO的考虑，请务必填写摘要', array());
-        exit;
+//        show_system_message('出于SEO的考虑，请务必填写摘要', array());
+//        exit;
     } else {
         $description = $db->escape(htmlspecialchars($description));
     }
@@ -225,7 +224,7 @@ if( 'edit' == $opera ) {
         show_system_message('参数错误', array());
         exit;
     } else {
-        $articleCatId = intval($articleCatId);
+        $section_id = intval($section_id);
     }
     if( empty($content) ) {
         show_system_message('文章内容不能为空', array());
@@ -243,7 +242,7 @@ if( 'edit' == $opera ) {
     $isAutoPublish = intval($isAutoPublish);
     if('' == $isAutoPublish || 0 == intval($isAutoPublish) ) {
         $isAutoPublish = 0;
-        $publishTime = $addTime;
+        $publishTime = 0;
     } else {
         if(preg_match('^(?:(?!0000)[0-9]{4}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1[0-9]|2[0-8])|(?:0[13-9]|1[0-2])-(?:29|30)|(?:0[13578]|1[02])-31)|(?:[0-9]{2}(?:0[48]|[2468][048]|[13579][26])|(?:0[48]|[2468][048]|[13579][26])00)-02-29)\ \d{1,2}:\d{1,2}:\d{1,2}$', $publishTime)) {
             $dateTime = explode(' ', $publishTime);
@@ -275,14 +274,14 @@ if( 'edit' == $opera ) {
         'wap_content' => $wap_content,
         'keywords' => $keywords,
         'description' => $description,
-        'thumb' => $thumb,
+        'thumb' => $original,
         'original' => $original,
         'order_view' => $order_view,
         'original_url' => $original_url,
         'section_id' => $section_id,
     );
 
-    if( intval($isAutoPublish) == 1 ) {
+    if( intval($isAutoPublish) == 1 && $publishTime > 0) {
         $data['add_time'] = $publishTime;
     }
 
@@ -358,8 +357,10 @@ if( 'view' == $act ) {
 
     $content_list = $db->fetchAll($get_content_list);
 
-    foreach( $content_list as $key => $content ) {
-        $content_list[$key]['add_time'] = date('Y-m-d H:i:s', $content['add_time']);
+    if($content_list) {
+        foreach ($content_list as $key => $content) {
+            $content_list[$key]['add_time'] = date('Y-m-d H:i:s', $content['add_time']);
+        }
     }
 
     assign('contentList', $content_list);
@@ -546,8 +547,10 @@ if( 'cycle' == $act ) {
     $get_content_list .= ' limit '.$offset.','.$count;
     $content_list = $db->fetchAll($get_content_list);
 
-    foreach( $content_list as $key => $content ) {
-        $content_list[$key]['add_time'] = date('Y-m-d H:i:s', $content['add_time']);
+    if($content_list) {
+        foreach ($content_list as $key => $content) {
+            $content_list[$key]['add_time'] = date('Y-m-d H:i:s', $content['add_time']);
+        }
     }
 
     assign('contentList', $content_list);

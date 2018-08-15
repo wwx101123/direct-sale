@@ -118,8 +118,21 @@ function get_qrcode($openid, $access_token)
 
         if(!$db->fetchOne($check_scene_id))
         {
+            $db->begin();
             $scene_id = $id;
-            break;
+
+            $data = array(
+                'scene_id' => $scene_id,
+                'expired' => time() + 10
+            );
+
+            if($db->autoUpdate('member', $data, '`wx_openid`=\''.$openid.'\'')) {
+                $db->commit();
+                break;
+            } else {
+                $db->rollback();
+                continue;
+            }
         }
     }
     //scene_id已满
@@ -128,7 +141,7 @@ function get_qrcode($openid, $access_token)
         return false;
     }
     //临时二维码申请
-    $data = '{"expire_seconds": 1800, "action_name": "QR_SCENE", "action_info": {"scene": {"scene_id": '.$scene_id.'}}}';
+    $data = '{"expire_seconds": 2592000, "action_name": "QR_SCENE", "action_info": {"scene": {"scene_id": '.$scene_id.'}}}';
     $response = post('https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token='.$access_token, $data, false);
 
     $response = json_decode($response);
@@ -141,7 +154,7 @@ function get_qrcode($openid, $access_token)
         $data = array(
             'scene_id' => $scene_id,
             'ticket' => $response->ticket,
-            'expired' => time()+1800
+            'expired' => time()+2592000
         );
 
         $db->autoUpdate('member', $data, '`wx_openid`=\''.$openid.'\'');

@@ -279,6 +279,13 @@ if($product)
     $product_list[$product['id']]['price'] = $price;
     assign('product_list', $product_list);
     assign('product_list_json', json_encode($product_list_json));
+
+    //分享链接
+    $recommend_url = 'http://'.$config['mobile_domain'].'/product.php?id='.$id;
+    if(isset($_SESSION['account'])) {
+        $recommend_url .= '&ukey='.$member_info['id'];
+    }
+    assign('recommend_url', $recommend_url);
 } else {
     redirect('index.php');
 }

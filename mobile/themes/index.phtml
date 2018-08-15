@@ -108,10 +108,37 @@
         <li><a href="reward.php" title="我的奖金"><img class="" src="{$template_dir}images/jifen.png"><span>我的奖金</span></a></li>
         <li><a href="withdraw.php" title="账户提现"><img class="" src="{$template_dir}images/tixian.png"><span>账户提现</span></a></li>
         <li><a href="order.php" title="我的订单"><img class="" src="{$template_dir}images/dingdan.png"><span>我的订单</span></a></li>
-        <li><a href="address.php" title="收货地址"><img class="" src="{$template_dir}images/dizhi.png"><span>收货地址</span></a></li>
+        {if $member_info.level_id eq 1}
+        <li><a href="levelup.php" title="成为会员"><img class="" src="{$template_dir}images/dizhi.png"><span>成为会员</span></a></li>
+        {else}
+        <li><a href="recommend.php" title="报单"><img class="" src="{$template_dir}images/dizhi.png"><span>报单</span></a></li>
+        {/if}
     </ul>
 
+    <!-- 推荐产品 -->
+    <section class="floor">
+    <h2>
+        <a class="title"><i class="icon">&#xe610;</i>热荐产品 </a>
+    </h2>
+    </section>
+    <section class="product-list">
+        <ul>
+            {foreach from=$product_list item=product}
+            <li>
+                <a href="product.php?id={$product.id}">
+                    <img class="lazy" src="{$template_dir}images/bg_pic.png" data-original="{$product.img}" alt="{$product.name|escape}">
+                    <dl class="arrow">
+                        <dt>{$product.name|escape}</dt>
+                        <dd>￥{$product.price|string_format:'%.2f'}</dd>
+                    </dl>
+                </a>
+            </li>
+            {/foreach}
+        </ul>
+    </section>
+
     <!-- 商家推荐区 -->
+    <!--
     <section class="floor">
     <h2>
         <a class="title"><i class="icon">&#xe610;</i>商家推荐</a>
@@ -124,8 +151,18 @@
         </div>
     </section>
     {/foreach}
+    -->
 
     <div style="height:2.2rem; "></div>
+
+    <script type="text/javascript" src="{$template_dir}js/jquery.lazyload.min.js"></script>
+    <script type="text/javascript">
+        $(function() {
+            $("img.lazy").lazyload({
+                effect : "fadeIn"
+            });
+        });
+    </script>
 {/block}
 {block name="footer"}
 <section class="menu">

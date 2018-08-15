@@ -10,8 +10,8 @@
 <section class="userinfo">
     <div class="edit-userinfo">
         <label><span>会员卡号:</span><i class="red-font">{$user.account}</i></label>
-        <label><span>会员等级:</span><i class="red-font">{$level[{$user.level_id}]}</i></label>
-        <label><span>微信昵称:</span><i class="red-font">{$user.wx_nickname}</i></label>
+        <label><span>会员等级:</span><i>&nbsp;&nbsp;{$level[{$user.level_id}]}</i></label>
+        <label><span>微信昵称:</span><i>&nbsp;&nbsp;{$user.wx_nickname}</i></label>
         <label><span>真实姓名:</span>
             <input name="name" id="name" type="text" value="{$user.name}" placeholder="请输入真实姓名"/>
         </label>
@@ -59,7 +59,7 @@
             mobile = response.mobile;
         } else {
             show_message_dialog(response.msg);
-            mobile = "";
+            mobile = '';
         }
     }
 
@@ -117,3 +117,5 @@
     }
 </script>
 {/block}
+
+{block name="footer"}{/block}

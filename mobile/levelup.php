@@ -7,18 +7,18 @@
  * Time: 下午10:11
  */
 include 'library/init.inc.php';
+global $db, $config, $log, $smarty;
 
 //获取用户信息
 $get_member_info = 'select `id`,`account`,`reward`,`reward_await`,`integral`,`integral_await`,`balance`,`level_id`,`level_expired`,'.
-    '`add_time`,`name`,`wx_openid`,`recommend_path`,`recommend` from '.$db->table('member').' where `account`=\''.$_SESSION['account'].'\'';
+    '`add_time`,`name`,`wx_openid`,`recommend_path`,`recommend`,`mobile`,`recommend_id`,`status` from '.$db->table('member').' where `account`=\''.$_SESSION['account'].'\'';
 $member_info = $db->fetchRow($get_member_info);
 assign('member_info', $member_info);
 
-$level_fee = array(
-    2 => floatval($config['join_fee_2']),
-    3 => floatval($config['join_fee_3']),
-    4 => floatval($config['join_fee_4']),
-);
+//获取报单产品
+$get_product_list = 'select * from '.$db->table('product').' where `status`=1 and `special`=1 order by `target_level` ASC';
+$product_list = $db->fetchAll($get_product_list);
+assign('product_list', $product_list);
 
 $operation = 'submit_order';
 $opera = check_action($operation, getPOST('opera'));
@@ -33,12 +33,16 @@ if('submit_order' == $opera)
     $payment_id = intval(getPOST('payment_id'));
     $name = trim(getPOST('name'));
     $mobile = trim(getPOST('mobile'));
-    $recommend = trim(getPOST('recommend'));
-    $recommend_info = null;
+    $product = null;
+    $product_sn = trim(getPOST('product_sn'));
+    $consignee = trim(getPOST('consignee'));
+    $zipcode = trim(getPOST('zipcode'));
+    $cmobile = trim(getPOST('cmobile'));
+    $address = trim(getPOST('address'));
 
-    if($level_id <= 1 || $level_id > 4)
-    {
-        $response['msg'] .= '-请选择会员等级<br/>';
+
+    if($member_info['level_id'] > 1) {
+        $response['msg'] .= '-当前等级不满足报单条件<br/>';
     }
 
     if(empty($name))
@@ -54,7 +58,7 @@ if('submit_order' == $opera)
     } else {
         $mobile = $db->escape($mobile);
 
-        $check_mobile = 'select `mobile` from '.$db->table('member').' where `mobile`=\''.$mobile.'\'';
+        $check_mobile = 'select `mobile` from '.$db->table('member').' where `mobile`=\''.$mobile.'\' and `account`<>\''.$_SESSION['account'].'\'';
 
         $flag = $db->fetchOne($check_mobile);
 
@@ -64,65 +68,51 @@ if('submit_order' == $opera)
         }
     }
 
-    //验证推荐人
-    if(empty($recommend))
-    {
-        $response['msg'] .= '-请填写推荐人账号/手机号码<br/>';
-    } else {
-        $recommend = $db->escape($recommend);
-
-        $field = 'account';
-        if(is_mobile($recommend))
-        {
-            $field = 'mobile';
-        }
-
-        if(is_email($recommend))
-        {
-            $field = 'email';
-        }
-
-        $get_recommend_info = 'select `id`,`account`,`recommend_path` from '.$db->table('member').' where `'.$field.'`=\''.$recommend.'\'';
-        $log->record($get_recommend_info);
-        $recommend_info = $db->fetchRow($get_recommend_info);
-
-        if($recommend_info)
-        {
-            if($recommend_info['account'] == $_SESSION['account'])
-            {
-                $response['msg'] .= '-不能自己推荐自己<br/>';
-            }
-            /*
-            $search_str = $recommend_info['recommend_path'];
-            $needle = $member_info['recommend_path'];
-
-            if(strlen($search_str) < strlen($needle))
-            {
-                $search_str = $member_info['recommend_path'];
-                $needle = $recommend_info['recommend_path'];
-            }
-
-            if(strpos($search_str, $needle) === false)
-            {
-                $response['msg'] .= '-推荐人必须在同一推荐线<br/>';
-            }
-            */
-        } else {
-            $response['msg'] .= '-推荐人不存在<br/>';
+    foreach($product_list as $_product) {
+        if($_product['product_sn'] == $product_sn) {
+            $product = $_product;
+            break;
         }
     }
+
+    if(empty($product)) {
+        $response['msg'] .= '-请选择报单产品';
+    }
+
+    //订单相关
+    if($consignee == '')
+    {
+        $response['msg'] .= '-请填写收货人<br/>';
+    } else {
+        $consignee = $db->escape($consignee);
+    }
+
+    if($cmobile == '')
+    {
+        $response['msg'] .= '-请填写联系电话<br/>';
+    } else {
+        $cmobile = $db->escape($cmobile);
+    }
+
+    if($address == '')
+    {
+        $response['msg'] .= '-请填写收货地址<br/>';
+    } else {
+        $address = $db->escape($address);
+    }
+
+    $zipcode = $db->escape($zipcode);
 
     if($response['msg'] == '')
     {
         //计算费用
-        $total_amount = $level_fee[$level_id];
+        $total_amount = $product['price'];
         $real_amount = $total_amount;
         $reward_paid = 0;
         $balance_paid = 0;
+        $pv_amount = $product['pv'];
 
         //优先使用奖金
-        $log->record('user reward = '.$use_reward);
-        $log->record('user balance = '.$use_balance);
         if($real_amount > 0 && $use_reward)
         {
             $log->record('use reward');
@@ -152,116 +142,102 @@ if('submit_order' == $opera)
 
         $db->begin();
 
-        $recommend_info = $db->fetchRow($get_recommend_info);
-        $recommend = $recommend_info['account'];
-        //注册会员
+        //更新会员信息
         $register_data = array(
             'name' => $name,
-            'level_id' => $level_id,
             'mobile' => $mobile,
-            'recommend' => $recommend,
-            'add_time' => time(),
-            'recommend_id' => $recommend_info['id'],
-            'status' => 1
+            'add_time' => time()
         );
-
-        // 365会员身份将在365天后过期
-        if($level_id == 2) {
-            $register_data['level_expired'] = time();
-        }
 
         if($db->autoUpdate('member', $register_data, '`account`=\''.$_SESSION['account'].'\''))
         {
             $account = $_SESSION['account'];
             $register_id = $member_info['id'];
 
-            if($db->autoUpdate('member', array('recommend_path'=>$recommend_info['recommend_path'].$register_id.','), '`account`=\''.$account.'\''))
+            //插入订单
+            $pay_order_data = array(
+                'add_time' => time(),
+                'total_amount' => $total_amount,
+                'real_amount' => $real_amount,
+                'integral_amount' => 0,
+                'integral_given_amount' => 0,
+                'product_amount' => $real_amount,
+                'recommend' => $member_info['recommend'],
+                'recommend_id' => $member_info['recommend_id'],
+                'payment_id' => 1,
+                'payment_name' => '微信支付',
+                'payment_code' => 'Wechat',
+                'type' => 1, //会员报单
+                'balance_paid' => $balance_paid,
+                'reward_paid' => $reward_paid,
+                'account' => $account,
+                'pv_amount' => $pv_amount,
+                'consignee' => $consignee,
+                'address' => $address,
+                'zipcode' => $zipcode,
+                'phone' => $cmobile,
+                'stock_given_amount' => $product['stock_given'],
+                'target_level' => $product['target_level']
+            );
+
+            $response['status'] = 1;
+            if($real_amount == 0)
             {
-                //插入订单
-                $pay_order_data = array(
-                    'add_time' => time(),
-                    'total_amount' => $total_amount,
-                    'real_amount' => $real_amount,
-                    'integral_amount' => 0,
-                    'integral_given_amount' => 0,
-                    'item_name' => $lang['level'][$level_id].'注册',
-                    'recommend' => $recommend,
-                    'recommend_id' => $recommend_info['id'],
-                    'payment_id' => 1,
-                    'payment_name' => '微信支付',
-                    'payment_code' => 'Wechat',
-                    'type' => 1,
-                    'balance_paid' => $balance_paid,
-                    'reward_paid' => $reward_paid,
-                    'account' => $account
-                );
+                $response['status'] = 3;
+                $pay_order_data['status'] = 3;
+                $pay_order_data['pay_time'] = time();
+            }
 
-                $response['status'] = 1;
-                if($real_amount == 0)
-                {
-                    $response['status'] = 3;
-                    $pay_order_data['status'] = 3;
-                    $pay_order_data['pay_time'] = time();
-                }
-
-                $pay_order_sn = '';
-                do
-                {
-                    $pay_order_sn = time().rand(1000, 9999);
-                    $check_pay_order_sn = 'select `order_sn` from '.$db->table('pay_order').' where `order_sn`=\''.$pay_order_sn.'\'';
-                } while($db->fetchOne($check_pay_order_sn));
-
+            $pay_order_sn = '';
+            $flag = false;
+            $cnt = 10; // 重试次数
+            do
+            {
+                $pay_order_sn = date('YmdHis').rand(1000, 9999);
                 $pay_order_data['order_sn'] = $pay_order_sn;
+                $flag = $db->autoInsert('order', [$pay_order_data]);
+            } while(!$flag && $cnt--);
 
-                if($db->autoInsert('pay_order', array($pay_order_data)))
+            if($flag)
+            {
+                if($balance_paid || $reward_paid)
                 {
-                    if($balance_paid || $reward_paid)
-                    {
-                        member_account_change($_SESSION['account'], -1*$balance_paid, -1*$reward_paid, 0, 0, 0, 0, $_SESSION['account'], 2, $pay_order_sn);
-                    }
-                    //根据订单状态判断是否需要发起支付
-                    if($response['status'] == 3)
-                    {
-                        //解冻会员
-                        $level_expired = $member_info['level_expired'] + 365*24*3600;
-                        $db->autoUpdate('member', array('status'=>2, 'level_expired'=>$level_expired), '`account`=\''.$account.'\'');
-                        //结算
-                        settle($recommend_info['recommend_path'].$register_id.',', $total_amount, $pay_order_sn);
-                    } else {
-                        $res = create_prepay($config['appid'], $config['mch_id'], $config['mch_key'], $_SESSION['openid'], $real_amount, $config['site_name'], $pay_order_sn, $pay_order_sn);
-                        $res = simplexml_load_string($res);
-
-                        if($res->prepay_id)
-                        {
-                            $response['error'] = 0;
-                        } else {
-                            $response['msg'] = $res->return_code.','.$res->return_msg;
-                        }
-
-                        $nonce_str = get_nonce_str();
-                        $pay_params = array();
-                        $pay_params['nonce_str'] = $nonce_str;
-                        $time_stamp = time();
-
-                        //最后参与签名的参数有appId, timeStamp, nonceStr, package, signType。
-                        $sign = 'appId='.$config['appid'].'&nonceStr='.$nonce_str.'&package=prepay_id='.$res->prepay_id.'&signType=MD5&timeStamp='.$time_stamp.'&key='.$config['mch_key'];
-                        $sign = md5($sign);
-                        $sign = strtoupper($sign);
-                        $pay_params['timestamp'] = $time_stamp;
-                        $pay_params['sign'] = $sign;
-                        $pay_params['prepay_id'] = "".$res->prepay_id;
-                        $response['pay_params'] = $pay_params;
-                    }
-
-                    $db->commit();
-                    $response['error'] = 0;
-                    $response['msg'] = '会员注册成功!<br/>会员等级:'.$lang['level'][$level_id].'<br/>订单编号:'.$pay_order_sn;
-                } else {
-                    $response['msg'] = '提交订单失败';
+                    member_account_change($_SESSION['account'], -1*$balance_paid, -1*$reward_paid, 0, 0, 0, 0, $_SESSION['account'], 2, $pay_order_sn);
                 }
+
+                //插入订单详情
+                $order_detail = [
+                    [
+                        'order_sn' => $pay_order_sn,
+                        'product_sn' => $product['product_sn'],
+                        'product_id' => $product['id'],
+                        'name' => $product['name'],
+                        'img' => $product['img'],
+                        'price' => $product['price'],
+                        'pv' => $product['pv'],
+                        'integral' => 0,
+                        'integral_given' => 0,
+                        'number' => 1,
+                        'stock_given' => $product['stock_given'],
+                        'target_level' => $product['target_level']
+                    ]
+                ];
+                $db->autoInsert('order_detail', $order_detail);
+                //根据订单状态判断是否需要发起支付
+                if($response['status'] == 3)
+                {
+                    //订单已支付
+                    //结算
+                    settle($pay_order_sn);
+                } else {
+                    $_SESSION['order_sn'] = $pay_order_sn;
+                }
+
+                $db->commit();
+                $response['error'] = 0;
+                $response['msg'] = '会员注册成功!<br/>报单等级:'.$lang['level'][$pay_order_data['target_level']].'<br/>订单编号:'.$pay_order_sn.'<br/>请尽快支付订单以生效.';
             } else {
-                $db->rollback();
-                $response['msg'] = '更新会员信息失败';
+                $response['msg'] = '提交订单失败';
             }
         } else {
             $db->rollback();
@@ -273,5 +249,9 @@ if('submit_order' == $opera)
     exit;
 }
 
-assign('level_fee', json_encode($level_fee));
+//只有游客能注册
+if($member_info['level_id'] > 1) {
+    redirect('index.php');
+}
+
 $smarty->display('levelup.phtml');

@@ -13,10 +13,22 @@ $opera = check_action($operation, getPOST('opera'));
 //支付方式变更时生成支付代码
 if('wechat' == $opera)
 {
-    $mch_id = '1281515101';
-    $mch_key = 'noihsilxueevoliiodosemdluowmarri';
-
     $response = array('error'=>1, 'msg'=>'');
+
+    $get_payment = 'select * from '.$db->table('payment').' where `plugins`=\'Wechat\' and `status`=1';
+    $payment = $db->fetchRow($get_payment);
+
+    if(empty($payment)) {
+        $response['msg'] = '尚未开通微信支付';
+
+        return json_encode($response);
+    }
+
+    $payment['configure'] = unserialize($payment['configure']);
+    $mch_id = $payment['configure']['mch_id'];
+    $mch_key = $payment['configure']['mch_key'];
+    $mch_app_id = $payment['configure']['appid'];
+    $log->record_array($payment['configure']);
 
     $_SESSION['payment'] = 'wechat';
 
@@ -26,7 +38,7 @@ if('wechat' == $opera)
 
     $order = $db->fetchRow($get_order_info);
 
-    $total_fee = $order['amount'];
+    $total_fee = $order['total_amount'];
     $detail = '订单编号:'.$order_sn;
 
     $response['price'] = '￥'.sprintf('%.2f', $total_fee);
@@ -35,7 +47,7 @@ if('wechat' == $opera)
     $body = $detail;
     $out_trade_no = $order_sn;
 
-    $res = create_prepay($config['appid'], $mch_id, $mch_key, $_SESSION['openid'], $total_fee, $body, $detail, $out_trade_no);
+    $res = create_prepay($mch_app_id, $mch_id, $mch_key, $_SESSION['openid'], $total_fee, $body, $detail, $out_trade_no);
 
     $res = simplexml_load_string($res);
 
@@ -69,10 +81,40 @@ $get_order_info = 'select * from '.$db->table('order').' where `order_sn`=\''.$o
 $order = $db->fetchRow($get_order_info);
 assign('order', $order);
 
-$get_order_detail = 'select od.`product_sn`,od.`price`,od.`integral`,od.`number`,p.`img`,p.`id`,p.`name`,od.`integral_given` from '.
-    $db->table('order_detail'). ' as od join '.$db->table('product').' as p using(`product_sn`) '.
-    'where `order_sn`=\''.$order_sn.'\'';
+$get_order_detail = 'select `name`,`number` from '.$db->table('order_detail'). 'where `order_sn`=\''.$order_sn.'\'';
 $order_detail = $db->fetchAll($get_order_detail);
 assign('order_detail', $order_detail);
+
+//获取支付插件
+$get_payment_list = 'select * from ' . $db->table('payment') . ' where `status`=1';
+$payment_list = $db->fetchAll($get_payment_list);
+$payment_list_json = array();
+if($payment_list)
+{
+    foreach ($payment_list as $key => $payment) {
+        switch ($payment['plugins']) {
+            case 'Bank':
+                $payment['detail'] = '';
+
+                $plugin_path = ROOT_PATH . '/center/plugins/payment/';
+
+                include $plugin_path . $payment['plugins'] . '.class.php';
+                $configure = $plugins[0]['configure'];
+                $plugin_configure = unserialize($payment['configure']);
+                foreach ($configure as $item) {
+                    $payment['detail'] .= '<label><span>' . $item['name'] . '：</span>' . $plugin_configure[$item['key']] . '</label>';
+                }
+                break;
+            default:
+                $payment['detail'] = '';
+        }
+
+        $payment_list[$key] = $payment;
+        unset($payment['configure']);
+        $payment_list_json[$payment['id']] = $payment;
+    }
+}
+assign('payment_list', $payment_list);
+assign('payment_list_json', json_encode($payment_list_json));
 
 $smarty->display('topay.phtml');

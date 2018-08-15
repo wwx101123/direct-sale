@@ -147,6 +147,10 @@ if('login' == $opera)
         $password = md5($password.PASSWORD_END);
     }
 
+    if(empty($_SESSION['openid'])) {
+        $response['msg'] .= '-请先通过微信授权登录，再进行绑定操作<br/>';
+    }
+
     if($response['msg'] == '')
     {
         $get_user_info = 'select `password`,`account`,`wx_openid`,`mobile` from '.$db->table('member').' where '.$column.'=\''.$account.'\'';
@@ -164,7 +168,7 @@ if('login' == $opera)
             $bind = true;
         }
 
-        if($bind && $member_info['mobile'] == '' && $user_info['wx_openid'] == '' && $user_info['password'] == $password)
+        if($bind && empty($user_info['wx_openid']) && $user_info['password'] == $password)
         {
             $_SESSION['account'] = $user_info['account'];
             $_SESSION['openid'] = $user_info['wx_openid'];
@@ -184,6 +188,9 @@ if('login' == $opera)
             $db->autoUpdate('bank', array('account'=>$new_account), '`account`\''.$old_account.'\'');
             $db->autoUpdate('account', array('account'=>$new_account), '`account`\''.$old_account.'\'');
             $db->autoUpdate('reward', array('account'=>$new_account), '`account`\''.$old_account.'\'');
+
+            $db->autoUpdate('member', ['status' => 1, 'wx_openid' => ''], '`account`=\''.$old_account.'\'');
+            $_SESSION['account'] = $new_account;
 
             if(isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'] ,'login.php') === false)
             {

@@ -31,8 +31,9 @@
                     <label>奖金类型：</label>
                     <select name="type">
                         <option value="0">全部</option>
-                        <option value="1" {if $status eq 1}selected="selected"{/if}>推荐奖</option>
-                        <option value="2" {if $status eq 2}selected="selected"{/if}>管理奖</option>
+                        {foreach from=$lang.reward_type item=reward_type_name key=reward_type_id}
+                        <option value="{$reward_type_id}" {if $type eq $reward_type_id}selected="selected"{/if}>{$reward_type_name}</option>
+                        {/foreach}
                     </select>
                     <label>状态：</label>
                     <select name="status">
@@ -67,6 +68,7 @@
                 <th><a href="javascript:select_all();">全选</a>/<a href="javascript:deselect();">反选</a></th>
                 <th>会员账号</th>
                 <th>奖金</th>
+                <th>奖项</th>
                 <th>奖金状态</th>
                 <th>结算时间</th>
                 <th>发放时间</th>
@@ -79,6 +81,7 @@
                 <td><input type="checkbox" name="id[]" value="{$reward.id}"/></td>
                 <td>{$reward.account}</td>
                 <td>{$reward.reward}</td>
+                <td>{$lang.reward[$reward.type]}</td>
                 <td>{if $reward.status eq 1}待发放{else}已发放{/if}</td>
                 <td>{date('Y-m-d H:i:s', $reward.add_time)}</td>
                 <td>{if $reward.solve_time}{date('Y-m-d H:i:s', $reward.solve_time)}{else}未发放{/if}</td>
@@ -95,15 +98,15 @@
                 <td></td>
             </tr>
             <tr>
-                <td colspan="7">
+                <td colspan="8">
                     <div class="pull-right">
                         <div class="pages">
                             <span>共有{$total}条，{$totalPage}页，每页显示：{$count}条</span>
                             {if $go_first}
-                            <a href="?page=1&account={$account}&count={$count}&status={$status}">首页</a>
+                            <a href="?page=1&account={$account}&count={$count}&status={$status}&type={$type}&begin_time={$begin_time}&end_time={$end_time}">首页</a>
                             {/if}
                             {if $has_prev}
-                            <a href="?page={$page - 1}&account={$account}&count={$count}&status={$status}">上一页</a>
+                            <a href="?page={$page - 1}&account={$account}&count={$count}&status={$status}&type={$type}&begin_time={$begin_time}&end_time={$end_time}">上一页</a>
                             {/if}
                             {if $has_many_prev}
                             ...
@@ -112,17 +115,17 @@
                             {if $pageNum eq $page}
                             <b>{$page}</b>
                             {else}
-                            <a href="?page={$pageNum}&account={$account}&count={$count}&status={$status}">{$pageNum}</a>
+                            <a href="?page={$pageNum}&account={$account}&count={$count}&status={$status}&type={$type}&begin_time={$begin_time}&end_time={$end_time}">{$pageNum}</a>
                             {/if}
                             {/foreach}
                             {if $has_many_next}
                             ...
                             {/if}
                             {if $go_last}
-                            <a href="?page={$totalPage}&account={$account}&count={$count}&status={$status}">末页</a>
+                            <a href="?page={$totalPage}&account={$account}&count={$count}&status={$status}&type={$type}&begin_time={$begin_time}&end_time={$end_time}">末页</a>
                             {/if}
                             {if $has_next}
-                            <a href="?page={$page + 1}&account={$account}&count={$count}&status={$status}">下一页</a>
+                            <a href="?page={$page + 1}&account={$account}&count={$count}&status={$status}&type={$type}&begin_time={$begin_time}&end_time={$end_time}">下一页</a>
                             {/if}
                         </div>
                     </div>
@@ -132,6 +135,7 @@
                 <td></td>
                 <td>奖金总计:</td>
                 <td>{sprintf("%.2f", $recommend_reward+$manage_reward)}</td>
+                <td></td>
                 <td></td>
                 <td></td>
                 <td></td>

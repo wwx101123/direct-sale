@@ -40,11 +40,6 @@
     <div class="colorBar shadow_top"></div>
     <!-- 订单产品详情 -->
     <section class="orders">
-        <div class="w_panel border_lr order_main border_top rarrow">
-            <h4 class="h_title">
-                <i class="icon">&#xe605;</i>&nbsp;{$order.order_sn}
-            </h4>
-        </div>
         <div class="border_lr trans_div order_action_block border_bottom">
             <div>
                 <div>
@@ -73,9 +68,11 @@
                     <span class="t_span">产品总额：</span>
                     <span class="right_action"><em class="red_money">￥{$order.product_amount}</em></span>
                     <br/>
+                    {*
                     <span class="t_span">运费：</span>
                     <span class="right_action"><em class="red_money">￥{$order.delivery_fee}</em></span>
                     <br/>
+                    *}
                     {if $order.integral_paid gt 0}
                     <span class="t_span">积分抵用：</span>
                     <span class="right_action"><em style="color: #787878;">- ￥{$order.integral_paid}</em></span>
@@ -87,7 +84,7 @@
                     <br/>
                     {/if}
                     {if $order.balance_paid gt 0}
-                    <span class="t_span">余额抵用：</span>
+                    <span class="t_span">预付款抵用：</span>
                     <span class="right_action"><em style="color: #787878;">- ￥{$order.balance_paid}</em></span>
                     <br/>
                     {/if}
@@ -135,24 +132,7 @@
 
     function pay_now_handler(response) {
         if(response.error == 0) {
-            wx.chooseWXPay({
-                timestamp: response.timestamp,
-                nonceStr: response.nonce_str,
-                package: 'prepay_id='+response.prepay_id,
-                signType: 'MD5',
-                paySign: response.sign,
-                success: function (res) {
-                    // 支付成功后的回调函数
-                    if(res.errMsg == "chooseWXPay:ok") {
-                        show_message_dialog("支付成功");
-                        $("#dialog_close_btn,#dialog_close").click(function(){
-                            window.location.reload();
-                        });
-                    } else {
-                        show_message_dialog(res.errMsg+":支付失败");
-                    }
-                }
-            });
+            window.location.href = 'topay.php';
         } else {
             hide_mask();
             show_message_dialog(response.msg);

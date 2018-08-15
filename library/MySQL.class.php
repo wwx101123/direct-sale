@@ -12,7 +12,7 @@ class MySQL
     protected $password;
     protected $dbName;
     protected $conn;
-    protected $charset = 'utf8';
+    protected $charset = 'utf8mb4';
     protected $error;
     protected $errno;
     protected $perfix;
@@ -27,7 +27,7 @@ class MySQL
      * @return void
      * @author winsen
      */
-    public function __construct($host, $username, $password, $dbName, $perfix, $charset = 'utf8') 
+    public function __construct($host, $username, $password, $dbName, $perfix, $charset = 'utf8mb4')
     {
         $this->host = $host;
         $this->username = $username;

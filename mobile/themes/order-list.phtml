@@ -126,28 +126,7 @@
 
     function pay_now_handler(response) {
         if(response.error == 0) {
-            wx.chooseWXPay({
-                timestamp: response.timestamp,
-                nonceStr: response.nonce_str,
-                package: 'prepay_id='+response.prepay_id,
-                signType: 'MD5',
-                paySign: response.sign,
-                success: function (res) {
-                    // 支付成功后的回调函数
-                    hide_mask();
-                    if(res.errMsg == "chooseWXPay:ok") {
-                        show_message_dialog("支付成功");
-                        $("#dialog_close_btn,#dialog_close").click(function(){
-                            window.location.reload();
-                        });
-                    } else {
-                        show_message_dialog(res.errMsg+":支付失败");
-                        $("#dialog_close_btn,#dialog_close").click(function(){
-                            close_message_dialog();
-                        });
-                    }
-                }
-            });
+            window.location.href = 'topay.php';
         } else {
             hide_mask();
             show_message_dialog(response.msg);
@@ -231,3 +210,4 @@
     {/if}
 </script>
 {/block}
+{block name="footer"}{/block}

@@ -7,6 +7,8 @@
  * Time: 下午10:04
  */
 include 'library/init.inc.php';
+global $config, $db, $log, $lang, $config, $smarty;
+
 back_base_init();
 
 $template = 'reward/';
@@ -106,47 +108,44 @@ if($opera == 'export')
         exit;
     }
 
-    $loader->includeClass('PHPExcel');
+    $export_data = [
+        [
+            '会员编号',
+            '奖金',
+            '奖金状态',
+            '结算时间',
+            '发放时间',
+            '备注'
+        ]
+    ];
 
-    $excel = new PHPExcel();
+    if($reward_list) {
+        while ($reward = array_shift($reward_list)) {
+            $row_data = [
+                $reward['account'],
+                $reward['reward'],
+                $reward['status'] ? '已发放' : '待发放',
+                date('Y-m-d H:i:s', $reward['add_time']),
+                $reward['solve_time'] ? date('Y-m-d H:i:s', $reward['solve_time']) : '未发放',
+                $reward['remark']
+            ];
 
-    $excel->getActiveSheet(0)->getColumnDimension('B')->setWidth(20);
-    $excel->getActiveSheet(0)->getColumnDimension('D')->setWidth(20);
-    $excel->getActiveSheet(0)->getColumnDimension('E')->setWidth(20);
-    $excel->getActiveSheet(0)->getColumnDimension('F')->setWidth(20);
-
-    $sheet = $excel->getActiveSheet(0);
-    $row = 1;
-    //第一行
-    $sheet->setCellValue('A'.$row, '会员编号');
-    $sheet->setCellValue('B'.$row, '奖金');
-    $sheet->setCellValue('C'.$row, '奖金状态');
-    $sheet->setCellValue('D'.$row, '结算时间');
-    $sheet->setCellValue('E'.$row, '发放时间');
-    $sheet->setCellValue('F'.$row, '备注');
-    $row++;
-
-    foreach($reward_list as $order)
-    {
-        //第二行
-        $sheet->setCellValueExplicit('A'.$row, $order['account']);
-        $sheet->getStyle('B'.$row)->getNumberFormat()->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
-        $sheet->setCellValue('B'.$row, sprintf('%.2f', $order['reward']));
-        $sheet->setCellValue('C'.$row, $order['status'] == 0 ? '待发放' : '已发放');
-        $sheet->setCellValue('D'.$row, date('Y-m-d H:i:s', $order['add_time']));
-        $sheet->setCellValue('E'.$row, $order['solve_time'] != '' ? date('Y-m-d H:i:s', $order['solve_time']) : '未发放');
-        $sheet->setCellValue('F'.$row, $order['remark']);
-        $row++;
+            array_push($export_data, $row_data);
+        }
     }
 
     //输出
     $filename = date('YmdHis').'奖金列表';
-    header('Content-Type: application/vnd.ms-excel');
-    header('Content-Disposition: attachment;filename="'.$filename.'.xls"');
+    header('Content-Type: text/csv');
+    header('Content-Disposition: attachment;filename="'.$filename.'.csv"');
     header('Cache-Control: max-age=0');
 
-    $objWriter = PHPExcel_IOFactory::createWriter($excel, 'Excel5');
-    $objWriter->save('php://output');
+    $f = fopen('php://output', 'w');
+    fwrite($f, "\xEF\xBB\xBF");
+    while($row = array_shift($export_data)) {
+        fputcsv($f, $row);
+    }
+    fclose($f);
     exit;
 }
 

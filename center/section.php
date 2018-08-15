@@ -47,15 +47,15 @@ if( 'add' == $opera ) {
     }
 
     if('' == $keywords) {
-        show_system_message('出于SEO考虑，请务必填写关键词', array());
-        exit;
+//        show_system_message('出于SEO考虑，请务必填写关键词', array());
+//        exit;
     } else {
         $keywords = $db->escape(htmlspecialchars($keywords));
     }
 
     if('' == $description) {
-        show_system_message('出于SEO考虑，请务必填写简要介绍', array());
-        exit;
+//        show_system_message('出于SEO考虑，请务必填写简要介绍', array());
+//        exit;
     } else {
         $description = $db->escape(htmlspecialchars($description));
     }
@@ -159,15 +159,15 @@ if( 'edit' == $opera ) {
     }
 
     if('' == $keywords) {
-        show_system_message('出于SEO考虑，请务必填写关键词', array());
-        exit;
+//        show_system_message('出于SEO考虑，请务必填写关键词', array());
+//        exit;
     } else {
         $keywords = $db->escape(htmlspecialchars($keywords));
     }
 
     if('' == $description) {
-        show_system_message('出于SEO考虑，请务必填写简要介绍', array());
-        exit;
+//        show_system_message('出于SEO考虑，请务必填写简要介绍', array());
+//        exit;
     } else {
         $description = $db->escape(htmlspecialchars($description));
     }
@@ -195,9 +195,10 @@ if( 'edit' == $opera ) {
         if( $parent_path = $db->fetchRow($get_parent_path) ) {
             $path = $parent_path['path'].','.$id.',';
         }
+    } else {
+        $parent_id = 0;
+        $path = $id.',';
     }
-
-
 
     $data = array(
         'section_name' => $name,
@@ -210,11 +211,13 @@ if( 'edit' == $opera ) {
         'original' => $original,
     );
 
+    /*
     foreach( $data as $key => $value ) {
         if( $value == '' ) {
             unset($data[$key]);
         }
     }
+    */
 
     $where = 'id = '.$id;
     $order = '';
@@ -246,18 +249,18 @@ if( 'view' == $act ) {
     $get_section_list = 'select * from '.$db->table('section').' where 1  order by `order_view` ASC,`path` ASC';
     $section_list = $db->fetchAll($get_section_list);
 
-    foreach($section_list as $key => $section) {
-        $count = count(explode(',', $section['path']));
-        if($count > 1)
-        {
-            $temp = '|--'.$section['section_name'];
-            while($count--)
-            {
-                $temp = '&nbsp;&nbsp;'.$temp;
-            }
+    if($section_list) {
+        foreach ($section_list as $key => $section) {
+            $count = count(explode(',', $section['path']));
+            if ($count > 1) {
+                $temp = '|--' . $section['section_name'];
+                while ($count--) {
+                    $temp = '&nbsp;&nbsp;' . $temp;
+                }
 
-            $section['section_name'] = $temp;
-            $section_list[$key] = $section;
+                $section['section_name'] = $temp;
+                $section_list[$key] = $section;
+            }
         }
     }
 
@@ -275,18 +278,18 @@ if( 'add' == $act ) {
     $get_section_list = 'select * from '.$db->table('section').' where 1 order by `path` ASC';
     $section_list = $db->fetchAll($get_section_list);
 
-    foreach($section_list as $key => $section) {
-        $count = count(explode(',', $section['path']));
-        if($count > 1)
-        {
-            $temp = '|--'.$section['section_name'];
-            while($count--)
-            {
-                $temp = '&nbsp;&nbsp;'.$temp;
-            }
+    if($section_list) {
+        foreach ($section_list as $key => $section) {
+            $count = count(explode(',', $section['path']));
+            if ($count > 1) {
+                $temp = '|--' . $section['section_name'];
+                while ($count--) {
+                    $temp = '&nbsp;&nbsp;' . $temp;
+                }
 
-            $section['section_name'] = $temp;
-            $section_list[$key] = $section;
+                $section['section_name'] = $temp;
+                $section_list[$key] = $section;
+            }
         }
     }
 
@@ -329,18 +332,18 @@ if( 'edit' == $act ) {
     $get_section_list = 'select * from '.$db->table('section').' where `id` <> '.$id.'  order by `path` ASC';
     $section_list = $db->fetchAll($get_section_list);
 
-    foreach($section_list as $key => $section) {
-        $count = count(explode(',', $section['path']));
-        if($count > 1)
-        {
-            $temp = '|--'.$section['section_name'];
-            while($count--)
-            {
-                $temp = '&nbsp;&nbsp;'.$temp;
-            }
+    if($section_list) {
+        foreach ($section_list as $key => $section) {
+            $count = count(explode(',', $section['path']));
+            if ($count > 1) {
+                $temp = '|--' . $section['section_name'];
+                while ($count--) {
+                    $temp = '&nbsp;&nbsp;' . $temp;
+                }
 
-            $section['section_name'] = $temp;
-            $section_list[$key] = $section;
+                $section['section_name'] = $temp;
+                $section_list[$key] = $section;
+            }
         }
     }
 

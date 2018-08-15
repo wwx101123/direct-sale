@@ -10,17 +10,6 @@ include 'library/init.inc.php';
 $operation = 'checkout';
 $opera = check_action($operation, getPOST('opera'));
 
-//检查如果没有设置密码先设置密码
-//$get_password = 'select `password` from '.$db->table('member').' where `account`=\''.$_SESSION['account'].'\'';
-
-//$user_password = $db->fetchOne($get_password);
-
-//if($user_password == '')
-//{
-//    header('Location: password.php');
-//    exit;
-//}
-
 assign('user_info', $member_info);
 
 if('checkout' == $opera)
@@ -34,8 +23,9 @@ if('checkout' == $opera)
     $use_reward = getPOST('use_reward');
     $use_reward = $use_reward == 'true' ? true : false;
     $use_balance = getPOST('use_balance') == 'true' ? true : false;
-    $payment = trim(getPOST('payment'));
+    $payment_id = intval(getPOST('payment_id'));
 
+    $payment = null;
     $target_pv = 0;
     $total_pv = 0;
     $total_integral = 0;
@@ -95,66 +85,25 @@ if('checkout' == $opera)
 
                 $price_list_json = array();
                 $price = $p['price'];
-                if($price_list)
-                {
-                    foreach($price_list as $pc)
-                    {
-                        if($pc['level_id'] >= $member_info['level_id'])
-                        {
-                            $price_list_json[$pc['level_id']] = $pc;
-                        }
 
-                        if($pc['level_id'] == $member_info['level_id'])
-                        {
-                            $price = $pc['price'];
-                        }
-                    }
-                }
-
-                $_number = $number;
                 $total_pv += $number * $product['pv'];
+                $product['number'] = $number;
 
-                if($member_info['level_id'] == 1)
-                {
-                    $_number--;
-                    $product['price'] = $price_list_json[1]['price'];
-                    $product['number'] = $price_list_json[1]['min_number'];
-                    $amount += $product['number']*$product['price'];
+                $amount += $product['number']*$product['price'];
 
-                    $cart_list[] = $product;
-                }
-
-                foreach($price_list_json as $level_id=>$pc)
-                {
-                    $greater = $level_id+1;
-
-                    if(isset($price_list_json[$greater]) && $_number >= $price_list_json[$greater]['min_number'])
-                    {
-                        $log->record('ignore level '.$level_id);
-                        continue;
-                    } else {
-                        $log->record('current level '.$level_id);
-                        $log->record_array($pc);
-                        $product['number'] = $_number;
-                        $_number = 0;
-                    }
-
-                    if($level_id == 6 && $product['number'] >= $pc['min_number'])
-                    {
-                        $level_up = 1;
-                    }
-
-                    $product['price'] = $pc['price'];
-                    $amount += $product['number'] * $product['price'];
-
-                    $cart_list[] = $product;
-
-                    if($_number == 0)
-                    {
-                        break;
-                    }
-                }
+                $cart_list[] = $product;
             }
+        }
+    }
+
+    if($payment_id <= 0) {
+        $response['msg'] .= '-请选择支付方式<br/>';
+    } else {
+        $get_payment = 'select `id`,`plugins`,`name` from '.$db->table('payment').' where `status`=1 and `id`='.$payment_id;
+        $payment = $db->fetchRow($get_payment);
+
+        if(empty($payment)) {
+            $response['msg'] .= '-请选择有效的支付方式<br/>';
         }
     }
 
@@ -211,7 +160,6 @@ if('checkout' == $opera)
             'integral_amount' => $total_integral,
             'integral_given_amount' => $total_integral_given,
             'pv_amount' => $total_pv,
-            'balance_paid' => $amount,
             'consignee' => $consignee,
             'address' => $address,
             'phone' => $cmobile,
@@ -220,9 +168,9 @@ if('checkout' == $opera)
             'account' => $_SESSION['account'],
             'status' => $status,
             'type' => 2, //重消订单
-            'payment_id' => 2,
-            'payment_name' => '微信支付',
-            'payment_code' => 'Wechat',
+            'payment_id' => $payment['id'],
+            'payment_name' => $payment['name'],
+            'payment_code' => $payment['plugins'],
             'reward_paid' => $reward_paid,
             'balance_paid' => $balance_paid
         );
@@ -241,155 +189,13 @@ if('checkout' == $opera)
             if($status == 3) {
                 //3、结算、累计业绩
                 //依据订单产品进行结算
-                $path = $member_info['recommend_path'];
-                $total_number = 0;
-                foreach ($cart_list as $c) {
-                    $total_number += $c['number'];
-                    add_achievement($member_info['account'], $amount, 0, 0, $total_pv, $c['number'], $level_up);
-                    $get_price_list = 'select `price`,`level_id`,`min_number` from ' . $db->table('price_list') . ' where `product_sn`=\'' . $c['product_sn'] . '\' order by `level_id`';
 
-                    $price_list = $db->fetchAll($get_price_list);
-
-                    $price_list_json = array();
-
-                    if ($price_list) {
-                        foreach ($price_list as $pc) {
-                            $price_list_json[$pc['level_id']] = $pc;
-                        }
-                    }
-
-                    $get_member_list = 'select `account`,`level_id` from ' . $db->table('member') . ' where `id` in (' . $path . '0) order by find_in_set(`id`,\'' . $path . '0\')';
-                    $level_equal = 1;
-                    $current_level = $member_info['level_id'];
-                    $refund = 0;
-                    $group_reward = 1;
-                    $add_achievement = 1;
-                    $member_list = $db->fetchAll($get_member_list);
-
-                    array_pop($member_list);
-                    while ($node = array_pop($member_list)) {
-                        if ($add_achievement) {
-                            add_achievement($node['account'], $amount, 0, 0, $total_pv, $c['number']);
-                            if ($node['level_id'] == 6) {
-                                $add_achievement = 0;
-                            }
-                        }
-                        //级差奖、平级奖
-                        if ($current_level < $node['level_id']) {
-                            $parent_price = $price_list_json[$node['level_id']]['price'];
-                            $reward = $c['price'] - $parent_price;
-
-                            if ($reward > 0) {
-                                add_reward($node['account'], $reward * $c['number'] - $refund, 0, $order_sn, '级差奖');
-                                member_account_change($node['account'], 0, 0, $reward * $c['number'] - $refund, 0, 0, 0, $_SESSION['account'], 3, $order_sn . '奖金');
-                                $c['price'] = $parent_price;
-                                $refund = 0;
-                            }
-
-                            if ($node['level_id'] == 6) {
-                                $level_equal = 3;
-                            } else {
-                                $level_equal = 1;
-                            }
-                            $current_level = $node['level_id'];
-                        } else if ($current_level == $node['level_id'] && $level_equal--) {
-                            $log->record('平级奖' . $current_level);
-                            if ($current_level == 6) {
-                                $_refund = $config['level_' . $current_level . (4 - $level_equal)] * $c['number'];
-
-                                if ($_refund > 0) {
-                                    add_reward($node['account'], $_refund, 0, $order_sn, '平级奖');
-                                    member_account_change($node['account'], 0, 0, $_refund, 0, 0, 0, $_SESSION['account'], 3, $order_sn . '奖金');
-                                }
-                            } else if (isset($config['level_' . $current_level])) {
-                                $refund = $config['level_' . $current_level] * $c['number'];
-
-                                if ($refund > 0) {
-                                    add_reward($node['account'], $refund, 0, $order_sn, '平级奖');
-                                    member_account_change($node['account'], 0, 0, $refund, 0, 0, 0, $_SESSION['account'], 3, $order_sn . '奖金');
-                                }
-                            }
-                        }
-                    }
-
-                    //升级判断
-                    if ($member_info['level_id'] < 5 && $c['number'] == $price_list_json[$member_info['level_id'] + 1]['min_number']) {
-                        $member_data = array(
-                            'level_id' => ($member_info['level_id'] + 1)
-                        );
-
-                        $can_level_up = 1;
-
-                        if ($member_data['level_id'] == 5) {
-                            $check_group = 'select `account` from ' . $db->table('member') . ' where `recommend_id`=' . $member_info['id'] . ' and `level_id`=4';
-
-                            if ($db->fetchOne($check_group)) {
-                                $can_level_up = 1;
-                            } else {
-                                $can_level_up = 0;
-                            }
-                        }
-
-                        if ($can_level_up && $db->autoUpdate('member', $member_data, '`account`=\'' . $_SESSION['account'] . '\'')) {
-                            $member_info['level_id'] = $member_data['level_id'];
-                        }
-                    }
-                }
-
-                //皇冠团队奖
-                $get_member_list = 'select `account` from ' . $db->table('member') . ' where `level_id`=6 and `id` in (' . $path . '0) order by find_in_set(`id`,\'' . $path . '0\')';
-                $member_list = $db->fetchAll($get_member_list);
-
-                while ($account = array_pop($member_list)) {
-                    $account = $account['account'];
-                    $check_total_number = 'select sum(`number`) from ' . $db->table('achievement') . ' where `account`=\'' . $account . '\'';
-                    $_total_number = $db->fetchOne($check_total_number);
-
-                    if ($_total_number > 5000) {
-                        if ($_total_number - $total_number > 5000) {
-                            $reward = $total_number * 10;
-                            add_reward($account, $reward, 0, '', '团队奖');
-                        } else {
-                            $total_number = $_total_number - 5000 + $total_number;
-                            $reward = $total_number * 10;
-                            add_reward($account, $reward, 0, '', '团队奖');
-                        }
-                    }
-                }
                 //结算结束
                 $response['error'] = 0;
             } else {
-                $mch_id = $config['mch_id'];
-                $mch_key = $config['mch_key'];
-                $total_fee = $real_amount;
-                $body = $config['site_name'].'订单收款';
-                $out_trade_no = $order_sn;
-                $detail = '订单编号:'.$order_sn;
-
-                $res = create_prepay($config['appid'], $mch_id, $mch_key, $_SESSION['openid'], $total_fee, $body, $detail, $out_trade_no);
-
-                $res = simplexml_load_string($res);
-
-                if($res->prepay_id)
-                {
-                    $response['error'] = 0;
-                } else {
-                    $response['msg'] = $res->return_code.','.$res->return_msg;
-                }
-
-                $nonce_str = get_nonce_str();
-                $response['pay_params']['nonce_str'] = $nonce_str;
-                $time_stamp = time();
-
-                //最后参与签名的参数有appId, timeStamp, nonceStr, package, signType。
-                $sign = 'appId='.$config['appid'].'&nonceStr='.$nonce_str.'&package=prepay_id='.$res->prepay_id.'&signType=MD5&timeStamp='.$time_stamp.'&key='.$mch_key;
-                $sign = md5($sign);
-                $sign = strtoupper($sign);
-                $response['pay_params']['timestamp'] = $time_stamp;
-                $response['pay_params']['sign'] = $sign;
-                $response['pay_params']['prepay_id'] = "".$res->prepay_id;
+                $_SESSION['order_sn'] = $order_sn;
             }
-
+            $response['order_sn'] = $order_sn;
             $response['content'] = <<<HTML
 订单提交成功。<br/>
 订单编号:%s<br/>
@@ -438,4 +244,36 @@ assign('total_number', $total_number);
 
 //获取默认地址
 $get_address_info = '';
+
+//获取支付插件
+$get_payment_list = 'select * from ' . $db->table('payment') . ' where `status`=1';
+$payment_list = $db->fetchAll($get_payment_list);
+$payment_list_json = array();
+if($payment_list)
+{
+    foreach ($payment_list as $key => $payment) {
+        switch ($payment['plugins']) {
+            case 'Bank':
+                $payment['detail'] = '';
+
+                $plugin_path = ROOT_PATH . '/center/plugins/payment/';
+
+                include $plugin_path . $payment['plugins'] . '.class.php';
+                $configure = $plugins[0]['configure'];
+                $plugin_configure = unserialize($payment['configure']);
+                foreach ($configure as $item) {
+                    $payment['detail'] .= '<label><span>' . $item['name'] . '：</span>' . $plugin_configure[$item['key']] . '</label>';
+                }
+                break;
+            default:
+                $payment['detail'] = '';
+        }
+
+        $payment_list[$key] = $payment;
+        $payment_list_json[$payment['id']] = $payment;
+    }
+}
+assign('payment_list', $payment_list);
+assign('payment_list_json', json_encode($payment_list_json));
+
 $smarty->display("checkout.phtml");

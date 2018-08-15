@@ -114,7 +114,6 @@
         hide_mask();
         if(result.error == 0) {
             global_result = result;
-            //alert("timestamp="+result.timestamp+",nonceStr="+result.nonceStr+",prepay_id="+result.prepay_id+",sign="+result.sign);
             wx.chooseWXPay({
                 timestamp: global_result.timestamp,
                 nonceStr: global_result.nonce_str,
@@ -137,11 +136,11 @@
 
     {if is_weixin()}
         wx.config({
-                appId: '{$signPackage.appId}',
-                timestamp: {$signPackage.timestamp},
-                nonceStr: '{$signPackage.nonceStr}',
-                signature: '{$signPackage.signature}',
-                jsApiList: [
+            appId: '{$signPackage.appId}',
+            timestamp: {$signPackage.timestamp},
+            nonceStr: '{$signPackage.nonceStr}',
+            signature: '{$signPackage.signature}',
+            jsApiList: [
                 'chooseWXPay',
                 'closeWindow'
             ]

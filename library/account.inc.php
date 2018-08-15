@@ -4,6 +4,229 @@
  */
 
 /**
+ * 结算
+ * @param $order_sn
+ * @return void
+ */
+function settle($order_sn) {
+    global $db, $log, $config;
+
+    $increment = 100; // 新增业绩
+    $account = ''; // 新增用户账号
+    $order_sn = ''; // 订单编号
+
+    //获取下单用户信息
+    $member = DB::table('member')->where('account', $account)->first();
+    $recommend_path = explode(',', $member['recommend_path']);
+    array_pop($recommend_path);
+
+    //获取推荐线上所有用户(含自己)
+    $parents = DB::table('member')->whereExists(function($query) use ($recommend_path) {
+        $query->select('m.id')
+            ->from('member as m')
+            ->whereRaw('m.account = member.account')
+            ->whereIn('m.id', $recommend_path);
+    })->orderBy('recommend_path', 'desc');
+
+    //如推荐线上用户不存在当月业绩则创建
+    foreach($parents as $node) {
+        $achievement = DB::table('achievement')
+            ->select()
+            ->where('account', $node['account'])
+            ->where('monthly', date('Ym'))
+            ->first();
+
+        //如业绩不存在则新建
+        if (empty($achievement)) {
+            $achievement = [
+                'member_id' => $node['id'], // 会员ID
+                'monthly' => date('Ym'), // 年月
+                'account' => $node['account'], // 会员账号
+                'increment' => 0, // 当月新增业绩
+                'children' => $node['children'], // 直推结点数
+                'dividend_gold' => 0, // 分红达标点数
+                'sub_dividend_gold' => 0, // 推荐人当前市场已达到分红标准
+                'sub_increment' => 0, // 推荐人小市场业绩新增
+                'recommend_path' => $node['recommend_path'], // 推荐关系
+                'recommend_id' => $node['recommend_id'] // 直推人
+            ];
+
+            DB::insert($achievement);
+        }
+    }
+    //移除当前用户
+    array_shift($parents);
+
+    $layer = 0; // 当前代数
+    $reach_service_node = false; // 是否已到达服务点
+    $reward_list = [];
+    $member_reward_await = [];
+    while($node = array_shift($parents)) {
+        if(!isset($member_reward_await[$node['account']])) {
+            $member_reward_await[$node['account']] = 0;
+        }
+
+        $reward = 0;
+        $reward_type = 0;
+        $reward_rate = 0;
+
+        $layer++;
+        if(!$reach_service_node && $node['level_id'] == 5) {
+            //服务点业绩提成
+            $reward = round($increment * $this->server_reward_rate, 2);
+            $reward_type = 3; // 业绩提成
+            $reward_rate = $this->server_reward_rate;
+
+            $reach_service_node = true;
+        }
+
+        //金星、银星享受三代内推荐奖
+        $can_get_recommend_reward = $layer <= 3 && $node['level_id'] >= 3 && $node['level_id'] <= 4;
+        //铜星享受二代内推荐奖
+        $can_get_recommend_reward |= $layer <= 2 && $node['level_id'] == 2;
+        //普通会员享受一代推荐奖
+        $can_get_recommend_reward |= $layer == 1 && $node['level_id'] == 1;
+
+        if($can_get_recommend_reward) {
+            //推荐奖计算
+            $reward = round($increment * $this->recommend_reward_rate, 2);
+            $reward_type = 1; // 推荐奖
+            $reward_rate = $this->recommend_reward_rate;
+        }
+
+        //金星、银星享受三代内管理奖
+        $can_get_manager_reward = $layer <= 3 && $node['level_id'] >= 3 && $node['level_id'] <= 4;
+        //铜星享受二代内管理奖
+        $can_get_manager_reward |= $layer <= 2 && $node['level_id'] == 2;
+
+        if($can_get_manager_reward) {
+            //管理奖计算
+            $reward = round($increment * $this->manager_reward_rate, 2);
+            $reward_type = 2; // 管理奖
+            $reward_rate = $this->manager_reward_rate;
+        }
+
+        if($reward_type > 0) {
+            $member_reward_await[$node['account']] += $reward;
+
+            array_push($reward_list, [
+                'account' => $node['account'], // 会员账号
+                'rate' => $reward_rate, // 系数
+                'reward_base' => $increment, // 业绩
+                'reward' => $reward, // 金额
+                'settle_time' => time(), // 结算时间
+                'assoc_order_sn' => $order_sn, // 关联订单
+                'status' => 0, // 状态： 0 - 待发，1 - 已发，2 - 完成，3 - 回退
+                'daily_reward' => round($reward * $this->daily_reward_rate, 2), // 日发奖金金额,
+                'day_await' => 50, // 待发天数
+                'type' => $reward_type, // 奖金类型
+            ]);
+        }
+
+        if($layer > 3 && $reach_service_node) {
+            break;
+        }
+    }
+
+    //插入奖金表
+    if(count($reward_list)) {
+        if(DB::insert($reward_list)) {
+            Log::debug('settlement success');
+            //更新用户待发奖金
+            $member_trade_log = []; // 用户流水记录
+            foreach($member_reward_await as $member_account => $reward_await) {
+                if($reward_await > 0) {
+                    $flag = DB::table('member')->where('account', $member_account)->increment('reward_await', $reward_await);
+
+                    if($flag) {
+                        foreach($reward_list as $reward_record) {
+                            if($reward_record['account'] == $member_account) {
+                                array_push($member_trade_log, [
+                                    'account' => $member_account,
+                                    'reward_await' => $reward_record['reward'],
+                                    'add_time' => time(),
+                                    'remark' => $this->reward_type[$reward_record['type']].'奖金结算',
+                                    'assoc' => $order_sn,
+                                    'assoc_type' => 'order'
+                                ]);
+                            }
+                        }
+                    }
+                }
+            }
+
+            //记录用户流水
+            if(count($member_trade_log)) {
+                DB::table('member_trade_log')->insert($member_trade_log);
+            }
+        } else {
+            Log::debug('settlement failure');
+        }
+    }
+
+    //更新用户的业绩
+    DB::table('achievement')->whereExists(function($query) use ($recommend_path) {
+        $query->select('m.id')
+            ->from('member as m')
+            ->whereRaw('m.account = achievement.account')
+            ->whereIn('m.id', $recommend_path);
+    })->where('monthly', date('Ym'))->increment('increment', $increment);
+
+    //更新三代小市场业绩
+    $sub_recommend_path = $recommend_path;
+    array_push($sub_recommend_path, $member['id']);
+    while(count($sub_recommend_path) > 3) {
+        array_shift($sub_recommend_path);
+    }
+    DB::table('achievement')->whereExists(function($query) use ($sub_recommend_path) {
+        $query->select('m.id')
+            ->from('member as m')
+            ->whereRaw('m.account = achievement.account')
+            ->whereIn('m.id', $sub_recommend_path);
+    })->where('monthly', date('Ym'))->increment('sub_increment', $increment);
+
+    $member_achievement = [
+        'sub_increment' => $increment,
+        'sub_dividend_gold' => 0
+    ];
+
+    $leave_node_account = $account; // 查看分红标准的结点账号
+
+    //如新增业绩少于分红标准，则看推荐人的业绩是否达到分红标准
+    if($increment < $this->dividend_gold_limit) {
+        $leave_node_account = DB::table('member')->select('account')->where('id', $member['recommend_id']);
+        $member_achievement = DB::table('achievement')->select('sub_increment', 'sub_dividend_gold')
+            ->where('monthly', date('Ym'))
+            ->where('account', $leave_node_account)
+            ->first();
+
+        //剔除当前用户结点
+        array_pop($recommend_path);
+    }
+
+    while(count($recommend_path) > 3) {
+        //剔除三代以外的结点，小市场仅计算三代
+        array_shift($recommend_path);
+    }
+
+    if($member_achievement['sub_increment'] >= $this->dividend_gold_limit && $member_achievement['sub_dividend_gold'] == 0) {
+        DB::beginTransaction();
+
+        DB::table('achievement')->whereExists(function($query) use ($recommend_path) {
+            $query->select('m.id')
+                ->from('member as m')
+                ->whereRaw('m.account = achievement.account')
+                ->whereIn('m.id', $recommend_path);
+        })->where('monthly', date('Ym'))->increment('dividend_gold', 1)->update(['sub_dividend_gold', 1]);
+
+        DB::table('achievement')->where('account', $leave_node_account)->where('monthly', date('Ym'))
+            ->update('sub_dividend_gold', 1);
+
+        DB::commit();
+    }
+}
+
+/**
  * 增加会员奖金
  * @param $account
  * @param $reward
@@ -247,7 +470,7 @@ function add_recharge($account, $amount, $payment_id, $payment_name, $payment_co
  * @param $from
  * @param $to
  * @param string $remark
- * @return bool
+ * @return resource
  */
 function add_recharge_log($recharge_sn, $operator, $from, $to, $remark = '')
 {
@@ -326,7 +549,7 @@ function add_withdraw($account, $amount, $bank_id, $remark = '')
  * @param $from
  * @param $to
  * @param string $remark
- * @return bool
+ * @return resource
  */
 function add_withdraw_log($withdraw_sn, $operator, $from, $to, $remark = '')
 {

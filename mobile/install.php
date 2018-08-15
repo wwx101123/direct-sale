@@ -58,13 +58,14 @@ $sql[] = 'create table if not exists '.$db->table('member').' (
     `wx_unionid` varchar(255),
     `wx_headimg` varchar(255),
     `level_id` int not null default \'0\',
-    `level_expired` bigint not null default \''.strtotime('9999-12-31 23:59:59').'\',
+    `level_expired` bigint not null default \'0\',
     `lchild` varchar(255),
     `rchild` varchar(255),
     `scene_id` int not null default \'0\',
     `expired` int not null default \'0\',
     `ticket` varchar(255),
     `view_network` tinyint(1) not null default \'1\',
+    `stock` int not null default \'0\' comment \'持股\',
     index(`mobile`),
     index(`email`),
     index(`wx_openid`),
@@ -96,7 +97,6 @@ $sql[] = 'create table if not exists '.$db->table('account').' (
     index(`account`)
 ) default charset utf8;';
 
-/*
 $table[] = '购物车';
 $sql[] = 'create table if not exists '.$db->table('cart'). ' (
     `id` bigint not null auto_increment primary key,
@@ -127,9 +127,11 @@ $sql[] = 'create table if not exists '.$db->table('product').' (
     `img` varchar(255) not null,
     `inventory` int not null default \'0\',
     `desc` text,
-    `pv` decimal(18,2) not null default \'0\'
+    `pv` decimal(18,2) not null default \'0\',
+    `special` tinyint(1) not null default \'0\' comment \'是否报单产品：0 - 否，1 - 是\',
+    `stock_given` int not null default \'0\' comment \'报单产品赠送股权\',
+    `target_level` int not null default \'0\' comment \'报单等级\'
 ) default charset=utf8;';
-*/
 
 $table[] = '提现申请';
 $sql[] = 'create table if not exists '.$db->table('withdraw').' (
@@ -232,17 +234,19 @@ $sql[] = 'create table if not exists '.$db->table('admin').' (
     `role_id` int not null
 ) default charset=utf8;';
 
-$table[] = '无产品订单';
-$sql[] = 'create table if not exists '.$db->table('pay_order').' (
+$table[] = '产品订单';
+$sql[] = 'create table if not exists '.$db->table('order').' (
     `id` bigint not null auto_increment unique,
     `order_sn` varchar(255) not null primary key,
     `add_time` int not null,
     `total_amount` decimal(18,2) not null,
     `real_amount` decimal(18,2) not null,
     `pv_amount` decimal(18,2) not null default \'0\',
+    `product_amount` decimal(18,2) not null default \'0\',
     `integral_amount` decimal(18,2) not null,
     `integral_given_amount` decimal(18,2) not null,
-    `item_name` varchar(255) not null,
+    `stock_given_amount` int not null default \'0\' comment \'订单赠送股权\',
+    `target_level` int not null default \'0\' comment \'订单保单等级\',
     `status` int not null default \'1\',
     `pay_time` int,
     `remark` varchar(255),
@@ -258,10 +262,12 @@ $sql[] = 'create table if not exists '.$db->table('pay_order').' (
     `balance_paid` decimal(18,2) not null default \'0\',
     `integral_paid` decimal(18,2) not null default \'0\',
     `shopping_icon_paid` decimal(18,2) not null default \'0\',
-    `reward_paid` decimal(18,2) not null default \'0\'
+    `reward_paid` decimal(18,2) not null default \'0\',
+    `consignee` varchar(255) not null,
+    `address` varchar(255) not null,
+    `zipcode` varchar(255)
 ) default charset=utf8;';
 
-/*
 $table[] = '订单详情';
 $sql[] = 'create table if not exists '.$db->table('order_detail').' (
     `id` bigint not null auto_increment unique,
@@ -274,6 +280,8 @@ $sql[] = 'create table if not exists '.$db->table('order_detail').' (
     `pv` decimal(18,2) not null,
     `integral` decimal(18,2) not null,
     `integral_given` decimal(18,2) not null default \'0\',
+    `stock_given` int not null default \'0\' comment \'产品赠送股权\',
+    `target_level` int not null default \'0\' comment \'报单等级\',
     `number` int not null
 ) default charset=utf8;';
 
@@ -315,7 +323,6 @@ $sql[] = 'create table if not exists '.$db->table('address').' (
     `phone` varchar(255) not null,
     index(`account`)
 ) default charset=utf8;';
-*/
 
 $table[] = '银行卡号';
 $sql[] = 'create table if not exists '.$db->table('bank').' (

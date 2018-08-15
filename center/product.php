@@ -7,6 +7,8 @@
  * Time: 下午10:04
  */
 include 'library/init.inc.php';
+global $db, $log, $smarty;
+
 back_base_init();
 
 $template = 'product/';
@@ -98,6 +100,9 @@ if($opera == 'add')
     $desc = getPOST('desc');
     $status = intval(getPOST('status'));
     $inventory = intval(getPOST('inventory'));
+    $special = intval(getPOST('special'));
+    $stock_given = intval(getPOST('stock_given'));
+    $target_level = intval(getPOST('target_level'));
 
     if($name == '')
     {
@@ -133,8 +138,23 @@ if($opera == 'add')
         'desc' => $desc,
         'category_id' => $category_id,
         'inventory' => $inventory,
-        'img' => $img
+        'img' => $img,
+        'special' => $special ? 1 : 0
     );
+
+    if($data['special']) {
+        if(!isset($lang['level'][$target_level]) || $target_level <= 1) {
+            show_system_message('请选择报单等级');
+        } else {
+            $data['target_level'] = $target_level;
+        }
+
+        if($stock_given < 0) {
+            show_system_message('赠送股权不能为负数');
+        } else {
+            $data['stock_given'] = $stock_given;
+        }
+    }
 
     $product_sn = '';
     do
@@ -165,6 +185,9 @@ if($opera == 'edit')
     $desc = getPOST('desc');
     $status = intval(getPOST('status'));
     $inventory = intval(getPOST('inventory'));
+    $special = intval(getPOST('special'));
+    $stock_given = intval(getPOST('stock_given'));
+    $target_level = intval(getPOST('target_level'));
 
     if($product_sn == '')
     {
@@ -204,8 +227,23 @@ if($opera == 'edit')
         'status' => $status,
         'desc' => $desc,
         'category_id' => $category_id,
-        'inventory' => $inventory
+        'inventory' => $inventory,
+        'special' => $special ? 1 : 0
     );
+
+    if($data['special']) {
+        if(!isset($lang['level'][$target_level]) || $target_level <= 1) {
+            show_system_message('请选择报单等级');
+        } else {
+            $data['target_level'] = $target_level;
+        }
+
+        if($stock_given < 0) {
+            show_system_message('赠送股权不能为负数');
+        } else {
+            $data['stock_given'] = $stock_given;
+        }
+    }
 
     if($img != '')
     {
@@ -339,7 +377,7 @@ if('view' == $act)
             if (check_purview('pur_product_edit', $_SESSION['purview']))
             {
                 $product_list[$k]['operation'] = '<a href="product.php?act=edit&sn=' . $r['product_sn'] . '">编辑</a>';
-                $product_list[$k]['operation'] .= ' | <a href="product.php?act=price&sn=' . $r['product_sn'] . '">价格表</a>';
+//                $product_list[$k]['operation'] .= ' | <a href="product.php?act=price&sn=' . $r['product_sn'] . '">价格表</a>';
                 $product_list[$k]['operation'] .= ' | <a href="product.php?act=delete&sn=' . $r['product_sn'] . '" onclick="return confirm(\'您确定要删除该产品？\');">删除</a>';
             } else {
                 $product_list[$k]['operation'] = '';

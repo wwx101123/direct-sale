@@ -238,7 +238,7 @@
                 </p>
                 <p>
                     <label class="l-title">备注：</label>
-                    {$recharge.remark}
+                    {str_replace('<br/>', ' ', $recharge.remark)}
                 </p>
                 <p>
                     <label class="l-title">汇入账户：</label>

@@ -85,68 +85,55 @@ if($opera == 'export')
         exit;
     }
 
-    $loader->includeClass('PHPExcel');
-
-    $excel = new PHPExcel();
-    $sheet = $excel->getActiveSheet(0);
-
-    $sheet->getColumnDimension('A')->setWidth(20);
-    $sheet->getColumnDimension('C')->setWidth(20);
-    $sheet->getColumnDimension('E')->setWidth(20);
-    $sheet->getColumnDimension('G')->setWidth(20);
-    $sheet->getColumnDimension('H')->setWidth(20);
-    $sheet->getColumnDimension('J')->setWidth(20);
-    $sheet->getColumnDimension('K')->setWidth(20);
-
-    $row = 1;
-
-    $sheet->setCellValue('A'.$row, '申请编号');
-    $sheet->setCellValue('B'.$row, '会员账号');
-    $sheet->setCellValue('C'.$row, '提现金额');
-    $sheet->setCellValue('D'.$row, '手续费');
-    $sheet->setCellValue('E'.$row, '申请时间');
-    $sheet->setCellValue('F'.$row, '开户银行');
-    $sheet->setCellValue('G'.$row, '银行卡号');
-    $sheet->setCellValue('H'.$row, '开户人');
-    $sheet->setCellValue('I'.$row, '状态');
-    $sheet->setCellValue('J'.$row, '处理时间');
-    $sheet->setCellValue('K'.$row, '备注');
+    $export_data = [
+        [
+            '申请编号',
+            '会员账号',
+            '提现金额',
+            '手续费',
+            '申请时间',
+            '开户银行',
+            '银行卡号',
+            '开户人',
+            '状态',
+            '处理时间',
+            '备注'
+        ]
+    ];
 
     $row++;
 
     foreach($withdraw_list as $withdraw)
     {
-        //第一行
-        $sheet->setCellValueExplicit('A'.$row, $withdraw['withdraw_sn']);
-        $sheet->setCellValue('B'.$row, $withdraw['account']);
-        $sheet->getStyle('C'.$row)->getNumberFormat()->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
-        $sheet->setCellValue('C'.$row, $withdraw['amount']);
-        $sheet->getStyle('D'.$row)->getNumberFormat()->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
-        $sheet->setCellValue('D'.$row, $withdraw['fee']);
-        $sheet->setCellValue('E'.$row, date('Y-m-d H:i:s', $withdraw['add_time']));
-        $sheet->setCellValue('F'.$row, $withdraw['bank_name']);
-        $sheet->setCellValueExplicit('G'.$row, $withdraw['bank_card'], PHPExcel_Cell_DataType::TYPE_STRING);
-        $sheet->setCellValue('H'.$row, $withdraw['bank_account']);
-        $sheet->setCellValue('I'.$row, $lang['withdraw_status'][$withdraw['status']]);
-        if($withdraw['status'] == 2)
-        {
-            $sheet->setCellValue('J' . $row, date('Y-m-d H:i:s', $withdraw['solve_time']));
-        } else {
-            $sheet->setCellValue('J' . $row, '');
-        }
-        $sheet->setCellValue('K'.$row, $withdraw['remark']);
+        $row_data = [
+            $withdraw['withdraw_sn'],
+            $withdraw['account'],
+            $withdraw['amount'],
+            $withdraw['fee'],
+            date('Y-m-d H:i:s', $withdraw['add_time']),
+            $withdraw['bank_name'],
+            $withdraw['bank_card'],
+            $withdraw['bank_account'],
+            $lang['withdraw_status'][$withdraw['status']],
+            $withdraw['status'] == 2 ? date('Y-m-d H:i:s', $withdraw['solve_time']) : '',
+            $withdraw['remark']
+        ];
 
-        $row++;
+        array_push($export_data, $row_data);
     }
 
     //输出
     $filename = date('YmdHis').'提现申请列表';
-    header('Content-Type: application/vnd.ms-excel');
-    header('Content-Disposition: attachment;filename="'.$filename.'.xls"');
+    header('Content-Type: text/csv');
+    header('Content-Disposition: attachment;filename="'.$filename.'.csv"');
     header('Cache-Control: max-age=0');
 
-    $objWriter = PHPExcel_IOFactory::createWriter($excel, 'Excel5');
-    $objWriter->save('php://output');
+    $f = fopen('php://output', 'w');
+    fwrite($f, "\xEF\xBB\xBF");
+    while($row = array_shift($export_data)) {
+        fputcsv($f, $row);
+    }
+    fclose($f);
     exit;
 }
 

@@ -18,14 +18,14 @@
                     </p>
                     <h5>内容：</h5>
                     <p>
-                        <!--                        <span>内容：</span>-->
                         <textarea name="content" class="rn w-90" rows="20" placeholder="这里是编辑器">{$content.content}</textarea>
                     </p>
+                    <!--
                     <h5>wap内容：</h5>
                     <p>
-                        <!--                        <span>wap内容：</span>-->
                         <textarea name="wap-content" class="rn w-90" rows="5" placeholder="wap内容">{$content.wap_content}</textarea>
                     </p>
+                    -->
                     <p>
                         <input type="hidden" name="opera" value="edit" />
                         <input type="hidden" name="id" value="{$content.id}" />
@@ -128,6 +128,7 @@
                 });
             }
         });
+        /*
         var editor2 = K.create("textarea[name='wap-content']", {
             height: '400px',
             width: '93%',
@@ -147,7 +148,7 @@
                 });
             }
         });
-
+        */
 
         var editor = K.editor({
             allowFileManager: true,
@@ -155,7 +156,7 @@
             fileManagerJson: '../plugins/kindeditor/file_manager_json.php'
         });
         K('#select-image').click(function() {
-            editor.loadPlugin('image', function() {
+            editor.loadPlugin('fileupload', function() {
                 editor.plugin.imageDialog({
                     imageUrl : '',
                     clickFn : function(url, title, width, height, border, align) {

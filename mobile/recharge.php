@@ -66,7 +66,7 @@ if('bank' == $opera)
     } else {
         $total_fee = $amount;
 
-        $plugin_path = ROOT_PATH.'plugins/payment/';
+        $plugin_path = ROOT_PATH.'/center/plugins/payment/';
 
         $get_payment = 'select * from '.$db->table('payment').' where `plugins`=\'Bank\'';
         $payment = $db->fetchRow($get_payment);
@@ -158,12 +158,12 @@ if('wechat' == $opera)
 }
 
 if('add' == $act) {
-//获取用户信息
+    //获取用户信息
     $get_user_info = 'select * from ' . $db->table('member') . ' where `account`=\'' . $_SESSION['account'] . '\'';
     $user_info = $db->fetchRow($get_user_info);
     assign('user_info', $user_info);
 
-//获取支付插件
+    //获取支付插件
     $get_payment_list = 'select * from ' . $db->table('payment') . ' where `status`=1';
     $payment_list = $db->fetchAll($get_payment_list);
     $payment_list_json = array();
@@ -174,7 +174,7 @@ if('add' == $act) {
                 case 'Bank':
                     $payment['detail'] = '';
 
-                    $plugin_path = ROOT_PATH . 'plugins/payment/';
+                    $plugin_path = ROOT_PATH . '/center/plugins/payment/';
 
                     include $plugin_path . $payment['plugins'] . '.class.php';
                     $configure = $plugins[0]['configure'];

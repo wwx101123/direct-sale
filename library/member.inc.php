@@ -108,6 +108,8 @@ function register_openid($openid, $nickname, $parent_id = 0)
             $db->commit();
             return $member_data['account'];
         }
+    } else {
+        $log->record('register member fail');
     }
 
     $db->rollback();
@@ -200,7 +202,9 @@ function get_account($prefix = 'DS', $begin = 1, $max = 999999, $step = 500)
         //将取到的卡号状态设置为不可用
         $card_pool_data = array('status'=>0);
 
-        $db->autoUpdate('card_pool', $card_pool_data, '`account`=\''.$account.'\'');
+        if(!$db->autoUpdate('card_pool', $card_pool_data, '`account`=\''.$account.'\' and `status`=1')) {
+            return '';
+        }
     }
 
     //3、检查剩余卡号池，如果少于$step，则从当前卡号池最大数+1开始，按步长$step，填充卡号池

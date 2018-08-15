@@ -85,60 +85,47 @@ if($opera == 'export')
         exit;
     }
 
-    $loader->includeClass('PHPExcel');
-
-    $excel = new PHPExcel();
-    $sheet = $excel->getActiveSheet(0);
-
-    $sheet->getColumnDimension('A')->setWidth(20);
-    $sheet->getColumnDimension('C')->setWidth(20);
-    $sheet->getColumnDimension('D')->setWidth(20);
-    $sheet->getColumnDimension('F')->setWidth(40);
-    $sheet->getColumnDimension('H')->setWidth(20);
-    $sheet->getColumnDimension('H')->setWidth(20);
-
-    $row = 1;
-
-    $sheet->setCellValue('A'.$row, '申请编号');
-    $sheet->setCellValue('B'.$row, '会员账号');
-    $sheet->setCellValue('C'.$row, '充值金额');
-    $sheet->setCellValue('D'.$row, '申请时间');
-    $sheet->setCellValue('E'.$row, '充值方式');
-    $sheet->setCellValue('F'.$row, '备注');
-    $sheet->setCellValue('G'.$row, '状态');
-    $sheet->setCellValue('H'.$row, '处理时间');
-
-    $row++;
+    $export_data = [
+        [
+          '申请编号',
+          '会员账号',
+          '充值金额',
+          '申请时间',
+          '充值方式',
+          '备注',
+          '状态',
+          '处理时间',
+        ]
+    ];
 
     foreach($recharge_list as $recharge)
     {
-        //第一行
-        $sheet->setCellValueExplicit('A'.$row, $recharge['recharge_sn']);
-        $sheet->setCellValue('B'.$row, $recharge['account']);
-        $sheet->getStyle('C'.$row)->getNumberFormat()->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
-        $sheet->setCellValue('C'.$row, $recharge['amount']);
-        $sheet->setCellValue('D'.$row, date('Y-m-d H:i:s', $recharge['add_time']));
-        $sheet->setCellValue('E'.$row, $recharge['payment_name']);
-        $sheet->setCellValue('F'.$row, str_replace('<br/>', "\r", $recharge['remark']));
-        $sheet->setCellValue('G'.$row, $lang['recharge']['status_'.$recharge['status']]);
-        if($recharge['status'] == 3)
-        {
-            $sheet->setCellValue('H' . $row, date('Y-m-d H:i:s', $recharge['pay_time']));
-        } else {
-            $sheet->setCellValue('H' . $row, '');
-        }
+        $row_data = [
+            $recharge['recharge_sn'],
+            $recharge['account'],
+            $recharge['amount'],
+            date('Y-m-d H:i:s', $recharge['add_time']),
+            $recharge['payment_name'],
+            str_replace('<br/>', "\r", $recharge['remark']),
+            $lang['recharge']['status_'.$recharge['status']],
+            $recharge['status'] == 3 ? date('Y-m-d H:i:s', $recharge['pay_time']) : ''
+        ];
 
-        $row++;
+        array_push($export_data, $row_data);
     }
 
     //输出
     $filename = date('YmdHis').'充值申请列表';
-    header('Content-Type: application/vnd.ms-excel');
-    header('Content-Disposition: attachment;filename="'.$filename.'.xls"');
+    header('Content-Type: text/csv');
+    header('Content-Disposition: attachment;filename="'.$filename.'.csv"');
     header('Cache-Control: max-age=0');
 
-    $objWriter = PHPExcel_IOFactory::createWriter($excel, 'Excel5');
-    $objWriter->save('php://output');
+    $f = fopen('php://output', 'w');
+    fwrite($f, "\xEF\xBB\xBF");
+    while($row = array_shift($export_data)) {
+        fputcsv($f, $row);
+    }
+    fclose($f);
     exit;
 }
 
@@ -161,7 +148,7 @@ if($opera == 'edit')
         $remark = $db->escape($remark);
     }
 
-    if(update_recharge($recharge_sn, 3, $_SESSION['account'], '线下充值:'.$remark))
+    if(update_recharge($recharge_sn, 3, $_SESSION['admin_account'], '线下充值:'.$remark))
     {
         show_system_message('充值记录已处理', array(array('link'=>'recharge.php', 'alt'=>'充值列表')));
     } else {

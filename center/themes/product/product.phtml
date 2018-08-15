@@ -53,7 +53,7 @@
                 <th>产品名称</th>
                 <th>价格</th>
                 <th>PV</th>
-<!--                <th>产品分类</th>-->
+                <th>报单产品</th>
                 <th>库存</th>
                 <th>状态</th>
                 <th>操作</th>
@@ -66,7 +66,7 @@
                 <td>{$product.name}</td>
                 <td>{$product.price}</td>
                 <td>{$product.pv}</td>
-<!--                <td>{$cat_json[$product.category_id]}</td>-->
+                <td>{if $product.special eq 1}是{else}否{/if}</td>
                 <td>{$product.inventory}</td>
                 <td>{$lang.product["status_{$product.status}"]}</td>
                 <td>
@@ -75,7 +75,7 @@
             </tr>
             {/foreach}
             <tr>
-                <td colspan="7">
+                <td colspan="8">
                     <div class="pull-right">
                         <div class="pages">
                             <span>共有{$total}条，{$totalPage}页，每页显示：{$count}条</span>
@@ -153,6 +153,34 @@
                 </p>
 
                 <p>
+                    <label class="l-title">报单产品：</label>
+                    <label>
+                        <input type="radio" name="special" value="0" {if $act neq 'edit' or $act eq 'edit' and $product.special eq 0}checked="checked"{/if}/><em>否</em>
+                    </label>
+                    &nbsp;&nbsp;
+                    <labeL>
+                        <input type="radio" name="special" value="1" {if $act eq 'edit' and $product.special eq 1}checked="checked"{/if}/><em>是</em>
+                    </labeL>
+                </p>
+
+                <p id="special-target-level" {if $act neq 'edit' or $act eq 'edit' and $product.special eq 0}style="display: none"{/if}>
+                    <label class="l-title">报单等级: </label>
+                    <select name="target_level" id="target_level" class="w150">
+                        <option value="0">请选择报单等级</option>
+                        {foreach from=$lang.level key=level_id item=level_name}
+                        {if $level_id gt 1}
+                        <option value="{$level_id}" {if $act eq 'edit' and $product.target_level eq $level_id}selected="selected"{/if}>{$level_name}</option>
+                        {/if}
+                        {/foreach}
+                    </select>
+                </p>
+
+                <p id="special-stock" {if $act neq 'edit' or $act eq 'edit' and $product.special eq 0}style="display: none"{/if}>
+                    <label class="l-title">赠送股权：</label>
+                    <input class="text-input w300" type="text" id="stock_given" name="stock_given" placeholder="请输入赠送股权" value="{if $act eq 'edit'}{$product.stock_given|intval}{/if}">
+                </p>
+
+                <p>
                     <label class="l-title">产品库存：</label>
                     <input class="text-input w300" type="text" id="inventory" name="inventory" placeholder="请输入库存" value="{if $act eq 'edit'}{$product.inventory}{/if}">
                 </p>
@@ -167,13 +195,12 @@
                     <label class="l-title">产品图片:</label>
                     <input type="button" class="text-input" id="select-image" value="请选择产品图片" style="cursor:pointer">
                     <input type="hidden" name="img" value="" id="img"/>
-                </p>
-                <p>
+                    <br/><br/>
                     <label class="l-title"></label>
                     <img id="show-image" alt="" src="{if $act eq 'edit'}{$product.img}{else}http://www.placehold.it/200x150/EFEFEF/AAAAAA&amp;text=no+image{/if}">
                 </p>
-                <h5>产品详情：</h5>
                 <p>
+                    <label class="l-title">产品详情:</label>
                     <textarea name="desc" id="desc" class="rn w-90" rows="20" placeholder="这里是编辑器">{if $act eq 'edit'}{$product.desc}{/if}</textarea>
                 </p>
                 <p>
@@ -197,16 +224,35 @@
                 $("#category_id").val({$product.category_id});
                 $("#status").val({$product.status});
                 {/if}
+
+                $('input[name=special]').click(function() {
+                   if($(this).val() == 1) {
+                       $('#special-stock').show();
+                       $('#special-target-level').show();
+                   } else {
+                       $('#special-stock').hide();
+                       $('#special-target-level').hide();
+                   }
+                });
             });
 
             KindEditor.ready(function(K) {
                 var editor1 = K.create("textarea[name='desc']", {
                     height: '400px',
-                    width: '93%',
+                    width: '750px',
                     cssPath: '../plugins/kindeditor/plugins/code/prettify.css',
                     uploadJson: '../plugins/kindeditor/upload_json.php',
                     fileManagerJson: '../plugins/kindeditor/file_manager_json.php',
                     allowFileManager: true,
+                    items : [
+                        'undo', 'redo', '|',
+                        'cut', 'copy', 'paste', '|',
+                        'fontname', 'fontsize', 'forecolor', 'hilitecolor', 'bold', 'italic', 'underline', 'strikethrough', 'removeformat', '|',
+                        'insertorderedlist', 'insertunorderedlist', '|',
+                        'justifyleft', 'justifycenter', 'justifyright', 'hr', '|',
+                        'image','multiimage', '|',
+                        'preview'
+                    ],
                     afterCreate: function () {
                         var self = this;
                         K.ctrl(document, 13, function () {
@@ -227,7 +273,7 @@
                 });
 
                 K('#select-image').click(function() {
-                    editor.loadPlugin('image', function() {
+                    editor.loadPlugin('fileupload', function() {
                         editor.plugin.imageDialog({
                             imageUrl : '',
                             clickFn : function(url, title, width, height, border, align) {
@@ -296,13 +342,6 @@
         </div>
         <div id="mask"></div>
         <script type="text/javascript">
-            /**
-             * 这个解决方案可以作为Ajax提交表单的模板
-             * 1、form的提交操作托管给do_submit处理;
-             * 2、Ajax操作分为两部分，第一部分do_submit作为提交前的参数验证，第二部分do_resposne作为返回代码的处理;
-             * 3、仅支持post方式提交表单;
-             * 4、需要在提交按钮加入提交中的加载图片，以及遮罩层代码<div id="mask"></div>
-             **/
             $(function() {
                 $('.submit-btn').click(function() {
                     var id = $(this).attr('data-id');

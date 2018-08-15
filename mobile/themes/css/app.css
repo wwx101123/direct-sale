@@ -1447,7 +1447,7 @@ nav.ol_select_bar ul a.hover li {
 .product-list,.wishlist,.newslist{
     background-color: #ffffff;
     margin-bottom: 0.25rem;
-    padding-top: 4rem;
+    /*padding-top: 4rem;*/
 }
 .product-list li,.wishlist li,.newslist .newslist-con li {
     width: 100%;
@@ -1827,6 +1827,10 @@ nav.ol_select_bar ul a.hover li {
     color: #ffffff;
     text-align: center;
     margin: 0 auto;
+}
+
+.paybtn.disabled {
+    background-color: #ddd;
 }
 
 /* 支付结果 */
@@ -3329,5 +3333,39 @@ li.search-shop-li div{
     padding: .1rem .5rem;
     border-radius: 5px;
     background: #ffce28;
+    line-height: 1rem;
+}
+
+.product-optional {
+    display: flex;
+    padding: .5rem;
+    align-items: center;
+}
+
+.product-optional img {
+    width: 100px;
+    height: 100px;
+    margin-right: 10px;
+}
+
+.product-optional .product-info {
+    flex-grow: 1;
+}
+
+.product-optional .product-info p {
+    font-size: 1rem;
+    line-height: 1.6rem;
+}
+
+.product-optional .product-info p.product-price {
+    color: #ff0000;
+}
+
+.product-optional .product-info p.product-price:first-letter {
+    font-size: .8rem;
+}
+
+.product-optional .product-info p.product-meta {
+    font-size: .8rem;
     line-height: 1rem;
 }

@@ -7,7 +7,7 @@
  */
 include 'library/init.inc.php';
 
-$get_user_info = 'select * from '.$db->table('user').' where `openid`=\''.$_SESSION['openid'].'\'';
+$get_user_info = 'select * from '.$db->table('user').' where `account`=\''.$_SESSION['account'].'\'';
 $user_info = $db->fetchRow($get_user_info);
 
 $operation = 'change_pwd';
@@ -39,7 +39,7 @@ if('change_pwd' == $opera)
         {
             $data = array('password'=>$new_password);
 
-            if($db->autoUpdate('user', $data, '`openid`=\''.$_SESSION['openid'].'\''))
+            if($db->autoUpdate('user', $data, '`account`=\''.$_SESSION['account'].'\''))
             {
                 $response['msg'] = '修改密码成功，请牢记您的新密码';
                 $response['error'] = 0;

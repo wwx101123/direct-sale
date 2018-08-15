@@ -731,16 +731,6 @@ function sendSMS($mobile, $message)
     return true;
 }
 
-function decodeUnicode($str)
-{
-    return preg_replace_callback('/\\\\u([0-9a-f]{4})/i',
-        create_function(
-            '$matches',
-            'return mb_convert_encoding(pack("H*", $matches[1]), "UTF-8", "UCS-2BE");'
-        ),
-        $str);
-}
-
 function is_email($email) {
     $pattern = "/^([0-9A-Za-z\\-_\\.]+)@([0-9a-z]+\\.[a-z]{2,3}(\\.[a-z]{2})?)$/i";
     return preg_match($pattern, $email);
@@ -748,5 +738,5 @@ function is_email($email) {
 
 function build_url($url)
 {
-    return 'http://www.dupenda.cn'.$url;
+    return $url;
 }

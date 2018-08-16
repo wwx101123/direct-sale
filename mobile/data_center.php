@@ -319,7 +319,7 @@ if('get_message_code' == $opera)
                         'expire' => time()+60
                     );
 
-                    if($db->autoUpdate('message_code', $data))
+                    if($db->autoUpdate('message_code', $data, '`mobile`=\''.$mobile.'\''))
                     {
                         $response['error'] = 0;
                         $response['timer'] = 60;

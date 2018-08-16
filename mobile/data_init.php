@@ -32,6 +32,7 @@ $data[] = array(
     //====================================  奖金比例参数 ================================
     array('key'=>'recommend_reward_rate', 'name'=>'推荐奖系数', 'value'=>'0.1', 'type'=>'text', 'group'=>'config'),
     array('key'=>'manager_reward_rate', 'name'=>'管理奖系数', 'value'=>'0.05', 'type'=>'text', 'group'=>'config'),
+    array('key'=>'manager_reward_up_rate', 'name'=>'线上管理奖系数', 'value'=>'0.05', 'type'=>'text', 'group'=>'config'),
     array('key'=>'server_reward_rate', 'name'=>'业务部业绩提成', 'value'=>'0.02', 'type'=>'text', 'group'=>'config'),
     array('key'=>'dividend_gold_limit', 'name'=>'分红标准', 'value'=>'9000', 'type'=>'text', 'group'=>'config'),
 );

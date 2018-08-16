@@ -297,7 +297,10 @@ if('submit_order' == $opera)
 
                     $db->commit();
                     $response['error'] = 0;
-                    $response['msg'] = '会员注册成功!<br/>会员编号:'.$account.'<br/>登录密码:123456<br/>订单编号:'.$pay_order_sn.'<br/>请尽快支付以激活会员身份';
+                    $response['msg'] = '会员注册成功!<br/>会员编号:'.$account.'<br/>登录密码:123456<br/>订单编号:'.$pay_order_sn;
+                    if($response['status'] != 3) {
+                        $response['msg'] .= '<br/>请尽快支付以激活会员身份';
+                    }
                 } else {
                     $response['msg'] = '提交订单失败';
                 }

@@ -38,8 +38,8 @@
                     <label>状态：</label>
                     <select name="status">
                         <option value="-1">全部</option>
-                        <option value="1" {if $status eq 1}selected="selected"{/if}>待发放</option>
-                        <option value="2" {if $status eq 2}selected="selected"{/if}>已发放</option>
+                        <option value="0" {if $status eq 0}selected="selected"{/if}>待发放</option>
+                        <option value="1" {if $status eq 1}selected="selected"{/if}>已发放</option>
                     </select><br/><br/>
                     <label>起止时间：</label>
                     <input class="text-input w150" type="text" id="begin_time" name="begin_time" value="{$begin_time}">&nbsp;
@@ -81,9 +81,9 @@
                 <td><input type="checkbox" name="id[]" value="{$reward.id}"/></td>
                 <td>{$reward.account}</td>
                 <td>{$reward.reward}</td>
-                <td>{$lang.reward[$reward.type]}</td>
-                <td>{if $reward.status eq 1}待发放{else}已发放{/if}</td>
-                <td>{date('Y-m-d H:i:s', $reward.add_time)}</td>
+                <td>{$lang.reward_type[$reward.type]}</td>
+                <td>{if $reward.status eq 1}已发放{else}待发放{/if}</td>
+                <td>{date('Y-m-d H:i:s', $reward.settle_time)}</td>
                 <td>{if $reward.solve_time}{date('Y-m-d H:i:s', $reward.solve_time)}{else}未发放{/if}</td>
                 <td>{$reward.remark}</td>
             </tr>

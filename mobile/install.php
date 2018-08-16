@@ -66,6 +66,7 @@ $sql[] = 'create table if not exists '.$db->table('member').' (
     `ticket` varchar(255),
     `view_network` tinyint(1) not null default \'1\',
     `stock` int not null default \'0\' comment \'持股\',
+    `actived_children` int not null default \'0\' comment \'已激活下线\',
     index(`mobile`),
     index(`email`),
     index(`wx_openid`),
@@ -79,23 +80,6 @@ $sql[] = 'create table if not exists '.$db->table('member_login_logs').' (
     `token` varchar(255) not null primary key,
     `add_time` int not null
 ) default charset=utf8;';
-
-$table[] = '账户明细';
-$sql[] = 'create table if not exists '.$db->table('account').' (
-    `id` bigint not null auto_increment primary key,
-    `account` varchar(255) not null,
-    `add_time` int not null,
-    `balance` decimal(18,2) not null default \'0\',
-    `integral` decimal(18,2) not null default \'0\',
-    `integral_await` decimal(18,2) not null default \'0\',
-    `reward` decimal(18,2) not null default \'0\',
-    `reward_await` decimal(18,2) not null default \'0\',
-    `shopping_icon` decimal(18,2) not null default \'0\',
-    `operator` varchar(255) not null,
-    `remark` varchar(255),
-    `type` int not null,
-    index(`account`)
-) default charset utf8;';
 
 $table[] = '购物车';
 $sql[] = 'create table if not exists '.$db->table('cart'). ' (
@@ -348,6 +332,8 @@ $sql[] = 'create table if not exists '.$db->table('account').' (
     `shopping_icon` decimal(18,2) not null default \'0\',
     `add_time` int not null,
     `remark` varchar(255),
+    `assoc_type` varchar(255),
+    `assoc` varchar(255),
     `operator` varchar(255) not null,
     `type` int not null,
     index(`account`)
@@ -362,8 +348,14 @@ $sql[] = 'create table if not exists '.$db->table('achievement').' (
     `lamount` decimal(18,2) not null default \'0\',
     `ramount` decimal(18,2) not null default \'0\',
     `pv_amount` decimal(18,2) not null default \'0\',
-    `level_up` tinyint(1) not null default \'0\',
-    `number` int not null default \'0\',
+    `member_id` int not null comment \'会员ID\',
+    `children` int not null default \'0\' comment \'直推结点数\',
+    `dividend_gold` int not null default \'0\' comment \'分红达标结点数\',
+    `sub_dividend_gold` tinyint(1) not null default \'0\' comment \'推荐人当前市场已达到分红标准\',
+    `sub_increment` decimal(18,2) not null default \'0\' comment \'推荐人小市场业绩新增\',
+    `increment` decimal(18,2) not null default \'0\' comment \'当月新增业绩\',
+    `recommend_path` varchar(255) not null comment \'推荐关系\',
+    `recommend_id` int not null comment \'推荐人ID\',
     `account` varchar(255) not null,
     index(`year`,`month`,`account`)
 ) default charset=utf8;';
@@ -373,12 +365,14 @@ $sql[] = 'create table if not exists '.$db->table('reward').' (
     `id` bigint not null auto_increment primary key,
     `account` varchar(255) not null,
     `type` int not null,
+    `rate` decimal(18,3) not null comment \'计算系数\',
+    `reward_base` decimal(18,2) not null comment \'奖金计算基数\',
     `reward` decimal(18,2) not null default \'0\',
     `integral` decimal(18,2) not null default \'0\',
     `remark` varchar(255),
     `assoc` varchar(255),
     `status` int not null default \'1\',
-    `add_time` int not null,
+    `settle_time` int not null,
     `solve_time` int,
     index(`account`)
 ) default charset=utf8;';

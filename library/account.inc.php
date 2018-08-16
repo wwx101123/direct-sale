@@ -20,6 +20,11 @@ function settle($order_sn) {
         return false;
     }
 
+    if($order['type'] != 1) {
+        //计算重消
+        return consume_settle($order);
+    }
+
     $increment = $order['pv_amount']; // 新增业绩
     $account = $order['account']; // 新增用户账号
 
@@ -55,7 +60,7 @@ function settle($order_sn) {
                 'month' => $month, // 月
                 'account' => $node['account'], // 会员账号
                 'increment' => 0, // 当月新增业绩
-                'children' => $node['children'], // 直推结点数
+                'children' => $node['actived_children'], // 直推结点数
                 'dividend_gold' => 0, // 分红达标点数
                 'sub_dividend_gold' => 0, // 推荐人当前市场已达到分红标准
                 'sub_increment' => 0, // 推荐人小市场业绩新增
@@ -83,7 +88,7 @@ function settle($order_sn) {
         $reward_rate = 0;
 
         $layer++;
-        if(!$reach_service_node && $node['level_id'] == 5) {
+        if(!$reach_service_node && $node['level_id'] == 6) {
             //服务点业绩提成
             $reward = round($increment * $config['server_reward_rate'], 2);
             $reward_type = 3; // 业绩提成
@@ -93,11 +98,11 @@ function settle($order_sn) {
         }
 
         //金星、银星享受三代内推荐奖
-        $can_get_recommend_reward = $layer <= 3 && $node['level_id'] >= 3 && $node['level_id'] <= 4;
+        $can_get_recommend_reward = $layer <= 3 && $node['level_id'] >= 4 && $node['level_id'] <= 5;
         //铜星享受二代内推荐奖
-        $can_get_recommend_reward |= $layer <= 2 && $node['level_id'] == 2;
+        $can_get_recommend_reward |= $layer <= 2 && $node['level_id'] == 3;
         //普通会员享受一代推荐奖
-        $can_get_recommend_reward |= $layer == 1 && $node['level_id'] == 1;
+        $can_get_recommend_reward |= $layer == 1 && $node['level_id'] == 2;
 
         if($can_get_recommend_reward) {
             //推荐奖计算
@@ -127,15 +132,38 @@ function settle($order_sn) {
                 'reward_base' => $increment, // 业绩
                 'reward' => $reward, // 金额
                 'settle_time' => time(), // 结算时间
-                'assoc_order_sn' => $order_sn, // 关联订单
+                'assoc' => $order_sn, // 关联订单
                 'status' => 0, // 状态： 0 - 待发，1 - 已发，2 - 完成，3 - 回退
-                'day_await' => 50, // 待发天数
                 'type' => $reward_type, // 奖金类型
             ]);
         }
 
         if($layer > 3 && $reach_service_node) {
             break;
+        }
+    }
+
+    //获取直推一代的金星会员
+    if($config['manager_reward_up_rate']) {
+        $get_siblings = 'SELECT `account` FROM ' . $db->table('member') . ' WHERE `recommend`=\'' . $member['recommend'] . '\' AND `level_id`=5';
+        $siblings = $db->fetchAll($get_siblings);
+
+        if($siblings) {
+            while ($sibling = array_shift($siblings)) {
+                $reward = round($increment * $config['manager_reward_up_rate'], 2);
+                $reward_rate = $config['manager_reward_up_rate'];
+
+                array_push($reward_list, [
+                    'account' => $node['account'], // 会员账号
+                    'rate' => $reward_rate, // 系数
+                    'reward_base' => $increment, // 业绩
+                    'reward' => $reward, // 金额
+                    'settle_time' => time(), // 结算时间
+                    'assoc' => $order_sn, // 关联订单
+                    'status' => 0, // 状态： 0 - 待发，1 - 已发，2 - 完成，3 - 回退
+                    'type' => 5, // 奖金类型 线上管理奖
+                ]);
+            }
         }
     }
 
@@ -161,7 +189,9 @@ function settle($order_sn) {
                                     'add_time' => time(),
                                     'remark' => $lang['reward_type'][$reward_record['type']].'奖金结算',
                                     'assoc' => $order_sn,
-                                    'assoc_type' => 'order'
+                                    'assoc_type' => 'order',
+                                    'operator' => 'settle',
+                                    'type' => 3 //奖金结算
                                 ]);
                             }
                         }
@@ -171,7 +201,7 @@ function settle($order_sn) {
 
             //记录用户流水
             if(count($member_trade_log)) {
-                $db->autoInsert('member_trade_log', $member_trade_log);
+                $db->autoInsert('account', $member_trade_log);
             }
         } else {
             $log->record('settlement failure');
@@ -179,12 +209,11 @@ function settle($order_sn) {
     }
 
     //更新用户的业绩
-    DB::table('achievement')->whereExists(function($query) use ($recommend_path) {
-        $query->select('m.id')
-            ->from('member as m')
-            ->whereRaw('m.account = achievement.account')
-            ->whereIn('m.id', $recommend_path);
-    })->where('monthly', date('Ym'))->increment('increment', $increment);
+    $update_achievement = 'update '.$db->table('achievement').' set `increment`=`increment`+'.$increment.
+                          ' where `member_id` in ('.implode(',', $recommend_path).')'.
+                          ' and `year`='.$year.' and `month`='.$month;
+
+    $db->update($update_achievement);
 
     //更新三代小市场业绩
     $sub_recommend_path = $recommend_path;
@@ -192,12 +221,12 @@ function settle($order_sn) {
     while(count($sub_recommend_path) > 3) {
         array_shift($sub_recommend_path);
     }
-    DB::table('achievement')->whereExists(function($query) use ($sub_recommend_path) {
-        $query->select('m.id')
-            ->from('member as m')
-            ->whereRaw('m.account = achievement.account')
-            ->whereIn('m.id', $sub_recommend_path);
-    })->where('monthly', date('Ym'))->increment('sub_increment', $increment);
+
+    $update_sub_achievement = 'update '.$db->table('achievement').' set `sub_increment`=`sub_increment`+'.$increment.
+        ' where `member_id` in ('.implode(',', $sub_recommend_path).')'.
+        ' and `year`='.$year.' and `month`='.$month;
+
+    $db->update($update_sub_achievement);
 
     $member_achievement = [
         'sub_increment' => $increment,
@@ -207,12 +236,11 @@ function settle($order_sn) {
     $leave_node_account = $account; // 查看分红标准的结点账号
 
     //如新增业绩少于分红标准，则看推荐人的业绩是否达到分红标准
-    if($increment < $this->dividend_gold_limit) {
-        $leave_node_account = DB::table('member')->select('account')->where('id', $member['recommend_id']);
-        $member_achievement = DB::table('achievement')->select('sub_increment', 'sub_dividend_gold')
-            ->where('monthly', date('Ym'))
-            ->where('account', $leave_node_account)
-            ->first();
+    if($increment < $config['dividend_gold_limit']) {
+        $leave_node_account = $member['recommend'];
+        $get_member_achievement = 'select `sub_increment`,`sub_dividend_gold` from '.$db->table('achievement').
+                                  ' where `account`=\''.$leave_node_account.'\' and `year`='.$year.' and `month`='.$month;
+        $member_achievement = $db->fetchRow($get_member_achievement);
 
         //剔除当前用户结点
         array_pop($recommend_path);
@@ -223,21 +251,48 @@ function settle($order_sn) {
         array_shift($recommend_path);
     }
 
-    if($member_achievement['sub_increment'] >= $this->dividend_gold_limit && $member_achievement['sub_dividend_gold'] == 0) {
-        DB::beginTransaction();
+    if($member_achievement['sub_increment'] >= $config['dividend_gold_limit'] && $member_achievement['sub_dividend_gold'] == 0) {
+        $update_dividend_gold = 'update '.$db->table('achievement').' set `dividend_gold`=`dividend_gold`+1, `sub_dividend_gold`=1 '.
+                                ' where `member_id` in ('.implode(',', $recommend_path).' and `year`='.$year.' and `month`='.$month;
 
-        DB::table('achievement')->whereExists(function($query) use ($recommend_path) {
-            $query->select('m.id')
-                ->from('member as m')
-                ->whereRaw('m.account = achievement.account')
-                ->whereIn('m.id', $recommend_path);
-        })->where('monthly', date('Ym'))->increment('dividend_gold', 1)->update(['sub_dividend_gold', 1]);
+        $db->update($update_dividend_gold);
 
-        DB::table('achievement')->where('account', $leave_node_account)->where('monthly', date('Ym'))
-            ->update('sub_dividend_gold', 1);
+        $update_leave_gold = 'update '.$db->table('achievement').' set `sub_dividend_gold`=1 '.
+                             ' where `account`=\''.$leave_node_account.'\' and `year`='.$year.' and `month`='.$month;
 
-        DB::commit();
+        $db->update($update_leave_gold);
     }
+
+    //结算后升级
+    $update_member_data = 'update '.$db->table('member').' set ';
+    $update_member_data_field = [];
+
+    if($order['target_level']) {
+        $update_member_data_field[] = '`level_id`='.$order['target_level'].',`status`=2';
+    }
+
+    if($order['stock_given_amount']) {
+        $update_member_data_field []= '`stock`=`stock`+'.$order['stock_given_amount'];
+    }
+
+    $update_member_data .= implode(',', $update_member_data_field).' where `account`=\''.$account.'\' and `level_id`<'.$order['target_level'];
+
+    $log->record($update_member_data);
+    if($db->update($update_member_data)) {
+        $update_actived_children = 'update '.$db->table('member').' set `actived_children`=`actived_children`+1'.
+                                    ' where `account`=\''.$member['recommend'].'\'';
+
+        $db->update($update_actived_children);
+    }
+
+    return true;
+}
+
+
+function consume_settle($order) {
+    global $db, $log, $config;
+
+    return true;
 }
 
 /**

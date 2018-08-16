@@ -24,7 +24,7 @@ $opera = check_action($operation, getPOST('opera'));
 //===========================================================================
 if($opera == 'send')
 {
-    $get_reward_list = 'select `account`,`reward`,`remark`,`type`,`id` from '.$db->table('reward').' where `status`=1';
+    $get_reward_list = 'select `account`,`reward`,`remark`,`type`,`id` from '.$db->table('reward').' where `status`=0';
 
     $reward_list = $db->fetchAll($get_reward_list);
 
@@ -33,7 +33,7 @@ if($opera == 'send')
         if(member_account_change($reward['account'], 0, $reward['reward'], -1*$reward['reward'],0,0,0,$_SESSION['admin_account'], 4, $reward['remark']))
         {
             $reward_status = array(
-                'status' => 2,
+                'status' => 1,
                 'solve_time' => time()
             );
 
@@ -85,7 +85,7 @@ if($opera == 'export')
             $begin_time = strtotime($begin_time.' 00:00:00');
             if($begin_time)
             {
-                $where .= ' and `add_time`>='.intval($begin_time);
+                $where .= ' and `settle_time`>='.intval($begin_time);
             }
         }
 
@@ -94,7 +94,7 @@ if($opera == 'export')
             $end_time = strtotime($end_time.' 23:59:59');
             if($end_time)
             {
-                $where .= ' and `add_time`<='.intval($end_time);
+                $where .= ' and `settle_time`<='.intval($end_time);
             }
         }
     }
@@ -125,7 +125,7 @@ if($opera == 'export')
                 $reward['account'],
                 $reward['reward'],
                 $reward['status'] ? '已发放' : '待发放',
-                date('Y-m-d H:i:s', $reward['add_time']),
+                date('Y-m-d H:i:s', $reward['settle_time']),
                 $reward['solve_time'] ? date('Y-m-d H:i:s', $reward['solve_time']) : '未发放',
                 $reward['remark']
             ];
@@ -189,7 +189,7 @@ if('view' == $act) {
         $begin_time = strtotime($begin_time.' 00:00:00');
         if($begin_time)
         {
-            $where .= ' and `add_time`>='.intval($begin_time);
+            $where .= ' and `settle_time`>='.intval($begin_time);
         }
     }
 
@@ -198,7 +198,7 @@ if('view' == $act) {
         $end_time = strtotime($end_time.' 23:59:59');
         if($end_time)
         {
-            $where .= ' and `add_time`<='.intval($end_time);
+            $where .= ' and `settle_time`<='.intval($end_time);
         }
     }
 
@@ -228,8 +228,9 @@ if('view' == $act) {
     assign('end_time', $end_time > 0 ? date('Y-m-d', $end_time): '');
 
 
-    $get_reward_list = 'select * from '.$db->table('reward').$where.' order by `add_time` DESC limit '.$offset.','.$count;
+    $get_reward_list = 'select * from '.$db->table('reward').$where.' order by `settle_time` DESC limit '.$offset.','.$count;
 
+    $log->record($get_reward_list);
     $total_reward = 0;
 
     $reward_list = $db->fetchAll($get_reward_list);

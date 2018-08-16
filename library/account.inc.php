@@ -6,41 +6,53 @@
 /**
  * 结算
  * @param $order_sn
- * @return void
+ * @return bool
  */
 function settle($order_sn) {
-    global $db, $log, $config;
+    global $db, $log, $config, $lang;
 
-    $increment = 100; // 新增业绩
-    $account = ''; // 新增用户账号
-    $order_sn = ''; // 订单编号
+    $order_sn = $db->escape($order_sn);
+
+    $get_order = 'select * from '.$db->table('order').' where `order_sn`=\''.$order_sn.'\'';
+    $order = $db->fetchRow($get_order);
+
+    if(empty($order)) {
+        return false;
+    }
+
+    $increment = $order['pv_amount']; // 新增业绩
+    $account = $order['account']; // 新增用户账号
 
     //获取下单用户信息
-    $member = DB::table('member')->where('account', $account)->first();
+    $get_member = 'select * from '.$db->table('member').' where `account`=\''.$account.'\'';
+    $member = $db->fetchRow($get_member);
     $recommend_path = explode(',', $member['recommend_path']);
     array_pop($recommend_path);
 
     //获取推荐线上所有用户(含自己)
-    $parents = DB::table('member')->whereExists(function($query) use ($recommend_path) {
-        $query->select('m.id')
-            ->from('member as m')
-            ->whereRaw('m.account = member.account')
-            ->whereIn('m.id', $recommend_path);
-    })->orderBy('recommend_path', 'desc');
+    $get_parents = 'select * from '.$db->table('member').' where exists ('.
+        'select m.id from '.$db->table('member').' as m '.
+        'where m.`account`='.$db->table('member').'.`account` and m.`id` in ('.implode(',', $recommend_path).')'.
+        ') order by `recommend_path` desc';
+
+    $parents = $db->fetchAll($get_parents);
+
+    $year = date('Y', $order['pay_time']);
+    $month = date('n', $order['pay_time']);
 
     //如推荐线上用户不存在当月业绩则创建
     foreach($parents as $node) {
-        $achievement = DB::table('achievement')
-            ->select()
-            ->where('account', $node['account'])
-            ->where('monthly', date('Ym'))
-            ->first();
+        $get_achievement = 'select `id` from '.$db->table('achievement').
+                            ' where `account`=\''.$node['account'].'\' and `year`=\''.$year.'\' and `month`=\''.$month.'\'';
+
+        $achievement = $db->fetchOne($get_achievement);
 
         //如业绩不存在则新建
         if (empty($achievement)) {
             $achievement = [
                 'member_id' => $node['id'], // 会员ID
-                'monthly' => date('Ym'), // 年月
+                'year' => $year, // 年
+                'month' => $month, // 月
                 'account' => $node['account'], // 会员账号
                 'increment' => 0, // 当月新增业绩
                 'children' => $node['children'], // 直推结点数
@@ -51,7 +63,7 @@ function settle($order_sn) {
                 'recommend_id' => $node['recommend_id'] // 直推人
             ];
 
-            DB::insert($achievement);
+            $db->autoInsert('achievement', [$achievement]);
         }
     }
     //移除当前用户
@@ -73,9 +85,9 @@ function settle($order_sn) {
         $layer++;
         if(!$reach_service_node && $node['level_id'] == 5) {
             //服务点业绩提成
-            $reward = round($increment * $this->server_reward_rate, 2);
+            $reward = round($increment * $config['server_reward_rate'], 2);
             $reward_type = 3; // 业绩提成
-            $reward_rate = $this->server_reward_rate;
+            $reward_rate = $config['server_reward_rate'];
 
             $reach_service_node = true;
         }
@@ -89,9 +101,9 @@ function settle($order_sn) {
 
         if($can_get_recommend_reward) {
             //推荐奖计算
-            $reward = round($increment * $this->recommend_reward_rate, 2);
+            $reward = round($increment * $config['recommend_reward_rate'], 2);
             $reward_type = 1; // 推荐奖
-            $reward_rate = $this->recommend_reward_rate;
+            $reward_rate = $config['recommend_reward_rate'];
         }
 
         //金星、银星享受三代内管理奖
@@ -101,9 +113,9 @@ function settle($order_sn) {
 
         if($can_get_manager_reward) {
             //管理奖计算
-            $reward = round($increment * $this->manager_reward_rate, 2);
+            $reward = round($increment * $config['manager_reward_rate'], 2);
             $reward_type = 2; // 管理奖
-            $reward_rate = $this->manager_reward_rate;
+            $reward_rate = $config['manager_reward_rate'];
         }
 
         if($reward_type > 0) {
@@ -117,7 +129,6 @@ function settle($order_sn) {
                 'settle_time' => time(), // 结算时间
                 'assoc_order_sn' => $order_sn, // 关联订单
                 'status' => 0, // 状态： 0 - 待发，1 - 已发，2 - 完成，3 - 回退
-                'daily_reward' => round($reward * $this->daily_reward_rate, 2), // 日发奖金金额,
                 'day_await' => 50, // 待发天数
                 'type' => $reward_type, // 奖金类型
             ]);
@@ -130,13 +141,16 @@ function settle($order_sn) {
 
     //插入奖金表
     if(count($reward_list)) {
-        if(DB::insert($reward_list)) {
-            Log::debug('settlement success');
+        if($db->autoInsert('reward', $reward_list)) {
+            $log->record('settlement success');
             //更新用户待发奖金
             $member_trade_log = []; // 用户流水记录
             foreach($member_reward_await as $member_account => $reward_await) {
                 if($reward_await > 0) {
-                    $flag = DB::table('member')->where('account', $member_account)->increment('reward_await', $reward_await);
+                    $update_member_reward_await = 'update '.$db->table('member').' set `reward_await`=`reward_await`+'.$reward_await.
+                        ' where `account`=\''.$member_account.'\'';
+
+                    $flag = $db->update($update_member_reward_await);
 
                     if($flag) {
                         foreach($reward_list as $reward_record) {
@@ -145,7 +159,7 @@ function settle($order_sn) {
                                     'account' => $member_account,
                                     'reward_await' => $reward_record['reward'],
                                     'add_time' => time(),
-                                    'remark' => $this->reward_type[$reward_record['type']].'奖金结算',
+                                    'remark' => $lang['reward_type'][$reward_record['type']].'奖金结算',
                                     'assoc' => $order_sn,
                                     'assoc_type' => 'order'
                                 ]);
@@ -157,10 +171,10 @@ function settle($order_sn) {
 
             //记录用户流水
             if(count($member_trade_log)) {
-                DB::table('member_trade_log')->insert($member_trade_log);
+                $db->autoInsert('member_trade_log', $member_trade_log);
             }
         } else {
-            Log::debug('settlement failure');
+            $log->record('settlement failure');
         }
     }
 

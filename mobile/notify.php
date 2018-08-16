@@ -78,6 +78,7 @@ if($data)
                     $db->begin();
 
                     //结算
+                    settle($sn);
 
                     $db->commit();
                 }

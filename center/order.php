@@ -80,58 +80,57 @@ if($opera == 'export')
 
     if(!$order_list)
     {
-        echo '<script>alert("没有可以导出的数据");window.history.go(-1);</script>';
-        exit;
+        show_system_message('没有可以导出的数据');
     }
 
-    $loader->includeClass('PHPExcel');
+    $export_data = [
+        [
+            '订单编号',
+            '订单状态',
+            '下单时间',
+            '产品总额',
+            'PV总额',
+            '订单总额',
+            '应收款',
+            '预付款支付',
+            '奖金抵扣',
+            '支付时间',
+            '收货人',
+            '联系电话',
+            '邮政编码',
+            '收货地址',
+            '物流公司',
+            '发货单号',
+            '发货时间',
+            '产品编号',
+            '产品名称',
+            '产品价格',
+            'PV',
+            '购买数量',
+        ]
+    ];
 
-    $excel = new PHPExcel();
-
-    $excel->getActiveSheet(0)->getColumnDimension('B')->setWidth(20);
-    $excel->getActiveSheet(0)->getColumnDimension('C')->setWidth(20);
-    $excel->getActiveSheet(0)->getColumnDimension('D')->setWidth(20);
-    $excel->getActiveSheet(0)->getColumnDimension('F')->setWidth(20);
-
-    $row = 1;
     foreach($order_list as $order)
     {
-        $sheet = $excel->getActiveSheet(0);
-        //第一行
-        $sheet->setCellValue('A'.$row, '订单编号');
-        $sheet->setCellValueExplicit('B'.$row, $order['order_sn']);
-        $sheet->setCellValue('C'.$row, '订单状态');
-        $sheet->setCellValue('D'.$row, $lang['order_status'][$order['status']]);
-        $sheet->setCellValue('E'.$row, '下单时间');
-        $sheet->setCellValue('F'.$row, date('Y-m-d H:i:s', $order['add_time']));
-        $row++;
-
-        //第二行
-        $sheet->setCellValue('A'.$row, '收货人');
-        $sheet->setCellValue('B'.$row, $order['consignee']);
-        $sheet->setCellValue('C'.$row, '联系电话');
-        $sheet->setCellValueExplicit('D'.$row, $order['phone']);
-        $sheet->setCellValue('E'.$row, '邮政编码');
-        $sheet->setCellValue('F'.$row, $order['zipcode']);
-        $row++;
-
-        //第三行
-        $sheet->mergeCells('B'.$row.':F'.$row);
-        $sheet->setCellValue('A'.$row, '收货地址');
-        $sheet->setCellValue('B'.$row, $order['address']);
-        $row++;
-
-        //订单详情
-        $sheet->mergeCells('A'.$row.':F'.$row);
-        $sheet->setCellValue('A'.$row, '订单详情');
-        $row++;
-
-        $sheet->setCellValue('A'.$row, '产品编号');
-        $sheet->setCellValue('B'.$row, '产品名称');
-        $sheet->setCellValue('C'.$row, '产品价格');
-        $sheet->setCellValue('D'.$row, '产品PV');
-        $sheet->setCellValue('E'.$row, '购买数量');
-        $row++;
+        $row = [
+            "\t".$order['order_sn'],
+            $lang['order_status'][$order['status']],
+            date('Y-m-d H:i:s', $order['add_time']),
+            $order['product_amount'],
+            $order['pv_amount'],
+            $order['total_amount'],
+            $order['real_amount'],
+            $order['balance_paid'],
+            $order['reward_paid'],
+            $order['pay_time'] > 0 ? date('Y-m-d H:i:s', $order['pay_time']) : '未支付',
+            $order['consignee'],
+            $order['phone'],
+            $order['zipcode'],
+            $order['address'],
+            $order['status'] > 6 ? $order['delivery_name'] : '',
+            $order['status'] > 6 ? "\t".$order['delivery_sn'] : '',
+            $order['status'] > 6 ? date('Y-m-d H:i:s', $order['delivery_time']) : '',
+        ];
 
         $get_order_detail = 'select od.`product_sn`,p.`name`,od.`price`,od.`pv`,od.`number` from '
             .$db->table('order_detail').' as od join '.$db->table('product').' as p using(`product_sn`) '.
@@ -140,54 +139,35 @@ if($opera == 'export')
 
         if($order_detail)
         {
-            foreach($order_detail as $od)
+            foreach($order_detail as $i => $od)
             {
-                $sheet->setCellValue('A'.$row, $od['product_sn']);
-                $sheet->setCellValue('B'.$row, $od['name']);
-                $sheet->getStyle('C'.$row)->getNumberFormat()->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
-                $sheet->setCellValue('C'.$row, sprintf('%.2f', $od['price']));
-                $sheet->getStyle('D'.$row)->getNumberFormat()->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
-                $sheet->setCellValue('D'.$row, sprintf('%.2f', $od['pv']));
-                $sheet->setCellValue('E'.$row, $od['number']);
-                $row++;
+                if($i > 0) {
+                    $row = ['-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'];
+                }
+
+                array_push($row, $od['product_sn']);
+                array_push($row, $od['name']);
+                array_push($row, $od['price']);
+                array_push($row, $od['pv']);
+                array_push($row, $od['number']);
+
+                array_push($export_data, $row);
             }
         }
-
-        $sheet->mergeCells('A'.$row.':B'.$row);
-        $sheet->getStyle('A'.$row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
-        $sheet->setCellValue('A'.$row, '合计：');
-        $sheet->getStyle('C'.$row)->getNumberFormat()->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
-        $sheet->setCellValue('C'.$row, sprintf('%.2f', $order['total_amount']));
-        $sheet->getStyle('D'.$row)->getNumberFormat()->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
-        $sheet->setCellValue('D'.$row, sprintf('%.2f', $order['pv_amount']));
-
-        $row++;
-
-        if($order['status'] > 1)
-        {
-            //物流信息
-            $sheet->mergeCells('A' . $row . ':F' . $row);
-            $sheet->setCellValue('A' . $row, '物流信息');
-            $row++;
-
-            $sheet->setCellValue('A' . $row, '物流公司');
-            $sheet->setCellValue('B' . $row, $order['delivery_name']);
-            $sheet->setCellValue('C' . $row, '发货单号');
-            $sheet->setCellValue('D' . $row, $order['delivery_sn']);
-            $sheet->setCellValue('E' . $row, '发货时间');
-            $sheet->setCellValue('F' . $row, $order['delivery_time'] != '' ? date('Y-m-d H:i:s', $order['delivery_time']): '');
-        }
-        $row += 2;
     }
 
     //输出
     $filename = date('YmdHis').'订单列表';
-    header('Content-Type: application/vnd.ms-excel');
-    header('Content-Disposition: attachment;filename="'.$filename.'.xls"');
+    header('Content-Type: text/csv');
+    header('Content-Disposition: attachment;filename="'.$filename.'.csv"');
     header('Cache-Control: max-age=0');
 
-    $objWriter = PHPExcel_IOFactory::createWriter($excel, 'Excel5');
-    $objWriter->save('php://output');
+    $f = fopen('php://output', 'w');
+    fwrite($f, "\xEF\xBB\xBF");
+    while($row = array_shift($export_data)) {
+        fputcsv($f, $row);
+    }
+    fclose($f);
     exit;
 }
 

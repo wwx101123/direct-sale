@@ -52,7 +52,7 @@
         }
 
         var url = "data_center.php";
-        var data = { "opera":"verify_mobile", "mobile":mobile, "mode":"register" };
+        var data = { "opera":"verify_mobile", "mobile":mobile, "mode":"unique" };
 
         show_mask();
         $.post(url, data, verify_mobile_handler, "json");

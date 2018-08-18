@@ -138,15 +138,15 @@
 
         $("#submit_order_btn").bind("click", function() { submit_order(); });
 
-        if($("#use_integral") != undefined) {
+        if($("#use_integral").length) {
             $("#use_integral").bind("click", function() { use_mode(); });
         }
 
-        if($("#use_reward") != undefined) {
+        if($("#use_reward").length) {
             $("#use_reward").bind("click", function() { use_mode(); });
         }
 
-        if($("#use_balance") != undefined) {
+        if($("#use_balance").length) {
             $("#use_balance").bind("click", function() { use_mode(); });
         }
 
@@ -193,11 +193,11 @@
             return false;
         }
 
-        if($("#use_reward") != undefined && $("#use_reward").is(":checked")) {
+        if($("#use_reward").length && $("#use_reward").is(":checked")) {
             data.use_reward = true;
         }
 
-        if($("#use_balance") != undefined && $("#use_balance").is(":checked")) {
+        if($("#use_balance").length && $("#use_balance").is(":checked")) {
             data.use_balance = true;
         }
 

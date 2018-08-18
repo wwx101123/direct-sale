@@ -63,6 +63,7 @@
                 <th>会员账号</th>
                 <th>提现金额</th>
                 <th>手续费</th>
+                <th>实到金额</th>
                 <th>申请时间</th>
                 <th>备注</th>
                 <th>状态</th>
@@ -78,6 +79,7 @@
                 <td>{$withdraw.account}</td>
                 <td>{$withdraw.amount}</td>
                 <td>{$withdraw.fee}</td>
+                <td>{$withdraw.real_amount}</td>
                 <td>{date('Y-m-d H:i:s', $withdraw.add_time)}</td>
                 <td>{$withdraw.remark}</td>
                 <td>{if $withdraw.status eq 1}待处理{else}已处理{/if}</td>
@@ -87,7 +89,7 @@
             </tr>
             {/foreach}
             <tr>
-                <td colspan="10">
+                <td colspan="11">
                     <div class="pull-right">
                         <div class="pages">
                             <span>共有{$total}条，{$totalPage}页，每页显示：{$count}条</span>
@@ -148,8 +150,8 @@
                 }
             };
 
-            laydate(start);
-            laydate(end);
+            laydate.render(start);
+            laydate.render(end);
         </script>
         <script type="text/javascript">
             function order_export() {

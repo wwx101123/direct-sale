@@ -20,8 +20,7 @@ if('checkout' == $opera)
     $zipcode = trim(getPOST('zipcode'));
     $cmobile = trim(getPOST('cmobile'));
     $address = trim(getPOST('address'));
-    $use_reward = getPOST('use_reward');
-    $use_reward = $use_reward == 'true' ? true : false;
+    $use_reward = getPOST('use_reward') == 'true' ? true : false;
     $use_balance = getPOST('use_balance') == 'true' ? true : false;
     $payment_id = intval(getPOST('payment_id'));
 
@@ -79,17 +78,12 @@ if('checkout' == $opera)
                     $db->table('product') . ' where `product_sn`=\'' . $product_sn . '\'';
                 $product = $db->fetchRow($get_product_info);
 
-                $get_price_list = 'select `price`,`level_id`,`min_number` from '.$db->table('price_list').' where `product_sn`=\''.$p['product_sn'].'\' order by `level_id`';
-
-                $price_list = $db->fetchAll($get_price_list);
-
-                $price_list_json = array();
                 $price = $p['price'];
 
                 $total_pv += $number * $product['pv'];
                 $product['number'] = $number;
 
-                $amount += $product['number']*$product['price'];
+                $amount += $product['number']*$price;
 
                 $cart_list[] = $product;
             }
@@ -110,13 +104,6 @@ if('checkout' == $opera)
     if($response['msg'] == '') {
         $db->begin();
         //2、提交订单
-        $order_sn = '';
-        do {
-            $order_sn = time() . rand(1000, 9999);
-
-            $check_order = 'select `order_sn` from ' . $db->table('order') . ' where `order_sn`=\'' . $order_sn . '\'';
-        } while ($db->fetchOne($check_order));
-
         $reward_paid = 0;
         $balance_paid = 0;
         $real_amount = $amount;
@@ -125,8 +112,8 @@ if('checkout' == $opera)
         {
             if($member_info['reward'] > $real_amount)
             {
-                $real_amount = 0;
                 $reward_paid = $real_amount;
+                $real_amount = 0;
             } else {
                 $reward_paid = $member_info['reward'];
                 $real_amount -= $reward_paid;
@@ -137,8 +124,8 @@ if('checkout' == $opera)
         {
             if($member_info['balance'] > $real_amount)
             {
-                $real_amount = 0;
                 $balance_paid = $real_amount;
+                $real_amount = 0;
             } else {
                 $balance_paid = $member_info['balance'];
                 $real_amount -= $balance_paid;
@@ -152,7 +139,6 @@ if('checkout' == $opera)
         }
 
         $order_data = array(
-            'order_sn' => $order_sn,
             'add_time' => time(),
             'total_amount' => $amount,
             'real_amount' => $real_amount,
@@ -175,7 +161,22 @@ if('checkout' == $opera)
             'balance_paid' => $balance_paid
         );
 
-        if ($db->autoInsert('order', array($order_data))) {
+        if($status == 3) {
+            $order_data['pay_time'] = time();
+        }
+
+        $order_sn = '';
+        $flag = false;
+        $cnt = 10;
+        do {
+            $order_sn = 'C'.date('YmdHis') . rand(1000, 9999);
+
+            $order_data['order_sn'] = $order_sn;
+
+            $flag = $db->autoInsert('order', array($order_data));
+        } while (!$flag && $cnt--);
+
+        if ($flag) {
             foreach ($cart_list as $k => $v) {
                 $cart_list[$k]['order_sn'] = $order_sn;
             }
@@ -189,7 +190,7 @@ if('checkout' == $opera)
             if($status == 3) {
                 //3、结算、累计业绩
                 //依据订单产品进行结算
-
+                settle($order_sn);
                 //结算结束
                 $response['error'] = 0;
             } else {

@@ -147,8 +147,8 @@
                 }
             };
 
-            laydate(start);
-            laydate(end);
+            laydate.render(start);
+            laydate.render(end);
         </script>
         <script type="text/javascript">
             function order_export() {
@@ -250,8 +250,41 @@
                     {$order.account}
                 </p>
                 <p>
+                    <label class="l-title">产品总额：</label>
+                    {$order.product_amount}
+                </p>
+                <p>
+                    <label class="l-title">PV总额：</label>
+                    {$order.pv_amount}
+                </p>
+                <p>
                     <label class="l-title">订单总额：</label>
                     {$order.total_amount}
+                </p>
+                {if $order.balance_paid gt 0}
+                <p>
+                    <label class="l-title">预付款支付：</label>
+                    {$order.balance_paid}
+                </p>
+                {/if}
+                {if $order.integral_paid gt 0}
+                <p>
+                    <label class="l-title">积分抵扣：</label>
+                    {$order.integral_paid}
+                </p>
+                {/if}
+                {if $order.reward_paid gt 0}
+                <p>
+                    <label class="l-title">奖金抵扣：</label>
+                    {$order.reward_paid}
+                </p>
+                {/if}
+                <p>
+                    <label class="l-title">应收款：</label>
+                    {$order.real_amount}
+                    {if $order.real_amount gt 0 and $order.status gt 2}
+                    {$order.payment_name}
+                    {/if}
                 </p>
                 <p>
                     <label class="l-title">备注：</label>

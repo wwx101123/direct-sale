@@ -53,9 +53,10 @@
             <div class="clear"></div>
             <fieldset>
                 <div class="pull-left">
-                    <a class="btn btn-primary" href="javascript:order_export();">导出全部奖金</a>
-                    <a class="btn btn-primary" href="javascript:order_selected_export();">导出选中奖金</a>
+                    <a class="btn btn-primary" href="javascript:reward_export();">导出全部奖金</a>
+                    <a class="btn btn-primary" href="javascript:reward_selected_export();">导出选中奖金</a>
                     <a class="btn btn-primary" href="javascript:reward_send();">发放所有奖金</a>
+                    <a class="btn btn-primary" href="reward.php?act=dividend">分红</a>
                 </div>
                 <div class="clear"></div>
             </fieldset>
@@ -169,8 +170,8 @@
                 }
             };
 
-            laydate(start);
-            laydate(end);
+            laydate.render(start);
+            laydate.render(end);
         </script>
         <script type="text/javascript">
             function reward_send() {
@@ -193,7 +194,7 @@
                 form.submit();
             }
 
-            function order_export() {
+            function reward_export() {
                 var form = $("<form>");
                 form.attr({
                     "style":"display:none;",
@@ -213,7 +214,7 @@
                 form.submit();
             }
 
-            function order_selected_export() {
+            function reward_selected_export() {
                 var order_id = "";
 
                 $("input[name='id[]']").each(function(i, e){

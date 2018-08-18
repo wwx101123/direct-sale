@@ -45,10 +45,33 @@ function settle($order_sn) {
     $year = date('Y', $order['pay_time']);
     $month = date('n', $order['pay_time']);
 
+    //如不存在总业绩则创建
+    $get_achievement_summary = 'select `id` from '.$db->table('achievement').
+                                ' where `account`=\'\' and `year`='.$year.' and `month`='.$month;
+    $achievement_summary = $db->fetchOne($get_achievement_summary);
+
+    if(empty($achievement_summary)) {
+        $achievement = [
+            'member_id' => 0, // 会员ID
+            'year' => $year, // 年
+            'month' => $month, // 月
+            'account' => '', // 会员账号
+            'increment' => 0, // 当月新增业绩
+            'children' => 0, // 直推结点数
+            'dividend_gold' => 0, // 分红达标点数
+            'sub_dividend_gold' => 0, // 推荐人当前市场已达到分红标准
+            'sub_increment' => 0, // 推荐人小市场业绩新增
+            'recommend_path' => '', // 推荐关系
+            'recommend_id' => 0 // 直推人
+        ];
+
+        $db->autoInsert('achievement', [$achievement]);
+    }
+
     //如推荐线上用户不存在当月业绩则创建
     foreach($parents as $node) {
         $get_achievement = 'select `id` from '.$db->table('achievement').
-                            ' where `account`=\''.$node['account'].'\' and `year`=\''.$year.'\' and `month`=\''.$month.'\'';
+                            ' where `account`=\''.$node['account'].'\' and `year`='.$year.' and `month`='.$month;
 
         $achievement = $db->fetchOne($get_achievement);
 
@@ -135,6 +158,7 @@ function settle($order_sn) {
                 'assoc' => $order_sn, // 关联订单
                 'status' => 0, // 状态： 0 - 待发，1 - 已发，2 - 完成，3 - 回退
                 'type' => $reward_type, // 奖金类型
+                'remark' => $order_sn.' '.$lang['reward_type'][$reward_type]
             ]);
         }
 
@@ -145,7 +169,8 @@ function settle($order_sn) {
 
     //获取直推一代的金星会员
     if($config['manager_reward_up_rate']) {
-        $get_siblings = 'SELECT `account` FROM ' . $db->table('member') . ' WHERE `recommend`=\'' . $member['recommend'] . '\' AND `level_id`=5';
+        $get_siblings = 'SELECT `account` FROM ' . $db->table('member') . ' WHERE '.
+                        '`recommend`=\'' . $member['recommend'] . '\' AND `level_id`=5 and `account`<>\''.$account.'\'';
         $siblings = $db->fetchAll($get_siblings);
 
         if($siblings) {
@@ -154,7 +179,7 @@ function settle($order_sn) {
                 $reward_rate = $config['manager_reward_up_rate'];
 
                 array_push($reward_list, [
-                    'account' => $node['account'], // 会员账号
+                    'account' => $sibling['account'], // 会员账号
                     'rate' => $reward_rate, // 系数
                     'reward_base' => $increment, // 业绩
                     'reward' => $reward, // 金额
@@ -187,7 +212,7 @@ function settle($order_sn) {
                                     'account' => $member_account,
                                     'reward_await' => $reward_record['reward'],
                                     'add_time' => time(),
-                                    'remark' => $lang['reward_type'][$reward_record['type']].'奖金结算',
+                                    'remark' => $order_sn.' '.$lang['reward_type'][$reward_record['type']].'结算',
                                     'assoc' => $order_sn,
                                     'assoc_type' => 'order',
                                     'operator' => 'settle',
@@ -208,7 +233,14 @@ function settle($order_sn) {
         }
     }
 
-    //更新用户的业绩
+    //剔除自己
+    array_pop($recommend_path);
+    //更新总业绩
+    $update_achievement_summary = 'update '.$db->table('achievement').' set `increment`=`increment`+'.$increment.
+        ' where `account`=\'\' and `year`='.$year.' and `month`='.$month;
+    $db->update($update_achievement_summary);
+
+    //更新上级用户的业绩
     $update_achievement = 'update '.$db->table('achievement').' set `increment`=`increment`+'.$increment.
                           ' where `member_id` in ('.implode(',', $recommend_path).')'.
                           ' and `year`='.$year.' and `month`='.$month;
@@ -251,15 +283,18 @@ function settle($order_sn) {
         array_shift($recommend_path);
     }
 
+    $log->record_array($member_achievement);
     if($member_achievement['sub_increment'] >= $config['dividend_gold_limit'] && $member_achievement['sub_dividend_gold'] == 0) {
         $update_dividend_gold = 'update '.$db->table('achievement').' set `dividend_gold`=`dividend_gold`+1, `sub_dividend_gold`=1 '.
-                                ' where `member_id` in ('.implode(',', $recommend_path).' and `year`='.$year.' and `month`='.$month;
+                                ' where `member_id` in ('.implode(',', $recommend_path).') and `year`='.$year.' and `month`='.$month;
 
+        $log->record($update_dividend_gold);
         $db->update($update_dividend_gold);
 
         $update_leave_gold = 'update '.$db->table('achievement').' set `sub_dividend_gold`=1 '.
                              ' where `account`=\''.$leave_node_account.'\' and `year`='.$year.' and `month`='.$month;
 
+        $log->record($update_leave_gold);
         $db->update($update_leave_gold);
     }
 
@@ -283,14 +318,201 @@ function settle($order_sn) {
                                     ' where `account`=\''.$member['recommend'].'\'';
 
         $db->update($update_actived_children);
+
+        $update_recommend_children = 'update '.$db->table('achievement').' set `children`=`children`+1 where '.
+                                     '`account`=\''.$member['recommend'].'\' and `month`='.$month.' and `year`='.$year;
+
+        $db->update($update_recommend_children);
     }
 
     return true;
 }
 
-
+/**
+ * 累计重消业绩
+ * @param $order
+ * @return bool
+ */
 function consume_settle($order) {
     global $db, $log, $config;
+
+    $year = date('Y', $order['pay_time']);
+    $month = date('n', $order['pay_time']);
+
+    //如不存在总业绩则创建
+    $get_achievement_summary = 'select `id` from '.$db->table('achievement').
+        ' where `account`=\'\' and `year`='.$year.' and `month`='.$month;
+    $achievement_summary = $db->fetchOne($get_achievement_summary);
+
+    if(empty($achievement_summary)) {
+        $achievement = [
+            'member_id' => 0, // 会员ID
+            'year' => $year, // 年
+            'month' => $month, // 月
+            'account' => '', // 会员账号
+            'increment' => 0, // 当月新增业绩
+            'children' => 0, // 直推结点数
+            'dividend_gold' => 0, // 分红达标点数
+            'sub_dividend_gold' => 0, // 推荐人当前市场已达到分红标准
+            'sub_increment' => 0, // 推荐人小市场业绩新增
+            'consume_increment' => 0, // 当前结点当月新增重消业绩
+            'recommend_path' => '', // 推荐关系
+            'recommend_id' => 0 // 直推人
+        ];
+
+        $db->autoInsert('achievement', [$achievement]);
+    }
+
+    //如不存在当前用户的业绩则创建
+    $get_achievement = 'select `id` from '.$db->table('achievement').
+        ' where `account`=\''.$order['account'].'\' and `year`='.$year.' and `month`='.$month;
+    $achievement = $db->fetchOne($get_achievement);
+
+    $get_member = 'select * from '.$db->table('member').' where `account`=\''.$order['account'].'\'';
+    $member = $db->fetchRow($get_member);
+
+    if(empty($achievement)) {
+        $achievement = [
+            'member_id' => $member['id'], // 会员ID
+            'year' => $year, // 年
+            'month' => $month, // 月
+            'account' => $member['account'], // 会员账号
+            'increment' => 0, // 当月新增业绩
+            'children' => $member['actived_children'], // 直推结点数
+            'dividend_gold' => 0, // 分红达标点数
+            'sub_dividend_gold' => 0, // 推荐人当前市场已达到分红标准
+            'sub_increment' => 0, // 推荐人小市场业绩新增
+            'consume_increment' => 0, // 当前结点当月新增重消业绩
+            'recommend_path' => $member['recommend_path'], // 推荐关系
+            'recommend_id' => $member['recommend_id'] // 直推人
+        ];
+
+        $db->autoInsert('achievement', [$achievement]);
+    }
+
+    //更新当前用户的重消业绩和总重消业绩
+    $update_consume_increment = 'update '.$db->table('achievement').' set `consume_increment`=`consume_increment`+'.$order['pv_amount'].
+                                        ' where (`account`=\'\' or `account`=\''.$member['account'].'\') and `year`='.$year.' and `month`='.$month;
+
+    $log->record($update_consume_increment);
+    $db->update($update_consume_increment);
+
+    return true;
+}
+
+/**
+ * 结算指定月份的分红
+ * @param $year
+ * @param $month
+ * @return bool
+ */
+function dividend_settle($year, $month) {
+    global $log, $config, $db, $lang;
+
+    //读取总业绩
+    $get_achievement_summary = 'select * from '.$db->table('achievement').' where `year`='.$year.' and `month`='.$month.' and `account`=\'\'';
+    $achievement_summary = $db->fetchRow($get_achievement_summary);
+
+    if(empty($achievement_summary)) {
+        //没有总业绩，当月没有产生任何业绩
+        $log->record($year.$month.'没有产生任何业绩');
+        return false;
+    }
+
+    $get_reward = 'select 1 from '.$db->table('reward').' where `assoc`=\''.$year.$month.'\' and `type`=4 limit 1';
+    if($db->fetchOne($get_reward)) {
+        //当月分红已结算过
+        $log->record($year.$month.'分红已结算过');
+        return false;
+    }
+
+    //分红基数 = 重消业绩 * 重消业绩计入分红比例 * 分红比例
+    $dividend_reward_base = $achievement_summary['consume_increment'] * $config['consume_dividend_rate'] * $config['dividend_rate'];
+    $dividend_reward_base = round($dividend_reward_base, 2);
+
+    if($dividend_reward_base <= 0) {
+        //分红基数为0
+        $log->record($year.$month.'分红业绩为0');
+        return false;
+    }
+
+    //读取可参与分红的结点
+    $get_dividend_nodes = 'select a.`account`,m.`stock` from '.$db->table('achievement').' as a '.
+        'left join '.$db->table('member').' as m using(`account`) '.
+        ' where `year`='.$year.' and `month`='.$month.' and `children`=`dividend_gold` and `dividend_gold`>0';
+    $log->record($get_dividend_nodes);
+    $dividend_nodes = $db->fetchAll($get_dividend_nodes);
+
+    if(empty($dividend_nodes)) {
+        //没有达到分红条件的结点
+        $log->record($year.$month.'没有达到分红条件的结点');
+        return false;
+    }
+
+    $total_stock = 0;
+    foreach($dividend_nodes as $node) {
+        $total_stock += $node['stock'];
+    }
+
+    $reward_amount = $dividend_reward_base;
+
+    $reward_list = [];
+    while($node = array_shift($dividend_nodes)) {
+        $reward_rate = round($node['stock']/$total_stock, 2);
+        $reward = round($dividend_reward_base * $reward_rate, 2);
+
+        $reward = min($reward_amount, $reward);
+        $reward_amount -= $reward;
+
+        array_push($reward_list, [
+            'account' => $node['account'], // 会员账号
+            'rate' => $reward_rate, // 系数
+            'reward_base' => $dividend_reward_base, // 业绩
+            'reward' => $reward, // 金额
+            'settle_time' => time(), // 结算时间
+            'assoc' => $year.$month, // 关联订单
+            'status' => 0, // 状态： 0 - 待发，1 - 已发，2 - 完成，3 - 回退
+            'type' => 4, // 分红
+            'remark' => $year.'-'.$month.'分红'
+        ]);
+    }
+
+    //插入奖金表
+    if(count($reward_list)) {
+        if($db->autoInsert('reward', $reward_list)) {
+            $log->record('settlement success');
+            //更新用户待发奖金
+            $member_trade_log = []; // 用户流水记录
+            foreach($reward_list as $reward) {
+                if($reward['reward'] > 0) {
+                    $update_member_reward_await = 'update '.$db->table('member').' set `reward_await`=`reward_await`+'.$reward['reward'].
+                        ' where `account`=\''.$reward['account'].'\'';
+
+                    $flag = $db->update($update_member_reward_await);
+
+                    if($flag) {
+                        array_push($member_trade_log, [
+                            'account' => $reward['account'],
+                            'reward_await' => $reward['reward'],
+                            'add_time' => time(),
+                            'remark' => $year.'-'.$month.$lang['reward_type'][$reward['type']].'结算',
+                            'assoc' => $year.$month,
+                            'assoc_type' => 'dividend',
+                            'operator' => 'settle',
+                            'type' => 3 //奖金结算
+                        ]);
+                    }
+                }
+            }
+
+            //记录用户流水
+            if(count($member_trade_log)) {
+                $db->autoInsert('account', $member_trade_log);
+            }
+        } else {
+            $log->record('settlement failure');
+        }
+    }
 
     return true;
 }
@@ -434,14 +656,6 @@ function update_withdraw($withdraw_sn, $status, $operator, $remark)
 
     $recharge_status = array('status'=>$status);
 
-    if($status == 2)
-    {
-        if(!member_account_change($recharge['account'], 0, -1*$recharge['amount'], 0, 0, 0, 0, $operator, 7, $remark))
-        {
-            return false;
-        }
-    }
-
     if($db->autoUpdate('withdraw', $recharge_status, '`withdraw_sn`=\''.$withdraw_sn.'\''))
     {
         add_withdraw_log($withdraw_sn, $operator, $recharge['status'], $status, $remark);
@@ -572,12 +786,13 @@ function add_withdraw($account, $amount, $bank_id, $remark = '')
 
     $withdraw_sn = '';
 
-    $fee = $amount * $config['fee_rate'];
+    $fee = round($amount * $config['fee_rate'], 2);
+    $amount -= $fee;
     $withdraw_data = array(
         'account' => $account,
-        'amount' => $amount,
+        'amount' => $amount + $fee,
         'fee' => $fee,
-        'real_amount' => $amount - $fee,
+        'real_amount' => $amount,
         'status' => 1,
         'remark' => $remark,
         'bank_id' => $bank_id,

@@ -37,6 +37,13 @@ if($member_info['wx_openid'])
     $qrcode = get_qrcode($member_info['wx_openid'], $access_token);
 }
 
+//分享链接
+$recommend_url = 'http://'.$config['mobile_domain'].'/qrcode.php?ticket='.base64_encode($member_info['wx_openid']);
+if(isset($_SESSION['account'])) {
+    $recommend_url .= '&ukey='.$member_info['id'];
+}
+assign('recommend_url', $recommend_url);
+
 assign('qrcode', $qrcode);
 
 $smarty->display('qrcode.phtml');

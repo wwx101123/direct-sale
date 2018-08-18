@@ -91,6 +91,7 @@ if($opera == 'export')
             '会员账号',
             '提现金额',
             '手续费',
+            '实提金额',
             '申请时间',
             '开户银行',
             '银行卡号',
@@ -101,8 +102,6 @@ if($opera == 'export')
         ]
     ];
 
-    $row++;
-
     foreach($withdraw_list as $withdraw)
     {
         $row_data = [
@@ -110,9 +109,10 @@ if($opera == 'export')
             $withdraw['account'],
             $withdraw['amount'],
             $withdraw['fee'],
+            $withdraw['real_amount'],
             date('Y-m-d H:i:s', $withdraw['add_time']),
             $withdraw['bank_name'],
-            $withdraw['bank_card'],
+            "\t".$withdraw['bank_card'],
             $withdraw['bank_account'],
             $lang['withdraw_status'][$withdraw['status']],
             $withdraw['status'] == 2 ? date('Y-m-d H:i:s', $withdraw['solve_time']) : '',
@@ -156,7 +156,7 @@ if($opera == 'edit')
         $remark = $db->escape($remark);
     }
 
-    if(update_withdraw($withdraw_sn, 2, $_SESSION['account'], $remark))
+    if(update_withdraw($withdraw_sn, 2, $_SESSION['admin_account'], $remark))
     {
         show_system_message('提现申请已处理', array(array('link'=>'withdraw.php', 'alt'=>'提现列表')));
     } else {

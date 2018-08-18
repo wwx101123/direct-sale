@@ -13,6 +13,7 @@ $data = array();
 $table[] = 'sysconf';
 $data[] = array(
     array('key'=>'site_name', 'name'=>'站点名称', 'value'=>'DS', 'type'=>'text', 'group'=>'config'),
+    array('key'=>'close', 'name'=>'站点关闭', 'value'=>'0', 'type'=>'radio', 'group'=>'config'),
     array('key'=>'themes', 'name'=>'模板', 'value'=>'', 'type'=>'text', 'group'=>'themes'),
     array('key'=>'fee_rate', 'name'=>'提现手续费', 'value'=>'0.1', 'type'=>'text', 'group'=>'config'),
     array('key'=>'public_account', 'name'=>'公众号原始ID', 'value'=>'gh_2a6295362e13', 'type'=>'text', 'group'=>'config'),
@@ -35,6 +36,10 @@ $data[] = array(
     array('key'=>'manager_reward_up_rate', 'name'=>'线上管理奖系数', 'value'=>'0.05', 'type'=>'text', 'group'=>'config'),
     array('key'=>'server_reward_rate', 'name'=>'业务部业绩提成', 'value'=>'0.02', 'type'=>'text', 'group'=>'config'),
     array('key'=>'dividend_gold_limit', 'name'=>'分红标准', 'value'=>'9000', 'type'=>'text', 'group'=>'config'),
+    array('key'=>'consume_discount', 'name'=>'重消折扣', 'value'=>'80', 'type'=>'text', 'group'=>'config'),
+    array('key'=>'consume_dividend_rate', 'name'=>'重消计入分红的比例', 'value'=>'0.50', 'type'=>'text', 'group'=>'config'),
+    array('key'=>'dividend_rate', 'name'=>'分红比例', 'value'=>'0.30', 'type'=>'text', 'group'=>'config'),
+    array('key'=>'level_6_experience', 'name'=>'服务部升级小市场指标', 'value'=>'180000', 'type'=>'text', 'group'=>'config'),
 );
 
 //管理员

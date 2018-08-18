@@ -36,6 +36,20 @@ assign('lang', $lang);
 //设置网站参数
 assign('config', $config);
 
+if($config['close']) {
+    if(isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtoupper($_SERVER['HTTP_X_REQUESTED_WITH']) == 'XMLHTTPREQUEST') {
+        echo json_encode([
+            'error' => 1,
+            'msg' => '站点已关闭',
+            'message' => '站点已关闭'
+        ]);
+    } else {
+        echo '站点已关闭';
+    }
+
+    exit;
+}
+
 //读取ukey参数，记录推荐人信息
 $ukey = getGET('ukey');
 if($ukey != '')

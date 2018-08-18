@@ -138,19 +138,6 @@
             show_message_dialog(response.msg);
         }
     }
-
-    {if is_weixin()}
-    wx.config({
-            appId: '{$signPackage.appId}',
-            timestamp: {$signPackage.timestamp},
-        nonceStr: '{$signPackage.nonceStr}',
-        signature: '{$signPackage.signature}',
-        jsApiList: [
-        'chooseWXPay',
-        'closeWindow'
-    ]
-    });
-    {/if}
 </script>
 {/block}
 {block name="footer"}

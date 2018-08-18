@@ -36,12 +36,12 @@ if('cancel' == $opera)
     if($response['msg'] == '')
     {
         $db->begin();
-        $check_withdraw = 'select `withdraw_sn`,`amount`,`fee` from '.$db->table('withdraw').' where `account`=\''.$_SESSION['account'].'\' and '.
+        $check_withdraw = 'select `withdraw_sn`,`real_amount`,`fee` from '.$db->table('withdraw').' where `account`=\''.$_SESSION['account'].'\' and '.
                           ' `withdraw_sn`=\''.$withdraw_sn.'\' and `status`=1 for update;';
 
         if($withdraw = $db->fetchRow($check_withdraw))
         {
-            member_account_change($_SESSION['account'], 0, $withdraw['amount'] + $withdraw['fee'],0,0,0,0, $_SESSION['account'], 8, $withdraw_sn.'取消提现');
+            member_account_change($_SESSION['account'], 0, $withdraw['real_amount'] + $withdraw['fee'],0,0,0,0, $_SESSION['account'], 8, $withdraw_sn.'取消提现');
             $db->autoDelete('withdraw', '`withdraw_sn`=\''.$withdraw_sn.'\'');
             $response['error'] = 0;
             $response['msg'] = '取消申请成功';
@@ -84,9 +84,7 @@ if('add' == $opera)
         {
             $response['msg'] .= '-请填写提现金额<br/>';
         } else {
-            $total_amount = $amount +$config['fee_rate'] * $amount;
-
-            if($withdraw_await < $total_amount)
+            if($withdraw_await < $amount)
             {
                 $response['msg'] .= '-可提现金额不足<br/>';
             }
@@ -106,7 +104,7 @@ if('add' == $opera)
         {
             if($withdraw_sn = add_withdraw($_SESSION['account'], $amount, $bank_id))
             {
-                member_account_change($_SESSION['account'], 0, -1*$total_amount,0,0,0,0, $_SESSION['account'], 9, $withdraw_sn.'申请提现');
+                member_account_change($_SESSION['account'], 0, -1*$amount,0,0,0,0, $_SESSION['account'], 7, $withdraw_sn.'申请提现');
                 $response['error'] = 0;
                 $response['msg'] = '提现申请提交成功';
                 $response['withdraw_sn'] = $withdraw_sn;

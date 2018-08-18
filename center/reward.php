@@ -14,8 +14,8 @@ back_base_init();
 $template = 'reward/';
 assign('subTitle', '奖金管理');
 
-$action = 'edit|add|view|delete|detail';
-$operation = 'edit|add|export|send';
+$action = 'edit|add|view|delete|detail|dividend';
+$operation = 'edit|add|export|send|send_dividend';
 
 $act = check_action($action, getGET('act'));
 $act = ( $act == '' ) ? 'view' : $act;
@@ -24,7 +24,7 @@ $opera = check_action($operation, getPOST('opera'));
 //===========================================================================
 if($opera == 'send')
 {
-    $get_reward_list = 'select `account`,`reward`,`remark`,`type`,`id` from '.$db->table('reward').' where `status`=0';
+    $get_reward_list = 'select `account`,`reward`,`remark`,`type`,`id` from '.$db->table('reward').' where `status`=0 and `type`<>4';
 
     $reward_list = $db->fetchAll($get_reward_list);
 
@@ -42,6 +42,47 @@ if($opera == 'send')
     }
 
     show_system_message('奖金发放完毕');
+}
+
+if($opera == 'send_dividend')
+{
+    $settle_time = trim(getPOST('settle_time'));
+    $settle_time = strtotime($settle_time.'-01');
+
+    if(empty($settle_time)) {
+        show_system_message('结算月份无效');
+    }
+
+    $year = date('Y', $settle_time);
+    $month = date('n', $settle_time);
+
+    $get_reward = 'select 1 from '.$db->table('reward').' where `assoc`=\''.$year.$month.'\' and `type`=4 limit 1';
+    if($db->fetchOne($get_reward)) {
+        //当月分红已结算过
+        show_system_message(date('Y-m', $settle_time).'分红已结算过');
+    }
+
+    if(dividend_settle($year, $month)) {
+        $get_reward_list = 'SELECT `account`,`reward`,`remark`,`type`,`id` FROM ' . $db->table('reward') . ' WHERE `status`=0 AND `type`=4';
+
+        $reward_list = $db->fetchAll($get_reward_list);
+
+        foreach ($reward_list as $reward) {
+            if (member_account_change($reward['account'], 0, $reward['reward'], -1 * $reward['reward'], 0, 0, 0, $_SESSION['admin_account'], 4, $reward['remark'])) {
+                $reward_status = array(
+                    'status' => 1,
+                    'solve_time' => time()
+                );
+
+                $db->autoUpdate('reward', $reward_status, '`id`=' . $reward['id']);
+            }
+        }
+
+        show_system_message('分红发放完毕');
+    } else {
+        show_system_message('可分红金额不足或达到分红指标的结点数为0');
+    }
+
 }
 
 if($opera == 'export')
@@ -146,6 +187,12 @@ if($opera == 'export')
         fputcsv($f, $row);
     }
     fclose($f);
+    exit;
+}
+
+if('dividend' == $act)
+{
+    $smarty->display($template.'dividend.phtml');
     exit;
 }
 

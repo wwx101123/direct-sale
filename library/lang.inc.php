@@ -51,6 +51,7 @@ $lang['account_type'] = array(
     5 => '奖金互转',
     6 => '余额互转',
     7 => '奖金提现',
+    8 => '取消提现',
 );
 
 $lang['order_status'] = array(

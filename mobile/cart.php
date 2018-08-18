@@ -6,6 +6,7 @@
  * Time: 下午2:41
  */
 include 'library/init.inc.php';
+global $log, $config, $smarty, $db;
 
 $operation = 'add|update|clearup|delete|checkout';
 $opera = check_action($operation, getPOST('opera'));
@@ -121,6 +122,10 @@ if('add' == $opera)
                     'integral' => $product['integral'],
                     'add_time' => time()
                 );
+
+                if($config['consume_discount'] < 100) {
+                    $data['price'] = round($config['consume_discount'] * $data['price']/100, 2);
+                }
 
                 if($db->autoInsert('cart', array($data)))
                 {

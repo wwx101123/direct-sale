@@ -111,7 +111,7 @@
 
         var fee = fee_rate * amount;
 
-        var total_amount = fee + amount;
+        var total_amount = amount;
 
         if(total_amount > withdraw_await) {
             show_message_dialog("可提现额不足");

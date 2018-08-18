@@ -169,7 +169,7 @@ function check_member_login()
  * @param int $step
  * @return string
  */
-function get_account($prefix = 'DS', $begin = 1, $max = 999999, $step = 500)
+function get_account($prefix = 'DS', $begin = 1, $max = 999999, $step = 100)
 {
     global $db;
     global $log;

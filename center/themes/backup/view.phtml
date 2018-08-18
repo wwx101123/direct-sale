@@ -36,7 +36,7 @@
             {foreach from=$files item=file}
             <tr>
                 <td>{$file.date}</td>
-                <td><a href="{$file.url}">下载</a></td>
+                <td><a href="/backup/{$file.url}">下载</a></td>
             </tr>
             {/foreach}
             </tbody>

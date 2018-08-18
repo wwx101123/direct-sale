@@ -6,7 +6,7 @@
  */
 include '../library/bootstrap.inc.php';
 global $db, $config, $log, $lang;
-
+libxml_disable_entity_loader(true);
 define('MODULE_PATH', ROOT_PATH.'mobile');
 
 $class_list = array('Smarty', 'WechatResponse', 'Code', 'JSSDK');

@@ -200,7 +200,7 @@ function backup($tables = null)
 {
     global $db;
 
-    $file_name = 'backup/db-backup-'.date('YmdHis').'.sql';
+    $file_name = 'backup/db-backup-'.date('YmdHis').md5(time().rand(100, 999)).'.sql';
 
     if(!dir('backup'))
     {

@@ -85,7 +85,7 @@
                     <p>
                         <input type="button" class="text-input" id="select-image" value="请选择分类封面" style="cursor:pointer">
                         <input type="hidden" name="img" id="img" value="{$content.original}" />
-                        <img src="../{$content.original}" id="show-image" width="187px" height="140px" style="{if $content.original eq ''}display:none{/if}" />
+                        <img src="{$content.original}" id="show-image" width="187px" height="140px" style="{if $content.original eq ''}display:none{/if}" />
                     </p>
                 </fieldset>
             </div>
@@ -116,6 +116,15 @@
             uploadJson: '../plugins/kindeditor/upload_json.php',
             fileManagerJson: '../plugins/kindeditor/file_manager_json.php',
             allowFileManager: true,
+            items : [
+                'undo', 'redo', '|',
+                'cut', 'copy', 'paste', '|',
+                'fontname', 'fontsize', 'forecolor', 'hilitecolor', 'bold', 'italic', 'underline', 'strikethrough', 'removeformat', '|',
+                'insertorderedlist', 'insertunorderedlist', '|',
+                'justifyleft', 'justifycenter', 'justifyright', 'hr', '|',
+                'image','multiimage', '|',
+                'preview'
+            ],
             afterCreate: function () {
                 var self = this;
                 K.ctrl(document, 13, function () {

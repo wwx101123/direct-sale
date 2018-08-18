@@ -358,6 +358,7 @@ $sql[] = 'create table if not exists '.$db->table('achievement').' (
     `sub_dividend_gold` tinyint(1) not null default \'0\' comment \'推荐人当前市场已达到分红标准\',
     `sub_increment` decimal(18,2) not null default \'0\' comment \'推荐人小市场业绩新增\',
     `increment` decimal(18,2) not null default \'0\' comment \'当月新增业绩\',
+    `self_increment` decimal(18,2) not null default \'0\' comment \'当前节点当月新增业绩\',
     `consume_increment` decimal(18,2) not null default \'0\' comment \'当前结点当月新增重消业绩\',
     `recommend_path` varchar(255) not null comment \'推荐关系\',
     `recommend_id` int not null comment \'推荐人ID\',

@@ -113,6 +113,15 @@
             uploadJson: '../plugins/kindeditor/upload_json.php',
             fileManagerJson: '../plugins/kindeditor/file_manager_json.php',
             allowFileManager: true,
+            items : [
+                'undo', 'redo', '|',
+                'cut', 'copy', 'paste', '|',
+                'fontname', 'fontsize', 'forecolor', 'hilitecolor', 'bold', 'italic', 'underline', 'strikethrough', 'removeformat', '|',
+                'insertorderedlist', 'insertunorderedlist', '|',
+                'justifyleft', 'justifycenter', 'justifyright', 'hr', '|',
+                'image','multiimage', '|',
+                'preview'
+            ],
             afterCreate: function () {
                 var self = this;
                 K.ctrl(document, 13, function () {

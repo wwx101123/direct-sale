@@ -175,8 +175,14 @@ function settle($order_sn) {
 
         if($siblings) {
             while ($sibling = array_shift($siblings)) {
+                if(!isset($member_reward_await[$sibling['account']])) {
+                    $member_reward_await[$sibling['account']] = 0;
+                }
+
                 $reward = round($increment * $config['manager_reward_up_rate'], 2);
                 $reward_rate = $config['manager_reward_up_rate'];
+
+                $member_reward_await[$sibling['account']] += $reward;
 
                 array_push($reward_list, [
                     'account' => $sibling['account'], // 会员账号
@@ -187,6 +193,7 @@ function settle($order_sn) {
                     'assoc' => $order_sn, // 关联订单
                     'status' => 0, // 状态： 0 - 待发，1 - 已发，2 - 完成，3 - 回退
                     'type' => 5, // 奖金类型 线上管理奖
+                    'remark' => $order_sn.' '.$lang['reward_type'][5]
                 ]);
             }
         }
@@ -241,7 +248,8 @@ function settle($order_sn) {
     $db->update($update_achievement_summary);
 
     //更新上级用户的业绩
-    $update_achievement = 'update '.$db->table('achievement').' set `increment`=`increment`+'.$increment.
+    $update_achievement = 'update '.$db->table('achievement').' set `increment`=`increment`+'.$increment.','.
+                          '`self_increment`=`self_increment`+'.$increment.
                           ' where `member_id` in ('.implode(',', $recommend_path).')'.
                           ' and `year`='.$year.' and `month`='.$month;
 

@@ -95,7 +95,7 @@ function get_qrcode($openid, $access_token)
     global $db;
     global $log;
 
-    $get_ticket = 'select `ticket` from '.$db->table('member').' where `openid`=\''.$openid.'\' and `expired`>'.time();
+    $get_ticket = 'select `ticket` from '.$db->table('member').' where `wx_openid`=\''.$openid.'\' and `expired`>'.time();
     $ticket = $db->fetchOne($get_ticket);
 
     if($ticket)
@@ -105,43 +105,26 @@ function get_qrcode($openid, $access_token)
         return $qrcode;
     }
 
-    $update_user = 'update '.$db->table('member').' set `scene_id`=0 where `expired`>'.time();
-    $db->update($update_user);
+    $get_member_id = 'select `id` from '.$db->table('member').' where `wx_openid`=\''.$openid.'\'';
+    $member_id = $db->fetchOne($get_member_id);
 
-    $scene_arr = range(1, 100000);
+    $scene_id = 'm_'.$member_id;
 
-    $scene_id = 0;
-    foreach($scene_arr as $id)
-    {
-        $check_scene_id = 'select count(*) from '.$db->table('member').' where `scene_id`='.$id.' and `expired`<'.time();
-        $log->record($check_scene_id);
+    $db->begin();
 
-        if(!$db->fetchOne($check_scene_id))
-        {
-            $db->begin();
-            $scene_id = $id;
+    $data = array(
+        'scene_id' => $scene_id,
+        'expired' => time() + 10
+    );
 
-            $data = array(
-                'scene_id' => $scene_id,
-                'expired' => time() + 10
-            );
-
-            if($db->autoUpdate('member', $data, '`wx_openid`=\''.$openid.'\'')) {
-                $db->commit();
-                break;
-            } else {
-                $db->rollback();
-                continue;
-            }
-        }
+    if($db->autoUpdate('member', $data, '`wx_openid`=\''.$openid.'\' and `expired`<'.time())) {
+        $db->commit();
+    } else {
+        $db->rollback();
     }
-    //scene_id已满
-    if($scene_id == 0)
-    {
-        return false;
-    }
+
     //临时二维码申请
-    $data = '{"expire_seconds": 2592000, "action_name": "QR_SCENE", "action_info": {"scene": {"scene_id": '.$scene_id.'}}}';
+    $data = '{"expire_seconds": 2592000, "action_name": "QR_SCENE", "action_info": {"scene": {"scene_str": '.$scene_id.'}}}';
     $response = post('https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token='.$access_token, $data, false);
 
     $response = json_decode($response);

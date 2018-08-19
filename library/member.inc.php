@@ -255,3 +255,39 @@ function account_fill_zero($account, $length)
 
     return $account;
 }
+
+/**
+ * 金星会员升级
+ * @param $year
+ * @param $month
+ * @return bool
+ */
+function level_up($year, $month) {
+    global $db, $log, $config;
+
+    $get_nodes = 'select `account`,`level_id`,`sub_increment` from ('.
+        'select sum(a.`sub_increment`) as sub_increment,m.`account`,m.`level_id` from '.$db->table('achievement').' as a '.
+        ' left join '.$db->table('member').' as m on m.`id`=a.`recommend_id` where '.
+        ' a.`year`='.$year.' and a.`month`='.$month.' and a.`account`<>\'\' and m.`level_id`=5 group by m.`account`'.
+        ') as tmp_achievement where `sub_increment`>='.$config['level_6_experience'];
+
+    $log->record($get_nodes);
+    $nodes = $db->fetchAll($get_nodes);
+    $log->record_array($nodes);
+
+    if($nodes) {
+        $accounts = [];
+        while($node = array_shift($nodes)) {
+            array_push($accounts, $node['account']);
+        }
+
+        $member_data = [
+            'level_id' => 6, //升级到服务部
+            'level_expired' => time() //记录升级时间
+        ];
+
+        $db->autoUpdate('member', $member_data, '`account` in (\''.implode('\', \'', $accounts).'\') and `level_id`=5');
+    }
+
+    return true;
+}

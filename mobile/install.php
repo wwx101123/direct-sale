@@ -34,7 +34,7 @@ $sql[] = 'create table if not exists '.$db->table('member').' (
     `account` varchar(255) not null primary key,
     `password` varchar(255),
     `super_password` varchar(255),
-    `name` varchar(255),
+    `name` varchar(255) character set utf8mb4,
     `mobile` varchar(255),
     `email` varchar(255),
     `sex` char(2) not null default \'N\',
@@ -53,7 +53,7 @@ $sql[] = 'create table if not exists '.$db->table('member').' (
     `place` varchar(255),
     `place_id` int not null default \'0\',
     `place_path` text,
-    `wx_nickname` varchar(255),
+    `wx_nickname` varchar(255) character set utf8mb4,
     `wx_openid` varchar(255),
     `wx_unionid` varchar(255),
     `wx_headimg` varchar(255),
@@ -61,7 +61,7 @@ $sql[] = 'create table if not exists '.$db->table('member').' (
     `level_expired` bigint not null default \'0\',
     `lchild` varchar(255),
     `rchild` varchar(255),
-    `scene_id` int not null default \'0\',
+    `scene_id` varchar(255),
     `expired` int not null default \'0\',
     `ticket` varchar(255),
     `view_network` tinyint(1) not null default \'1\',
@@ -70,7 +70,8 @@ $sql[] = 'create table if not exists '.$db->table('member').' (
     index(`mobile`),
     index(`email`),
     index(`wx_openid`),
-    index(`wx_unionid`)
+    index(`wx_unionid`),
+    index(`scene_id`)
 ) default charset=utf8;';
 
 $table[] = '会员登录记录';

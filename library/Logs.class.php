@@ -34,7 +34,6 @@ class Logs
 
         $message = json_encode($array);
 
-        $message = substr($message, 0, strlen($message)-1);
         $formated = '['.date('Y-m-d H:i:s').'] %s'."\n";
         $message = sprintf($formated, $message);
 

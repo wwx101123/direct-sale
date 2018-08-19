@@ -1,0 +1,138 @@
+{include file="library/header.lbi"}
+<body>
+{include file="library/navbar.lbi"}
+{include file="library/sidebar.lbi"}
+
+<!-- content -->
+<div id="content">
+    <div class="content-title">
+        <h5 class="pull-left">{$subTitle}</h5>
+        <div class="clear"></div>
+    </div>
+    <div class="adminGroup-main">
+        {if $act eq 'view'}
+        <div class="article-main-header">
+            <form action="" method="get" />
+            <fieldset>
+                <p>
+                <div class="pull-left">
+                    显示
+                    <select name="count" class="w75">
+                        <option value="10" {if $count eq 10}selected="selected"{/if}>10</option>
+                        <option value="25" {if $count eq 25}selected="selected"{/if}>25</option>
+                        <option value="50" {if $count eq 50}selected="selected"{/if}>50</option>
+                        <option value="100" {if $count eq 100}selected="selected"{/if}>100</option>
+                    </select>
+                    项结果
+                </div>
+                <div class="pull-right">
+                    <label>会员编号：</label>
+                    <input class="text-input w150" type="text" id="small-input" name="account" value="{$account}">&nbsp;
+                    <label>时间：</label>
+                    <input class="text-input w150" type="text" id="begin_time" name="begin_time" value="{$begin_time}">&nbsp;
+                    <button type="submit" class="btn btn-default">搜索</button>
+                </div>
+                </p>
+            </fieldset>
+            </form>
+            <div class="clear"></div>
+            <fieldset>
+                <div class="pull-left">
+                    总计新增业绩：{$achievement_summary.increment} 总计重消业绩：{$achievement_summary.consume_increment}
+                </div>
+                <div class="clear"></div>
+            </fieldset>
+        </div>
+        {/if}
+        {if $act eq 'view'}
+        <table class="table">
+            <thead>
+            <tr>
+                <th></th>
+                <th>时间</th>
+                <th>会员账号</th>
+                <th>新增业绩</th>
+                <th>重消业绩</th>
+            </tr>
+            </thead>
+            <tbody>
+            {foreach from=$achievement_list item=achievement name=achievement_list}
+            <tr>
+                <td>{$smarty.foreach.achievement_list.iteration}</td>
+                <td>{$achievement.year}年{$achievement.month}月</td>
+                <td>{$achievement.account}</td>
+                <td>{$achievement.self_increment}</td>
+                <td>{$achievement.consume_increment}</td>
+            </tr>
+            {/foreach}
+            <tr>
+                <td></td>
+                <td></td>
+                <td>小计:</td>
+                <td>{$summary.self_increment}</td>
+                <td>{$summary.consume_increment}</td>
+            </tr>
+            <tr>
+                <td colspan="5">
+                    <div class="pull-right">
+                        <div class="pages">
+                            <span>共有{$total}条，{$totalPage}页，每页显示：{$count}条</span>
+                            {if $go_first}
+                            <a href="?page=1&account={$account}&count={$count}&status={$status}&type={$type}&begin_time={$begin_time}&end_time={$end_time}">首页</a>
+                            {/if}
+                            {if $has_prev}
+                            <a href="?page={$page - 1}&account={$account}&count={$count}&status={$status}&type={$type}&begin_time={$begin_time}&end_time={$end_time}">上一页</a>
+                            {/if}
+                            {if $has_many_prev}
+                            ...
+                            {/if}
+                            {foreach from=$show_page item=pageNum}
+                            {if $pageNum eq $page}
+                            <b>{$page}</b>
+                            {else}
+                            <a href="?page={$pageNum}&account={$account}&count={$count}&status={$status}&type={$type}&begin_time={$begin_time}&end_time={$end_time}">{$pageNum}</a>
+                            {/if}
+                            {/foreach}
+                            {if $has_many_next}
+                            ...
+                            {/if}
+                            {if $go_last}
+                            <a href="?page={$totalPage}&account={$account}&count={$count}&status={$status}&type={$type}&begin_time={$begin_time}&end_time={$end_time}">末页</a>
+                            {/if}
+                            {if $has_next}
+                            <a href="?page={$page + 1}&account={$account}&count={$count}&status={$status}&type={$type}&begin_time={$begin_time}&end_time={$end_time}">下一页</a>
+                            {/if}
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <script type="text/javascript" src="laydate/laydate.js"></script>
+        <script type="text/javascript">
+            var start = {
+                elem: '#begin_time',
+                format: 'yyyy-MM',
+                max: '9999-12-31 23:59:59', //最大日期
+                type: 'month',
+                istime: false,
+                istoday: true,
+                choose: function(datas){
+                    end.min = datas; //开始日选好后，重置结束日的最小日期
+                    end.start = datas //将结束日的初始值设定为开始日
+                    end.click;
+                }
+            };
+
+            laydate.render(start);
+        </script>
+        <script type="text/javascript">
+        </script>
+        {/if}
+    </div>
+</div>
+<!-- END content -->
+
+{include file="library/footer.lbi"}
+</body>
+</html>

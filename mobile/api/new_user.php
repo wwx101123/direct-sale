@@ -10,11 +10,11 @@ include 'library/init.inc.php';
 $log->record_array($_POST);
 $response = array('error'=>1, 'msg'=>'');
 $openid = getPOST('openid');
-$scene_id = intval(getPOST('scene_id'));
+$scene_id = trim(getPOST('scene_id'));
 
 $parent_id = 0;
 $account = '';
-if($scene_id > 0)
+if(!empty($scene_id))
 {
     $get_user = 'select `id`,`account` from ' . $db->table('member') . ' where `scene_id`=' . $scene_id;
     $log->record($get_user);
@@ -38,7 +38,7 @@ if(register_openid($openid, '', $parent_id))
     }
     $log->record('async user list, add new user with: openid='.$openid.',scene_id='.$scene_id);
     //发放推广奖励
-    if($account != '' && $config['recommend_integral'] > 0)
+    if($account != '' && isset($config['recommend_integral']) && $config['recommend_integral'] > 0)
     {
         /*
         if(add_recommend_integral($account, $config['recommend_integral'], '推荐新用户奖励'))

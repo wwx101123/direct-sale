@@ -14,8 +14,8 @@ back_base_init();
 $template = 'reward/';
 assign('subTitle', '奖金管理');
 
-$action = 'edit|add|view|delete|detail|dividend';
-$operation = 'edit|add|export|send|send_dividend';
+$action = 'edit|add|view|delete|detail|dividend|level_up';
+$operation = 'edit|add|export|send|send_dividend|level_up';
 
 $act = check_action($action, getGET('act'));
 $act = ( $act == '' ) ? 'view' : $act;
@@ -84,6 +84,28 @@ if($opera == 'send_dividend')
     }
 
 }
+
+if($opera == 'level_up')
+{
+    $settle_time = trim(getPOST('settle_time'));
+    $settle_time = strtotime($settle_time.'-01');
+
+    if(empty($settle_time)) {
+        show_system_message('月份无效');
+    }
+
+    $year = date('Y', $settle_time);
+    $month = date('n', $settle_time);
+
+    if(level_up($year, $month)) {
+        show_system_message('会员升级完成');
+    } else {
+        show_system_message('升级失败');
+    }
+
+}
+
+//=======================================================================================================
 
 if($opera == 'export')
 {
@@ -193,6 +215,12 @@ if($opera == 'export')
 if('dividend' == $act)
 {
     $smarty->display($template.'dividend.phtml');
+    exit;
+}
+
+if('level_up' == $act)
+{
+    $smarty->display($template.'level_up.phtml');
     exit;
 }
 

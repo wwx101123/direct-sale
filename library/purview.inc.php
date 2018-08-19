@@ -48,6 +48,11 @@ $purview = array(
     'pur_account' => array(
         'pur_account_view',
     ),
+
+    'pur_achievement' => array(
+        'pur_achievement_view'
+    ),
+
     'pur_admin' => array(
         'pur_admin_add',
         'pur_admin_view',
@@ -77,9 +82,9 @@ $purview = array(
         'pur_payment_del',
     ),
 
-    'pur_bank' => array(
-        'pur_bank_view'
-    ),
+//    'pur_bank' => array(
+//        'pur_bank_view'
+//    ),
 
     'pur_backup' => array(
         'pur_backup_view'
@@ -233,6 +238,9 @@ $L_purview = array(
 //    'pur_business_edit' => '编辑商户信息',
 //    'pur_business_exam' => '商户审核',
 //    'pur_business_frozen' => '冻结商户/解除冻结',
+
+    'pur_achievement' => '业绩管理',
+    'pur_achievement_view' => '业绩查看',
 
 
     'pur_adpos' => '广告位置',
@@ -419,6 +427,7 @@ $menus = array(
     'pur_wechat_rule' => array('url' => 'wechat_rule.php', 'title' => '回复规则管理', 'parent' => 'menu_wechat'),
     'pur_activity' => array('url' => 'activity.php', 'title' => '活动管理', 'parent' => 'menu_site'),
     'pur_backup' => array('url' => 'backup.php', 'title' => '数据库备份', 'parent' => 'menu_site'),
+    'pur_achievement' => array('url' => 'achievement.php', 'title' => '业绩查看', 'parent' => 'menu_account'),
 );
 
 global $topMenus;
